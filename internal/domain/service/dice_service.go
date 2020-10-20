@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/rand"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	model "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 

@@ -1,18 +1,13 @@
 package model
 
-import "gorm.io/gorm"
+import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
 type Game struct {
-	*gorm.Model
-	PlayerInTurn uint
-	Turn         int
-	Status       GameStatus
+	*datamodel.Game
+	Players []*Player
 }
 
-type GameStatus string
-
-const (
-	GS_WAITED   = "WAITED"
-	GS_STARTED  = "STARTED"
-	GS_FINISHED = "FINISHED"
-)
+func (g *Game) AddPlayer(player *Player) {
+	player.GameID = g.ID
+	g.Players = append(g.Players, player)
+}

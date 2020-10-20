@@ -1,4 +1,4 @@
-package form
+package request
 
 type PlayerForm struct {
 	ID          int

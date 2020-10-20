@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	model "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 )
 
 type ReadOnlyDiceRepository interface {

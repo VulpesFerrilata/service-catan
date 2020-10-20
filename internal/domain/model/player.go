@@ -1,12 +1,14 @@
 package model
 
-import "gorm.io/gorm"
+import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+
+func NewPlayer(userId uint) *Player {
+	player := new(Player)
+	player.Player = new(datamodel.Player)
+	player.UserID = userId
+	return player
+}
 
 type Player struct {
-	*gorm.Model
-	GameID      uint
-	UserID      uint
-	Color       string
-	TurnOrder   int
-	IsConfirmed bool
+	*datamodel.Player
 }
