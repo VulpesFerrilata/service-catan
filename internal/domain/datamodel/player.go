@@ -8,4 +8,5 @@ type Player struct {
 	UserID    uint
 	Color     string
 	TurnOrder int
+	IsLeft    bool
 }

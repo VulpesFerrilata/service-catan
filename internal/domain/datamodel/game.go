@@ -13,7 +13,7 @@ type Game struct {
 type GameStatus string
 
 const (
-	GS_WAITED   = "WAITED"
-	GS_STARTED  = "STARTED"
-	GS_FINISHED = "FINISHED"
+	GS_WAITING  GameStatus = "WAITING"
+	GS_STARTED  GameStatus = "STARTED"
+	GS_FINISHED GameStatus = "FINISHED"
 )

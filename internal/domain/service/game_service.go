@@ -9,6 +9,6 @@ import (
 
 type GameService interface {
 	GetGameRepository() repository.ReadOnlyGameRepository
-	Create(ctx context.Context) (*model.Game, error)
+	GetById(ctx context.Context, id uint) (*model.Game, error)
 	Save(ctx context.Context, game *model.Game) error
 }

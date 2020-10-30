@@ -9,5 +9,5 @@ import (
 
 type PlayerService interface {
 	GetPlayerRepository() repository.ReadOnlyPlayerRepository
-	Create(ctx context.Context, player *model.Player) error
+	Save(ctx context.Context, player *model.Player) error
 }

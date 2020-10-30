@@ -1,8 +1,9 @@
 package request
 
-type PlayerForm struct {
+type PlayerRequest struct {
 	ID          int
-	User        UserForm
+	GameID      int
+	UserID      int
 	Color       string
 	TurnOrder   int
 	IsConfirmed bool

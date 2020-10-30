@@ -1,6 +1,24 @@
 package response
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+)
+
+func NewGameResponse(game *model.Game) *GameResponse {
+	gameResponse := new(GameResponse)
+	gameResponse.ID = int(game.ID)
+	gameResponse.Host = int(game.Host)
+	gameResponse.PlayerInTurn = int(game.PlayerInTurn)
+	gameResponse.Status = game.Status
+
+	for _, player := range game.GetPlayers() {
+		playerResponse := NewPlayerResponse(player)
+		gameResponse.Players = append(gameResponse.Players, playerResponse)
+	}
+
+	return gameResponse
+}
 
 type GameResponse struct {
 	ID           int                  `json:"id"`
