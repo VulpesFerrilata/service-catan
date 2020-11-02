@@ -3,15 +3,15 @@ package repository
 import (
 	"context"
 
-	model "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
-type ReadOnlyDiceRepository interface {
+type SafeDiceRepository interface {
 	FindByGameId(ctx context.Context, gameId uint) ([]*model.Dice, error)
 }
 
 type DiceRepository interface {
-	ReadOnlyDiceRepository
-	Insert(ctx context.Context, dices ...*model.Dice) error
-	Save(ctx context.Context, dices ...*model.Dice) error
+	SafeDiceRepository
+	InsertOrUpdate(ctx context.Context, dice *model.Dice) error
+	Delete(ctx context.Context, dice *model.Dice) error
 }

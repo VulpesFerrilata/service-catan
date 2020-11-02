@@ -3,17 +3,16 @@ package repository
 import (
 	"context"
 
-	model "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
-type ReadOnlyPlayerRepository interface {
+type SafePlayerRepository interface {
 	GetByGameIdByUserId(ctx context.Context, gameId uint, userId uint) (*model.Player, error)
-	GetByUserId(ctx context.Context, userId uint) ([]*model.Player, error)
-	FindByGameId(ctx context.Context, gameId uint) (*model.Player, error)
+	FindByGameId(ctx context.Context, gameId uint) ([]*model.Player, error)
 }
 
 type PlayerRepository interface {
-	ReadOnlyPlayerRepository
-	Insert(ctx context.Context, players ...*model.Player) error
-	Save(ctx context.Context, players ...*model.Player) error
+	SafePlayerRepository
+	InsertOrUpdate(ctx context.Context, player *model.Player) error
+	Delete(ctx context.Context, player *model.Player) error
 }

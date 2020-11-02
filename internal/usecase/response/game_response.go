@@ -12,7 +12,10 @@ func NewGameResponse(game *model.Game) *GameResponse {
 	gameResponse.PlayerInTurn = int(game.PlayerInTurn)
 	gameResponse.Status = game.Status
 
-	for _, player := range game.GetPlayers() {
+	players := game.FilterPlayers(func(p *model.Player) bool {
+		return !p.IsRemoved()
+	})
+	for _, player := range players {
 		playerResponse := NewPlayerResponse(player)
 		gameResponse.Players = append(gameResponse.Players, playerResponse)
 	}

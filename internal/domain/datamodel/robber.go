@@ -13,7 +13,7 @@ type Robber struct {
 type RobberStatus string
 
 const (
-	RS_IDLE    = "IDLE"
-	RS_MOVING  = "MOVING"
-	RS_ROBBING = "ROBBING"
+	RS_IDLE = "IDLE"
+	RS_MOVE = "MOVE"
+	RS_ROB  = "ROB"
 )

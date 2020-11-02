@@ -12,7 +12,7 @@ type Player struct {
 	*datamodel.Player
 	game      *Game
 	user      *User
-	IsDeleted bool
+	isRemoved bool
 }
 
 func (p *Player) setGame(game *Game) {
@@ -25,10 +25,24 @@ func (p *Player) SetUser(user *User) {
 	p.user = user
 }
 
-func (p *Player) GetUser() *User {
+func (p Player) GetUser() *User {
 	return p.user
 }
 
+func (p Player) IsRemoved() bool {
+	return p.isRemoved
+}
+
+func (p *Player) Remove() {
+	p.isRemoved = true
+}
+
 func (p Player) IsHost() bool {
-	return p.game.Host == p.ID
+	minPlayerId := p.ID
+	for _, player := range p.game.players {
+		if player.ID < minPlayerId {
+			minPlayerId = player.ID
+		}
+	}
+	return p.ID == minPlayerId
 }

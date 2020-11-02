@@ -18,24 +18,21 @@ type CatanInteractor interface {
 
 func NewCatanInteractor(validate validator.Validate,
 	roomService service.RoomService,
-	gameService service.GameService,
-	playerService service.PlayerService,
+	gameAggregateService service.GameAggregateService,
 	userService user.UserService) CatanInteractor {
 	return &catanInteractor{
-		validate:      validate,
-		roomService:   roomService,
-		gameService:   gameService,
-		playerService: playerService,
-		userService:   userService,
+		validate:             validate,
+		roomService:          roomService,
+		gameAggregateService: gameAggregateService,
+		userService:          userService,
 	}
 }
 
 type catanInteractor struct {
-	validate      validator.Validate
-	roomService   service.RoomService
-	gameService   service.GameService
-	playerService service.PlayerService
-	userService   user.UserService
+	validate             validator.Validate
+	roomService          service.RoomService
+	gameAggregateService service.GameAggregateService
+	userService          user.UserService
 }
 
 func (ci catanInteractor) FindRooms(ctx context.Context, roomRequest *request.RoomRequest) (response.RoomsResponse, error) {
@@ -77,7 +74,7 @@ func (ci catanInteractor) CreateGame(ctx context.Context) (*response.GameRespons
 	user := model.NewUser(userPb)
 	player.SetUser(user)
 
-	if err := ci.gameService.Save(ctx, game); err != nil {
+	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
 	}
 
@@ -85,41 +82,38 @@ func (ci catanInteractor) CreateGame(ctx context.Context) (*response.GameRespons
 }
 
 func (ci catanInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := ci.gameService.GetById(ctx, uint(gameRequest.ID))
+	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
 
-	switch game.Status {
-	case datamodel.GS_STARTED:
-		return nil, errors.New("game has already started")
-	case datamodel.GS_FINISHED:
-		return nil, errors.New("game was finished")
-	}
+	players := game.FilterPlayers(func(p *model.Player) bool {
+		return true
+	})
+	if game.Status == datamodel.GS_WAITING && len(players) < 4 {
+		player := model.NewPlayer()
+		game.AddPlayer(player)
 
-	player := model.NewPlayer()
-	game.AddPlayer(player)
+		userId := 0 //todo: userid from context
+		userRequestPb := new(user.UserRequest)
+		userRequestPb.ID = int64(userId)
+		userPb, err := ci.userService.GetUserById(ctx, userRequestPb)
+		if err != nil {
+			return nil, err
+		}
+		user := model.NewUser(userPb)
+		player.SetUser(user)
 
-	userId := 0 //todo: userid from context
-
-	userRequestPb := new(user.UserRequest)
-	userRequestPb.ID = int64(userId)
-	userPb, err := ci.userService.GetUserById(ctx, userRequestPb)
-	if err != nil {
-		return nil, err
-	}
-	user := model.NewUser(userPb)
-	player.SetUser(user)
-
-	if err := ci.gameService.Save(ctx, game); err != nil {
-		return nil, err
+		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+			return nil, err
+		}
 	}
 
 	return response.NewGameResponse(game), nil
 }
 
 func (ci catanInteractor) StartGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := ci.gameService.GetById(ctx, uint(gameRequest.ID))
+	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -132,9 +126,11 @@ func (ci catanInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 	}
 
 	userId := uint(0) //todo: userid from context
-	player, err := game.GetPlayerByUserId(userId)
-	if err != nil {
-		return nil, err
+	player := game.FilterPlayers(func(p *model.Player) bool {
+		return p.UserID == userId
+	}).First()
+	if player == nil {
+		return nil, errors.New("player is not exists")
 	}
 	if !player.IsHost() {
 		return nil, errors.New("only host player can start game")
@@ -142,7 +138,7 @@ func (ci catanInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 
 	game.Init()
 
-	if err := ci.gameService.Save(ctx, game); err != nil {
+	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
 	}
 
@@ -150,32 +146,34 @@ func (ci catanInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 }
 
 func (ci catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := ci.gameService.GetById(ctx, uint(gameRequest.ID))
+	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
 
 	userId := uint(0) //todo: userid from context
-	player, err := game.GetPlayerByUserId(userId)
-	if err != nil {
-		return nil, errors.New("")
-	}
+	player := game.FilterPlayers(func(p *model.Player) bool {
+		return p.UserID == userId
+	}).First()
+	if player != nil {
+		switch game.Status {
+		case datamodel.GS_WAITING:
+			player.Remove()
 
-	switch game.Status {
-	case datamodel.GS_WAITING:
-		player.IsDeleted = true
+			players := game.FilterPlayers(func(p *model.Player) bool {
+				return !p.IsRemoved()
+			})
+			if len(players) == 0 {
+				game.Remove()
+			}
 
-		if game.GetPlayerQuantity() != 0 {
-			game.SwitchHost()
-		} else {
-			game.IsDeleted = true
+		case datamodel.GS_STARTED:
+			player.IsLeft = true
 		}
-	case datamodel.GS_STARTED:
-		player.IsLeft = true
-	}
 
-	if err := ci.gameService.Save(ctx, game); err != nil {
-		return nil, err
+		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+			return nil, err
+		}
 	}
 
 	return response.NewGameResponse(game), nil

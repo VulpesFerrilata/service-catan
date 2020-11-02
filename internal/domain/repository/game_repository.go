@@ -6,11 +6,12 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
-type ReadOnlyGameRepository interface {
+type SafeGameRepository interface {
 	GetById(ctx context.Context, id uint) (*model.Game, error)
 }
 
 type GameRepository interface {
-	ReadOnlyGameRepository
-	Insert(ctx context.Context, game *model.Game) error
+	SafeGameRepository
+	InsertOrUpdate(ctx context.Context, game *model.Game) error
+	Delete(ctx context.Context, game *model.Game) error
 }
