@@ -13,6 +13,6 @@ type Achievement struct {
 type AchievementType string
 
 const (
-	AT_LONGEST_ROAD = "LONGEST_ROAD"
-	AT_LARGEST_ARMY = "LARGEST_ARMY"
+	AT_LONGEST_ROAD AchievementType = "LONGEST_ROAD"
+	AT_LARGEST_ARMY AchievementType = "LARGEST_ARMY"
 )

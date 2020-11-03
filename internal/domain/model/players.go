@@ -2,19 +2,21 @@ package model
 
 type Players []*Player
 
-func (p Players) Append(player *Player) {
+func (p Players) append(player *Player) {
 	p = append(p, player)
 }
 
-func (p Players) Remove() {
+func (p Players) SetGame(game *Game) {
 	for _, player := range p {
-		player.Remove()
+		player.SetGame(game)
 	}
 }
 
-func (p Players) First() *Player {
-	if len(p) > 0 {
-		return p[0]
+func (p Players) GetByUserId(userId uint) *Player {
+	for _, player := range p {
+		if player.UserID == userId {
+			return player
+		}
 	}
 	return nil
 }

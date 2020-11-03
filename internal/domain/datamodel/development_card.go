@@ -4,9 +4,9 @@ import "gorm.io/gorm"
 
 type DevelopmentCard struct {
 	*gorm.Model
-	GameID          uint
-	PlayerID        uint
-	DevelopmentType DevelopmentType
+	GameID   uint
+	PlayerID uint
+	Type     DevelopmentType
 }
 
 type DevelopmentType string

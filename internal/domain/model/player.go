@@ -2,22 +2,29 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewPlayer() *Player {
+func NewPlayer(game *Game) *Player {
 	player := new(Player)
-	player.Player = new(datamodel.Player)
+	player.SetGame(game)
 	return player
 }
 
 type Player struct {
 	*datamodel.Player
-	game      *Game
-	user      *User
-	isRemoved bool
+	game             *Game
+	user             *User
+	achievements     Achievements
+	resourceCards    ResourceCards
+	developmentCards DevelopmentCards
+	isRemoved        bool
 }
 
-func (p *Player) setGame(game *Game) {
+func (p *Player) SetGame(game *Game) {
 	p.GameID = game.ID
 	p.game = game
+	game.players.append(p)
+	p.achievements.SetGame(game)
+	p.resourceCards.SetGame(game)
+	p.developmentCards.SetGame(game)
 }
 
 func (p *Player) SetUser(user *User) {
@@ -35,6 +42,9 @@ func (p Player) IsRemoved() bool {
 
 func (p *Player) Remove() {
 	p.isRemoved = true
+	if len(p.game.players) == 0 {
+		p.game.isRemoved = true
+	}
 }
 
 func (p Player) IsHost() bool {

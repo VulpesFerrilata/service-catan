@@ -7,8 +7,7 @@ import (
 )
 
 type SafePlayerRepository interface {
-	GetByGameIdByUserId(ctx context.Context, gameId uint, userId uint) (*model.Player, error)
-	FindByGameId(ctx context.Context, gameId uint) ([]*model.Player, error)
+	FindByGameId(ctx context.Context, gameId uint) (model.Players, error)
 }
 
 type PlayerRepository interface {

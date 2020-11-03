@@ -65,14 +65,9 @@ func (ci catanInteractor) CreateGame(ctx context.Context) (*response.GameRespons
 	if err != nil {
 		return nil, err
 	}
-
 	game := model.NewGame()
-
-	player := model.NewPlayer()
-	game.AddPlayer(player)
-
-	user := model.NewUser(userPb)
-	player.SetUser(user)
+	player := model.NewPlayer(game)
+	model.NewUser(player, userPb)
 
 	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
@@ -87,13 +82,8 @@ func (ci catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Gam
 		return nil, err
 	}
 
-	players := game.FilterPlayers(func(p *model.Player) bool {
-		return true
-	})
+	players := game.GetPlayers()
 	if game.Status == datamodel.GS_WAITING && len(players) < 4 {
-		player := model.NewPlayer()
-		game.AddPlayer(player)
-
 		userId := 0 //todo: userid from context
 		userRequestPb := new(user.UserRequest)
 		userRequestPb.ID = int64(userId)
@@ -101,8 +91,8 @@ func (ci catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Gam
 		if err != nil {
 			return nil, err
 		}
-		user := model.NewUser(userPb)
-		player.SetUser(user)
+		player := model.NewPlayer(game)
+		model.NewUser(player, userPb)
 
 		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 			return nil, err
@@ -126,9 +116,7 @@ func (ci catanInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 	}
 
 	userId := uint(0) //todo: userid from context
-	player := game.FilterPlayers(func(p *model.Player) bool {
-		return p.UserID == userId
-	}).First()
+	player := game.GetPlayers().GetByUserId(userId)
 	if player == nil {
 		return nil, errors.New("player is not exists")
 	}
@@ -152,21 +140,11 @@ func (ci catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.Ga
 	}
 
 	userId := uint(0) //todo: userid from context
-	player := game.FilterPlayers(func(p *model.Player) bool {
-		return p.UserID == userId
-	}).First()
+	player := game.GetPlayers().GetByUserId(userId)
 	if player != nil {
 		switch game.Status {
 		case datamodel.GS_WAITING:
 			player.Remove()
-
-			players := game.FilterPlayers(func(p *model.Player) bool {
-				return !p.IsRemoved()
-			})
-			if len(players) == 0 {
-				game.Remove()
-			}
-
 		case datamodel.GS_STARTED:
 			player.IsLeft = true
 		}

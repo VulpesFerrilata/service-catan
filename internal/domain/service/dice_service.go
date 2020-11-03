@@ -32,10 +32,6 @@ func (ds diceService) validate(ctx context.Context, dice *model.Dice) error {
 }
 
 func (ds diceService) Save(ctx context.Context, dice *model.Dice) error {
-	if dice.IsRemoved() {
-		return ds.diceRepository.Delete(ctx, dice)
-	}
-
 	if err := ds.validate(ctx, dice); err != nil {
 		return err
 	}

@@ -13,50 +13,31 @@ func NewGame() *Game {
 
 type Game struct {
 	*datamodel.Game
-	players   Players
-	dices     Dices
-	isRemoved bool
+	players          Players
+	dices            Dices
+	achievements     Achievements
+	resourceCards    ResourceCards
+	developmentCards DevelopmentCards
+	isRemoved        bool
 }
 
-func (g Game) FilterPlayers(f func(p *Player) bool) Players {
-	var players Players
-	for _, player := range g.players {
-		if f(player) {
-			players.Append(player)
-		}
-	}
-	return players
-}
-
-func (g *Game) AddPlayer(player *Player) {
-	player.setGame(g)
-	g.players.Append(player)
+func (g Game) GetPlayers() Players {
+	return g.players
 }
 
 func (g *Game) GetDices() Dices {
 	return g.dices
 }
 
-func (g *Game) AddDice(dice *Dice) {
-	dice.setGame(g)
-	g.dices.Append(dice)
-}
-
 func (g Game) IsRemoved() bool {
 	return g.isRemoved
-}
-
-func (g *Game) Remove() {
-	g.isRemoved = true
-	g.players.Remove()
-	g.dices.Remove()
 }
 
 func (g *Game) Init() {
 	g.Status = datamodel.GS_STARTED
 
-	dices := NewDices()
-	for _, dice := range dices {
-		g.AddDice(dice)
-	}
+	NewDices(g)
+	NewAchievements(g)
+	NewResourceCards(g)
+	NewDevelopmentCards(g)
 }

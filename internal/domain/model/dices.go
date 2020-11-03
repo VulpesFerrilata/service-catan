@@ -1,11 +1,11 @@
 package model
 
-func NewDices() Dices {
+func NewDices(game *Game) Dices {
 	var dices Dices
 
 	for i := 1; i <= 2; i++ {
-		dice := NewDice()
-		dices.Append(dice)
+		dice := NewDice(game)
+		dices.append(dice)
 	}
 
 	return dices
@@ -13,13 +13,13 @@ func NewDices() Dices {
 
 type Dices []*Dice
 
-func (d Dices) Append(dice *Dice) {
+func (d Dices) append(dice *Dice) {
 	d = append(d, dice)
 }
 
-func (d Dices) Remove() {
+func (d Dices) SetGame(game *Game) {
 	for _, dice := range d {
-		dice.Remove()
+		dice.SetGame(game)
 	}
 }
 

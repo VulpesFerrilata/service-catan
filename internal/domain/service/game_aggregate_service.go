@@ -29,8 +29,9 @@ func (gas gameAggregateService) GetById(ctx context.Context, id uint) (*model.Ga
 	if err != nil {
 		return nil, err
 	}
+	players.SetGame(game)
 	for _, player := range players {
-		game.AddPlayer(player)
+		player.SetGame(game)
 
 		userRequest := new(user.UserRequest)
 		userRequest.ID = int64(player.UserID)
@@ -38,17 +39,14 @@ func (gas gameAggregateService) GetById(ctx context.Context, id uint) (*model.Ga
 		if err != nil {
 			return nil, err
 		}
-		user := model.NewUser(userPb)
-		player.SetUser(user)
+		model.NewUser(player, userPb)
 	}
 
 	dices, err := gas.diceService.GetDiceRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
-	for _, dice := range dices {
-		game.AddDice(dice)
-	}
+	dices.SetGame(game)
 
 	return game, nil
 }
@@ -58,9 +56,7 @@ func (gas gameAggregateService) Save(ctx context.Context, game *model.Game) erro
 		return err
 	}
 
-	players := game.FilterPlayers(func(p *model.Player) bool {
-		return true
-	})
+	players := game.GetPlayers()
 	for _, player := range players {
 		if err := gas.playerService.Save(ctx, player); err != nil {
 			return err
