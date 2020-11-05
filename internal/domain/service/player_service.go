@@ -16,16 +16,16 @@ type playerService struct {
 	playerRepository repository.PlayerRepository
 }
 
-func (ps playerService) GetPlayerRepository() repository.SafePlayerRepository {
+func (ps *playerService) GetPlayerRepository() repository.SafePlayerRepository {
 	return ps.playerRepository
 }
 
-func (ps playerService) validate(ctx context.Context, player *model.Player) error {
+func (ps *playerService) validate(ctx context.Context, player *model.Player) error {
 	//TODO: validate player
 	return nil
 }
 
-func (ps playerService) Save(ctx context.Context, player *model.Player) error {
+func (ps *playerService) Save(ctx context.Context, player *model.Player) error {
 	if player.IsRemoved() {
 		return ps.playerRepository.Delete(ctx, player)
 	}

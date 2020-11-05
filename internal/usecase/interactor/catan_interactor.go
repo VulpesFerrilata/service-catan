@@ -65,9 +65,10 @@ func (ci catanInteractor) CreateGame(ctx context.Context) (*response.GameRespons
 	if err != nil {
 		return nil, err
 	}
+	user := model.NewUser(userPb)
+
 	game := model.NewGame()
-	player := model.NewPlayer(game)
-	model.NewUser(player, userPb)
+	model.NewPlayer(game, user)
 
 	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
@@ -91,8 +92,8 @@ func (ci catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Gam
 		if err != nil {
 			return nil, err
 		}
-		player := model.NewPlayer(game)
-		model.NewUser(player, userPb)
+		user := model.NewUser(userPb)
+		model.NewPlayer(game, user)
 
 		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 			return nil, err
@@ -116,7 +117,9 @@ func (ci catanInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 	}
 
 	userId := uint(0) //todo: userid from context
-	player := game.GetPlayers().GetByUserId(userId)
+	player := game.GetPlayers().Filter(func(player *model.Player) bool {
+		return player.UserID == userId
+	}).First()
 	if player == nil {
 		return nil, errors.New("player is not exists")
 	}
@@ -140,7 +143,9 @@ func (ci catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.Ga
 	}
 
 	userId := uint(0) //todo: userid from context
-	player := game.GetPlayers().GetByUserId(userId)
+	player := game.GetPlayers().Filter(func(player *model.Player) bool {
+		return player.UserID == userId
+	}).First()
 	if player != nil {
 		switch game.Status {
 		case datamodel.GS_WAITING:

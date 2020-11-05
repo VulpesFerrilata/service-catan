@@ -16,16 +16,16 @@ type gameService struct {
 	gameRepository repository.GameRepository
 }
 
-func (gs gameService) GetGameRepository() repository.SafeGameRepository {
+func (gs *gameService) GetGameRepository() repository.SafeGameRepository {
 	return gs.gameRepository
 }
 
-func (gs gameService) validate(ctx context.Context, game *model.Game) error {
+func (gs *gameService) validate(ctx context.Context, game *model.Game) error {
 	//TODO: validate game
 	return nil
 }
 
-func (gs gameService) Save(ctx context.Context, game *model.Game) error {
+func (gs *gameService) Save(ctx context.Context, game *model.Game) error {
 	if game.IsRemoved() {
 		return gs.gameRepository.Delete(ctx, game)
 	}

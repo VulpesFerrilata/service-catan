@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type ResourceCard struct {
 	*gorm.Model
 	GameID   uint
-	PlayerID uint
+	PlayerID *uint
 	Type     ResourceType
 }
 

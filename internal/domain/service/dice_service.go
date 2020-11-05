@@ -22,16 +22,16 @@ type diceService struct {
 	diceRepository repository.DiceRepository
 }
 
-func (ds diceService) GetDiceRepository() repository.SafeDiceRepository {
+func (ds *diceService) GetDiceRepository() repository.SafeDiceRepository {
 	return ds.diceRepository
 }
 
-func (ds diceService) validate(ctx context.Context, dice *model.Dice) error {
+func (ds *diceService) validate(ctx context.Context, dice *model.Dice) error {
 	//TODO: validate dice
 	return nil
 }
 
-func (ds diceService) Save(ctx context.Context, dice *model.Dice) error {
+func (ds *diceService) Save(ctx context.Context, dice *model.Dice) error {
 	if err := ds.validate(ctx, dice); err != nil {
 		return err
 	}

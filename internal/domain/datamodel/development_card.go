@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type DevelopmentCard struct {
 	*gorm.Model
 	GameID   uint
-	PlayerID uint
+	PlayerID *uint
 	Type     DevelopmentType
 }
 

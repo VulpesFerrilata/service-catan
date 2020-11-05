@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/grpc/protoc/user"
 )
 
 type GameAggregateService interface {
@@ -13,34 +12,26 @@ type GameAggregateService interface {
 }
 
 type gameAggregateService struct {
-	gameService   GameService
-	playerService PlayerService
-	userService   user.UserService
-	diceService   DiceService
+	gameService            GameService
+	playerAggregateService PlayerAggregateService
+	diceService            DiceService
+	achievementService     AchievementService
+	resourceCardService    ResourceCardService
+	developmentCardService DevelopmentCardService
+	robberService          RobberService
 }
 
-func (gas gameAggregateService) GetById(ctx context.Context, id uint) (*model.Game, error) {
+func (gas *gameAggregateService) GetById(ctx context.Context, id uint) (*model.Game, error) {
 	game, err := gas.gameService.GetGameRepository().GetById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	players, err := gas.playerService.GetPlayerRepository().FindByGameId(ctx, game.ID)
+	players, err := gas.playerAggregateService.FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	players.SetGame(game)
-	for _, player := range players {
-		player.SetGame(game)
-
-		userRequest := new(user.UserRequest)
-		userRequest.ID = int64(player.UserID)
-		userPb, err := gas.userService.GetUserById(ctx, userRequest)
-		if err != nil {
-			return nil, err
-		}
-		model.NewUser(player, userPb)
-	}
 
 	dices, err := gas.diceService.GetDiceRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
@@ -48,17 +39,41 @@ func (gas gameAggregateService) GetById(ctx context.Context, id uint) (*model.Ga
 	}
 	dices.SetGame(game)
 
+	achievements, err := gas.achievementService.GetAchievementRepository().FindByGameId(ctx, game.ID)
+	if err != nil {
+		return nil, err
+	}
+	achievements.SetGame(game)
+
+	resourceCards, err := gas.resourceCardService.GetResourceCardRepository().FindByGameId(ctx, game.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceCards.SetGame(game)
+
+	developmentCards, err := gas.developmentCardService.GetDevelopmentCardRepository().FindByGameId(ctx, game.ID)
+	if err != nil {
+		return nil, err
+	}
+	developmentCards.SetGame(game)
+
+	robber, err := gas.robberService.GetRobberRepository().GetByGameId(ctx, game.ID)
+	if err != nil {
+		return nil, err
+	}
+	robber.SetGame(game)
+
 	return game, nil
 }
 
-func (gas gameAggregateService) Save(ctx context.Context, game *model.Game) error {
+func (gas *gameAggregateService) Save(ctx context.Context, game *model.Game) error {
 	if err := gas.gameService.Save(ctx, game); err != nil {
 		return err
 	}
 
 	players := game.GetPlayers()
 	for _, player := range players {
-		if err := gas.playerService.Save(ctx, player); err != nil {
+		if err := gas.playerAggregateService.Save(ctx, player); err != nil {
 			return err
 		}
 	}
@@ -66,6 +81,27 @@ func (gas gameAggregateService) Save(ctx context.Context, game *model.Game) erro
 	dices := game.GetDices()
 	for _, dice := range dices {
 		if err := gas.diceService.Save(ctx, dice); err != nil {
+			return err
+		}
+	}
+
+	achievements := game.GetAchievements()
+	for _, achievement := range achievements {
+		if err := gas.achievementService.Save(ctx, achievement); err != nil {
+			return err
+		}
+	}
+
+	resourceCards := game.GetResourceCards()
+	for _, resourceCard := range resourceCards {
+		if err := gas.resourceCardService.Save(ctx, resourceCard); err != nil {
+			return err
+		}
+	}
+
+	developmentCards := game.GetDevelopmentCards()
+	for _, developmentCard := range developmentCards {
+		if err := gas.developmentCardService.Save(ctx, developmentCard); err != nil {
 			return err
 		}
 	}

@@ -10,21 +10,18 @@ func NewDevelopmentCards(game *Game) DevelopmentCards {
 		developmentCards.append(knightCard)
 	}
 
-	developmentTypes := []datamodel.DevelopmentType{
-		datamodel.DT_ROAD_BUILDING,
-		datamodel.DT_YEAR_OF_PLENTY,
-		datamodel.DT_MONOPOLY,
+	developmentTypes := map[datamodel.DevelopmentType]int{
+		datamodel.DT_VICTORY_POINTS: 5,
+		datamodel.DT_ROAD_BUILDING:  2,
+		datamodel.DT_YEAR_OF_PLENTY: 2,
+		datamodel.DT_MONOPOLY:       2,
 	}
-	for _, developmentType := range developmentTypes {
-		for i := 1; i <= 2; i++ {
+
+	for developmentType, quantity := range developmentTypes {
+		for i := 1; i <= quantity; i++ {
 			developmentCard := NewDevelopmentCard(game, developmentType)
 			developmentCards.append(developmentCard)
 		}
-	}
-
-	for i := 1; i <= 5; i++ {
-		victoryPointCard := NewDevelopmentCard(game, datamodel.DT_VICTORY_POINTS)
-		developmentCards.append(victoryPointCard)
 	}
 
 	return developmentCards
@@ -51,8 +48,14 @@ func (dc DevelopmentCards) SetGame(game *Game) {
 	}
 }
 
-func (dc DevelopmentCards) SetPlayer(player *Player) {
+type DevelopmentCardFilterFunc func(developmentCard *DevelopmentCard) bool
+
+func (dc DevelopmentCards) Filter(developmentCardFilterFunc DevelopmentCardFilterFunc) DevelopmentCards {
+	var developmentCards DevelopmentCards
 	for _, developmentCard := range dc {
-		developmentCard.SetPlayer(player)
+		if developmentCardFilterFunc(developmentCard) {
+			developmentCards.append(developmentCard)
+		}
 	}
+	return developmentCards
 }

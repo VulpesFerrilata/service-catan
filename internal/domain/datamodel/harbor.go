@@ -4,11 +4,11 @@ import "gorm.io/gorm"
 
 type Harbor struct {
 	*gorm.Model
-	Q          int
-	R          int
-	HarborType HarborType
-	FieldQ     int
-	FieldR     int
+	Q      int
+	R      int
+	Type   HarborType
+	FieldQ int
+	FieldR int
 }
 
 type HarborType string

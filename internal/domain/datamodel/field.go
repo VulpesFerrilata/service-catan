@@ -4,11 +4,11 @@ import "gorm.io/gorm"
 
 type Field struct {
 	*gorm.Model
-	GameID    uint
-	Q         int
-	R         int
-	Number    int
-	FieldType FieldType
+	GameID uint
+	Q      int
+	R      int
+	Number int
+	Type   FieldType
 }
 
 type FieldType string

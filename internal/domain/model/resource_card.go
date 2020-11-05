@@ -6,40 +6,23 @@ func NewResourceCard(game *Game, resourceType datamodel.ResourceType) *ResourceC
 	resourceCard := new(ResourceCard)
 	resourceCard.Type = resourceType
 	resourceCard.SetGame(game)
-	resourceCard.SetPlayer(nil)
 	return resourceCard
 }
 
 type ResourceCard struct {
 	*datamodel.ResourceCard
-	game   *Game
-	player *Player
+	game *Game
 }
 
 func (rc *ResourceCard) SetGame(game *Game) {
 	rc.GameID = game.ID
 	rc.game = game
 
-	if rc.player == nil {
-		rc.game.resourceCards.append(rc)
-	}
+	rc.game.resourceCards.append(rc)
 }
 
-func (rc *ResourceCard) SetPlayer(player *Player) {
-	if rc.player != nil {
-		rc.player.resourceCards.remove(rc)
-	}
-	if rc.game != nil {
-		rc.game.resourceCards.remove(rc)
-	}
-
-	if player != nil {
-		rc.PlayerID = player.ID
-		rc.player = player
-		player.resourceCards.append(rc)
-	} else {
-		rc.PlayerID = 0
-		rc.player = nil
-		rc.game.resourceCards.append(rc)
-	}
+func (rc *ResourceCard) GetPlayer() *Player {
+	return rc.game.players.Filter(func(player *Player) bool {
+		return player.ID == *rc.PlayerID
+	}).First()
 }

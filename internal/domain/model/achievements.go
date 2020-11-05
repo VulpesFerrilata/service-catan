@@ -33,8 +33,14 @@ func (a Achievements) SetGame(game *Game) {
 	}
 }
 
-func (a Achievements) SetPlayer(player *Player) {
+type AchievementFilterFunc func(achievement *Achievement) bool
+
+func (a Achievements) Filter(achievementFilterFunc AchievementFilterFunc) Achievements {
+	var achievements Achievements
 	for _, achievement := range a {
-		achievement.SetPlayer(player)
+		if achievementFilterFunc(achievement) {
+			achievements.append(achievement)
+		}
 	}
+	return achievements
 }

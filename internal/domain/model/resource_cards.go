@@ -5,15 +5,15 @@ import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 func NewResourceCards(game *Game) ResourceCards {
 	var resourceCards ResourceCards
 
-	resourceTypes := []datamodel.ResourceType{
-		datamodel.RT_BRICK,
-		datamodel.RT_GRAIN,
-		datamodel.RT_SHEEP,
-		datamodel.RT_STONE,
-		datamodel.RT_WOOD,
+	resourceTypes := map[datamodel.ResourceType]int{
+		datamodel.RT_BRICK: 19,
+		datamodel.RT_GRAIN: 19,
+		datamodel.RT_SHEEP: 19,
+		datamodel.RT_STONE: 19,
+		datamodel.RT_WOOD:  19,
 	}
-	for _, resourceType := range resourceTypes {
-		for i := 1; i <= 19; i++ {
+	for resourceType, quantity := range resourceTypes {
+		for i := 1; i <= quantity; i++ {
 			resourceCard := NewResourceCard(game, resourceType)
 			resourceCards.append(resourceCard)
 		}
@@ -43,8 +43,14 @@ func (rc ResourceCards) SetGame(game *Game) {
 	}
 }
 
-func (rc ResourceCards) SetPlayer(player *Player) {
+type ResourceCardFilterFunc func(resourceCard *ResourceCard) bool
+
+func (rc ResourceCards) Filter(resourceCardFilterFunc ResourceCardFilterFunc) ResourceCards {
+	var resourceCards ResourceCards
 	for _, resourceCard := range rc {
-		resourceCard.SetPlayer(player)
+		if resourceCardFilterFunc(resourceCard) {
+			resourceCards.append(resourceCard)
+		}
 	}
+	return resourceCards
 }

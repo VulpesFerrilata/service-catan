@@ -18,10 +18,12 @@ type Game struct {
 	achievements     Achievements
 	resourceCards    ResourceCards
 	developmentCards DevelopmentCards
+	robber           *Robber
+	fields           Fields
 	isRemoved        bool
 }
 
-func (g Game) GetPlayers() Players {
+func (g *Game) GetPlayers() Players {
 	return g.players
 }
 
@@ -29,7 +31,27 @@ func (g *Game) GetDices() Dices {
 	return g.dices
 }
 
-func (g Game) IsRemoved() bool {
+func (g *Game) GetAchievements() Achievements {
+	return g.achievements
+}
+
+func (g *Game) GetResourceCards() ResourceCards {
+	return g.resourceCards
+}
+
+func (g *Game) GetDevelopmentCards() DevelopmentCards {
+	return g.developmentCards
+}
+
+func (g *Game) GetRobber() *Robber {
+	return g.robber
+}
+
+func (g *Game) GetFields() Fields {
+	return g.fields
+}
+
+func (g *Game) IsRemoved() bool {
 	return g.isRemoved
 }
 
