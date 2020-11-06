@@ -4,11 +4,15 @@ import (
 	"log"
 
 	"github.com/VulpesFerrilata/catan/infrastructure/container"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/kataras/iris/v12"
 	"github.com/micro/go-micro/v2/web"
 )
 
 func main() {
+	game := model.NewGame()
+	game.Init()
+
 	container := container.NewContainer()
 
 	if err := container.Invoke(func(app *iris.Application) error {

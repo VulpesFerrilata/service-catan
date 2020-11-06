@@ -1,6 +1,8 @@
 package model
 
 import (
+	"math/rand"
+
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 )
 
@@ -18,8 +20,11 @@ type Game struct {
 	achievements     Achievements
 	resourceCards    ResourceCards
 	developmentCards DevelopmentCards
-	robber           *Robber
 	fields           Fields
+	robber           *Robber
+	constructions    Constructions
+	roads            Roads
+	harbors          Harbors
 	isRemoved        bool
 }
 
@@ -43,12 +48,24 @@ func (g *Game) GetDevelopmentCards() DevelopmentCards {
 	return g.developmentCards
 }
 
+func (g *Game) GetFields() Fields {
+	return g.fields
+}
+
 func (g *Game) GetRobber() *Robber {
 	return g.robber
 }
 
-func (g *Game) GetFields() Fields {
-	return g.fields
+func (g *Game) GetConstructions() Constructions {
+	return g.constructions
+}
+
+func (g *Game) GetRoads() Roads {
+	return g.roads
+}
+
+func (g *Game) GetHarbors() Harbors {
+	return g.harbors
 }
 
 func (g *Game) IsRemoved() bool {
@@ -62,4 +79,24 @@ func (g *Game) Init() {
 	NewAchievements(g)
 	NewResourceCards(g)
 	NewDevelopmentCards(g)
+	NewFields(g)
+	NewRobber(g)
+	NewConstructions(g)
+	NewRoads(g)
+	NewHarbors(g)
+
+	colors := []string{
+		"#ff0000",
+		"#0000ff",
+		"#ffffff",
+		"#000000",
+	}
+	rand.Shuffle(len(g.players), func(i, j int) { g.players[i], g.players[j] = g.players[j], g.players[i] })
+	for idx, player := range g.players {
+		player.TurnOrder = idx + 1
+		player.Color = colors[idx]
+	}
+
+	g.Turn = 1
+	g.PlayerInTurn = g.players[0].ID
 }

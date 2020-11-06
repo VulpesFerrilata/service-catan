@@ -2,8 +2,8 @@ package model
 
 type Players []*Player
 
-func (p Players) append(player *Player) {
-	p = append(p, player)
+func (p *Players) append(player *Player) {
+	*p = append(*p, player)
 }
 
 func (p Players) SetGame(game *Game) {

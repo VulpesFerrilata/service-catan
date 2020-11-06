@@ -3,7 +3,7 @@ package datamodel
 import "gorm.io/gorm"
 
 type Robber struct {
-	*gorm.Model
+	gorm.Model
 	GameID uint
 	Q      int
 	R      int

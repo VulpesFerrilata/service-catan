@@ -29,30 +29,21 @@ func NewDevelopmentCards(game *Game) DevelopmentCards {
 
 type DevelopmentCards []*DevelopmentCard
 
-func (dc DevelopmentCards) append(developmentCard *DevelopmentCard) {
-	dc = append(dc, developmentCard)
+func (dc *DevelopmentCards) append(developmentCard *DevelopmentCard) {
+	*dc = append(*dc, developmentCard)
 }
 
-func (dc DevelopmentCards) remove(developmentCard *DevelopmentCard) {
-	for idx := range dc {
-		if dc[idx] == developmentCard {
-			dc = append(dc[:idx], dc[idx+1:]...)
-			return
-		}
-	}
-}
-
-func (dc DevelopmentCards) SetGame(game *Game) {
-	for _, developmentCard := range dc {
+func (dc *DevelopmentCards) SetGame(game *Game) {
+	for _, developmentCard := range *dc {
 		developmentCard.SetGame(game)
 	}
 }
 
 type DevelopmentCardFilterFunc func(developmentCard *DevelopmentCard) bool
 
-func (dc DevelopmentCards) Filter(developmentCardFilterFunc DevelopmentCardFilterFunc) DevelopmentCards {
+func (dc *DevelopmentCards) Filter(developmentCardFilterFunc DevelopmentCardFilterFunc) DevelopmentCards {
 	var developmentCards DevelopmentCards
-	for _, developmentCard := range dc {
+	for _, developmentCard := range *dc {
 		if developmentCardFilterFunc(developmentCard) {
 			developmentCards.append(developmentCard)
 		}

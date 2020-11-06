@@ -8,6 +8,7 @@ import (
 
 func NewDice(game *Game) *Dice {
 	dice := new(Dice)
+	dice.Dice = new(datamodel.Dice)
 	dice.Number = 1
 	dice.SetGame(game)
 	return dice
@@ -19,7 +20,6 @@ type Dice struct {
 }
 
 func (d *Dice) SetGame(game *Game) {
-	d.GameID = game.ID
 	d.game = game
 	game.dices.append(d)
 }

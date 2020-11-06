@@ -15,9 +15,8 @@ type Field struct {
 }
 
 func (f *Field) SetGame(game *Game) {
-	f.GameID = game.ID
 	f.game = game
-	f.game.fields.append(f)
+	game.fields.append(f)
 }
 
 func (f *Field) HasRobber() bool {

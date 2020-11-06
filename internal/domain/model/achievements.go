@@ -14,30 +14,21 @@ func NewAchievements(game *Game) Achievements {
 
 type Achievements []*Achievement
 
-func (a Achievements) append(achievement *Achievement) {
-	a = append(a, achievement)
+func (a *Achievements) append(achievement *Achievement) {
+	*a = append(*a, achievement)
 }
 
-func (a Achievements) remove(achievement *Achievement) {
-	for idx := range a {
-		if a[idx] == achievement {
-			a = append(a[:idx], a[idx+1:]...)
-			return
-		}
-	}
-}
-
-func (a Achievements) SetGame(game *Game) {
-	for _, achievement := range a {
+func (a *Achievements) SetGame(game *Game) {
+	for _, achievement := range *a {
 		achievement.SetGame(game)
 	}
 }
 
 type AchievementFilterFunc func(achievement *Achievement) bool
 
-func (a Achievements) Filter(achievementFilterFunc AchievementFilterFunc) Achievements {
+func (a *Achievements) Filter(achievementFilterFunc AchievementFilterFunc) Achievements {
 	var achievements Achievements
-	for _, achievement := range a {
+	for _, achievement := range *a {
 		if achievementFilterFunc(achievement) {
 			achievements.append(achievement)
 		}

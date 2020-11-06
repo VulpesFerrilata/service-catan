@@ -24,17 +24,8 @@ func NewResourceCards(game *Game) ResourceCards {
 
 type ResourceCards []*ResourceCard
 
-func (rc ResourceCards) append(resourceCard *ResourceCard) {
-	rc = append(rc, resourceCard)
-}
-
-func (rc ResourceCards) remove(resourceCard *ResourceCard) {
-	for idx := range rc {
-		if rc[idx] == resourceCard {
-			rc = append(rc[:idx], rc[idx+1:]...)
-			return
-		}
-	}
+func (rc *ResourceCards) append(resourceCard *ResourceCard) {
+	*rc = append(*rc, resourceCard)
 }
 
 func (rc ResourceCards) SetGame(game *Game) {

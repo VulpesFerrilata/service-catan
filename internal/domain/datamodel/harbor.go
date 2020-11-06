@@ -3,7 +3,8 @@ package datamodel
 import "gorm.io/gorm"
 
 type Harbor struct {
-	*gorm.Model
+	gorm.Model
+	GameID uint
 	Q      int
 	R      int
 	Type   HarborType

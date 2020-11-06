@@ -3,9 +3,9 @@ package datamodel
 import "gorm.io/gorm"
 
 type Construction struct {
-	*gorm.Model
+	gorm.Model
 	GameID           uint
-	PlayerID         uint
+	PlayerID         *uint
 	Q                int
 	R                int
 	Location         ConstructionLocation

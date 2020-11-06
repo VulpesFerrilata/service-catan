@@ -3,7 +3,7 @@ package datamodel
 import "gorm.io/gorm"
 
 type Game struct {
-	*gorm.Model
+	gorm.Model
 	Host         uint
 	PlayerInTurn uint
 	Turn         int

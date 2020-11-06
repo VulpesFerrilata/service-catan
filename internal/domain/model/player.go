@@ -12,16 +12,12 @@ func NewPlayer(game *Game, user *User) *Player {
 
 type Player struct {
 	*datamodel.Player
-	game             *Game
-	user             *User
-	achievements     Achievements
-	resourceCards    ResourceCards
-	developmentCards DevelopmentCards
-	isRemoved        bool
+	game      *Game
+	user      *User
+	isRemoved bool
 }
 
 func (p *Player) SetGame(game *Game) {
-	p.GameID = game.ID
 	p.game = game
 	game.players.append(p)
 }
