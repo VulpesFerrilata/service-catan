@@ -26,9 +26,9 @@ func (a *Achievements) SetGame(game *Game) {
 
 type AchievementFilterFunc func(achievement *Achievement) bool
 
-func (a *Achievements) Filter(achievementFilterFunc AchievementFilterFunc) Achievements {
+func (a Achievements) Filter(achievementFilterFunc AchievementFilterFunc) Achievements {
 	var achievements Achievements
-	for _, achievement := range *a {
+	for _, achievement := range a {
 		if achievementFilterFunc(achievement) {
 			achievements.append(achievement)
 		}

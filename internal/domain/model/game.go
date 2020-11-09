@@ -20,7 +20,7 @@ type Game struct {
 	achievements     Achievements
 	resourceCards    ResourceCards
 	developmentCards DevelopmentCards
-	fields           Fields
+	terrains         Terrains
 	robber           *Robber
 	constructions    Constructions
 	roads            Roads
@@ -48,8 +48,8 @@ func (g *Game) GetDevelopmentCards() DevelopmentCards {
 	return g.developmentCards
 }
 
-func (g *Game) GetFields() Fields {
-	return g.fields
+func (g *Game) GetTerrains() Terrains {
+	return g.terrains
 }
 
 func (g *Game) GetRobber() *Robber {
@@ -91,9 +91,18 @@ func (g *Game) Init() {
 		"#ffffff",
 		"#000000",
 	}
-	rand.Shuffle(len(g.players), func(i, j int) { g.players[i], g.players[j] = g.players[j], g.players[i] })
+	rand.Shuffle(len(colors), func(i, j int) { colors[i], colors[j] = colors[j], colors[i] })
+
+	orders := []int{
+		1,
+		2,
+		3,
+		4,
+	}
+	rand.Shuffle(len(orders), func(i, j int) { orders[i], orders[j] = orders[j], orders[i] })
+
 	for idx, player := range g.players {
-		player.TurnOrder = idx + 1
+		player.TurnOrder = orders[idx]
 		player.Color = colors[idx]
 	}
 

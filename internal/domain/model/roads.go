@@ -55,3 +55,24 @@ func (r *Roads) SetGame(game *Game) {
 		road.SetGame(game)
 	}
 }
+
+type RoadFilterFunc func(road *Road) bool
+
+func (r Roads) Filter(roadFilterFunc RoadFilterFunc) Roads {
+	var roads Roads
+
+	for _, road := range r {
+		if roadFilterFunc(road) {
+			roads.append(road)
+		}
+	}
+
+	return roads
+}
+
+func (r Roads) First() *Road {
+	if len(r) > 0 {
+		return r[0]
+	}
+	return nil
+}

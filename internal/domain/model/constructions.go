@@ -46,3 +46,17 @@ func (c *Constructions) SetGame(game *Game) {
 		construction.SetGame(game)
 	}
 }
+
+type ConstructionFilterFunc func(construction *Construction) bool
+
+func (c Constructions) Filter(constructionFilterFunc ConstructionFilterFunc) Constructions {
+	var constructions Constructions
+
+	for _, construction := range c {
+		if constructionFilterFunc(construction) {
+			constructions.append(construction)
+		}
+	}
+
+	return constructions
+}

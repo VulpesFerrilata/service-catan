@@ -78,14 +78,23 @@ func (ci catanInteractor) CreateGame(ctx context.Context) (*response.GameRespons
 }
 
 func (ci catanInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+	userId := 0 //todo: userid from context
+
 	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
 
 	players := game.GetPlayers()
+
+	player := players.Filter(func(player *model.Player) bool {
+		return player.UserID == uint(userId)
+	}).First()
+	if player != nil {
+		return response.NewGameResponse(game), nil
+	}
+
 	if game.Status == datamodel.GS_WAITING && len(players) < 4 {
-		userId := 0 //todo: userid from context
 		userRequestPb := new(user.UserRequest)
 		userRequestPb.ID = int64(userId)
 		userPb, err := ci.userService.GetUserById(ctx, userRequestPb)
@@ -157,6 +166,45 @@ func (ci catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.Ga
 		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 			return nil, err
 		}
+	}
+
+	return response.NewGameResponse(game), nil
+}
+
+func (ci catanInteractor) RollDices(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+	userId := 0
+
+	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+	if err != nil {
+		return nil, err
+	}
+
+	player := game.GetPlayers().Filter(func(player *model.Player) bool {
+		return player.UserID == uint(userId)
+	}).First()
+	if player == nil {
+		return nil, errors.New("player is not exists")
+	}
+	if !player.IsInTurn() {
+		return nil, errors.New("player is not in turn")
+	}
+
+	number := player.RollDices()
+	if number == 7 {
+
+	} else {
+		terrains := game.GetTerrains().Filter(func(terrain *model.Terrain) bool {
+			return terrain.Number == number
+		})
+		for _, terrain := range terrains {
+			if !terrain.HasRobber() {
+
+			}
+		}
+	}
+
+	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+		return nil, err
 	}
 
 	return response.NewGameResponse(game), nil

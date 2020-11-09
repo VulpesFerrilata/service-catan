@@ -4,7 +4,6 @@ import "gorm.io/gorm"
 
 type Dice struct {
 	gorm.Model
-	GameID   uint
-	Number   int
-	IsRolled bool
+	GameID uint
+	Number int
 }

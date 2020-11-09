@@ -18,7 +18,7 @@ type gameAggregateService struct {
 	achievementService     AchievementService
 	resourceCardService    ResourceCardService
 	developmentCardService DevelopmentCardService
-	fieldService           FieldService
+	terrainService         TerrainService
 	robberService          RobberService
 	constructionService    ConstructionService
 	roadService            RoadService
@@ -61,11 +61,11 @@ func (gas *gameAggregateService) GetById(ctx context.Context, id uint) (*model.G
 	}
 	developmentCards.SetGame(game)
 
-	fields, err := gas.fieldService.GetFieldRepository().FindByGameId(ctx, game.ID)
+	terrains, err := gas.terrainService.GetFieldRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
-	fields.SetGame(game)
+	terrains.SetGame(game)
 
 	robber, err := gas.robberService.GetRobberRepository().GetByGameId(ctx, game.ID)
 	if err != nil {
@@ -139,10 +139,10 @@ func (gas *gameAggregateService) Save(ctx context.Context, game *model.Game) err
 		}
 	}
 
-	fields := game.GetFields()
-	for _, field := range fields {
-		field.GameID = game.ID
-		if err := gas.fieldService.Save(ctx, field); err != nil {
+	terrains := game.GetTerrains()
+	for _, terrain := range terrains {
+		terrain.GameID = game.ID
+		if err := gas.terrainService.Save(ctx, terrain); err != nil {
 			return err
 		}
 	}

@@ -7,8 +7,8 @@ func NewRobber(game *Game) *Robber {
 	robber.Robber = new(datamodel.Robber)
 	robber.Status = datamodel.RS_IDLE
 
-	desertField := game.fields.Filter(func(field *Field) bool {
-		if field.Type == datamodel.FT_DESERT {
+	desertField := game.terrains.Filter(func(terrain *Terrain) bool {
+		if terrain.Type == datamodel.TT_DESERT {
 			return true
 		}
 		return false

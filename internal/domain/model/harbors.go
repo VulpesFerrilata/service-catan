@@ -103,3 +103,17 @@ func (h *Harbors) SetGame(game *Game) {
 		harbor.SetGame(game)
 	}
 }
+
+type HarborFilterFunc func(harbor *Harbor) bool
+
+func (h Harbors) Filter(harborFilterFunc HarborFilterFunc) Harbors {
+	var harbors Harbors
+
+	for _, harbor := range h {
+		if harborFilterFunc(harbor) {
+			harbors.append(harbor)
+		}
+	}
+
+	return harbors
+}

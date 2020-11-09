@@ -41,9 +41,9 @@ func (dc *DevelopmentCards) SetGame(game *Game) {
 
 type DevelopmentCardFilterFunc func(developmentCard *DevelopmentCard) bool
 
-func (dc *DevelopmentCards) Filter(developmentCardFilterFunc DevelopmentCardFilterFunc) DevelopmentCards {
+func (dc DevelopmentCards) Filter(developmentCardFilterFunc DevelopmentCardFilterFunc) DevelopmentCards {
 	var developmentCards DevelopmentCards
-	for _, developmentCard := range *dc {
+	for _, developmentCard := range dc {
 		if developmentCardFilterFunc(developmentCard) {
 			developmentCards.append(developmentCard)
 		}
