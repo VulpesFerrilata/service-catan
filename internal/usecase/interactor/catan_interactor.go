@@ -189,16 +189,61 @@ func (ci catanInteractor) RollDices(ctx context.Context, gameRequest *request.Ga
 		return nil, errors.New("player is not in turn")
 	}
 
-	number := player.RollDices()
-	if number == 7 {
+	player.IsRolledDices = true
+	dices := game.GetDices()
+
+	dices.Roll()
+	totalNumber := dices.GetTotalNumber()
+
+	if totalNumber == 7 {
 
 	} else {
 		terrains := game.GetTerrains().Filter(func(terrain *model.Terrain) bool {
-			return terrain.Number == number
+			return terrain.Number == totalNumber && !terrain.HasRobber()
 		})
 		for _, terrain := range terrains {
-			if !terrain.HasRobber() {
+			constructions := terrain.GetAdjacentConstructions().Filter(func(construction *model.Construction) bool {
+				return construction.PlayerID != nil
+			})
+			resourceCards := game.GetResourceCards().Filter(func(resourceCard *model.ResourceCard) bool {
+				var resourceType datamodel.ResourceType
+				switch terrain.Type {
+				case datamodel.TT_FOREST:
+					resourceType = datamodel.RT_LUMBER
+				case datamodel.TT_HILL:
+					resourceType = datamodel.RT_BRICK
+				case datamodel.TT_PASTURE:
+					resourceType = datamodel.RT_WOOL
+				case datamodel.TT_FIELD:
+					resourceType = datamodel.RT_GRAIN
+				case datamodel.TT_MOUNTAIN:
+					resourceType = datamodel.RT_ORE
+				}
+				return resourceCard.PlayerID == nil && resourceCard.Type == resourceType
+			})
 
+			resourceCardsDemand := 0
+			for _, construction := range constructions {
+				resourceCardsDemand++
+				if construction.IsUpgradedCastle {
+					resourceCardsDemand++
+				}
+			}
+			if resourceCardsDemand > len(resourceCards) {
+				continue
+			}
+
+			resourceCardIdx := 0
+			for _, construction := range constructions {
+				resourceDispatchQuantity := 1
+				if construction.IsUpgradedCastle {
+					resourceDispatchQuantity++
+				}
+
+				for i := 1; i <= resourceDispatchQuantity; i++ {
+					resourceCards[resourceCardIdx].PlayerID = construction.PlayerID
+					resourceCardIdx++
+				}
 			}
 		}
 	}

@@ -12,9 +12,9 @@ type ResourceCard struct {
 type ResourceType string
 
 const (
-	RT_BRICK ResourceType = "BRICK"
-	RT_GRAIN ResourceType = "GRAIN"
-	RT_SHEEP ResourceType = "SHEEP"
-	RT_STONE ResourceType = "STONE"
-	RT_WOOD  ResourceType = "WOOD"
+	RT_LUMBER ResourceType = "LUMBER"
+	RT_BRICK  ResourceType = "BRICK"
+	RT_WOOL   ResourceType = "WOOL"
+	RT_GRAIN  ResourceType = "GRAIN"
+	RT_ORE    ResourceType = "ORE"
 )

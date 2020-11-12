@@ -73,8 +73,3 @@ func (p *Player) IsHost() bool {
 func (p *Player) IsInTurn() bool {
 	return p.game.PlayerInTurn == p.ID
 }
-
-func (p *Player) RollDices() int {
-	p.IsRolledDices = true
-	return p.game.dices.roll()
-}

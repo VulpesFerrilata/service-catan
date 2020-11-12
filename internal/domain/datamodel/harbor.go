@@ -15,10 +15,10 @@ type Harbor struct {
 type HarborType string
 
 const (
-	HT_BRICK   HarborType = "BRICK"
-	HT_GRAIN   HarborType = "GRAIN"
-	HT_SHEEP   HarborType = "SHEEP"
-	HT_STONE   HarborType = "STONE"
-	HT_WOOD    HarborType = "WOOD"
 	HT_GENERAL HarborType = "GENERAL"
+	HT_LUMBER  HarborType = "LUMBER"
+	HT_BRICK   HarborType = "BRICK"
+	HT_WOOL    HarborType = "WOOL"
+	HT_GRAIN   HarborType = "GRAIN"
+	HT_ORE     HarborType = "ORE"
 )

@@ -6,11 +6,11 @@ func NewResourceCards(game *Game) ResourceCards {
 	var resourceCards ResourceCards
 
 	resourceTypes := map[datamodel.ResourceType]int{
-		datamodel.RT_BRICK: 19,
-		datamodel.RT_GRAIN: 19,
-		datamodel.RT_SHEEP: 19,
-		datamodel.RT_STONE: 19,
-		datamodel.RT_WOOD:  19,
+		datamodel.RT_LUMBER: 19,
+		datamodel.RT_BRICK:  19,
+		datamodel.RT_WOOL:   19,
+		datamodel.RT_GRAIN:  19,
+		datamodel.RT_ORE:    19,
 	}
 	for resourceType, quantity := range resourceTypes {
 		for i := 1; i <= quantity; i++ {

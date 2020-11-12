@@ -73,12 +73,12 @@ func NewHarbors(game *Game) Harbors {
 	harbors.append(ninthHarbor)
 
 	harborTypes := map[datamodel.HarborType]int{
-		datamodel.HT_WOOD:    1,
-		datamodel.HT_BRICK:   1,
-		datamodel.HT_SHEEP:   1,
-		datamodel.HT_GRAIN:   1,
-		datamodel.HT_STONE:   1,
 		datamodel.HT_GENERAL: 4,
+		datamodel.HT_LUMBER:  1,
+		datamodel.HT_BRICK:   1,
+		datamodel.HT_WOOL:    1,
+		datamodel.HT_GRAIN:   1,
+		datamodel.HT_ORE:     1,
 	}
 	rand.Shuffle(len(harbors), func(i, j int) { harbors[i], harbors[j] = harbors[j], harbors[i] })
 	harborIdx := 0

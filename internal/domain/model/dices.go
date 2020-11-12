@@ -23,15 +23,13 @@ func (d *Dices) SetGame(game *Game) {
 	}
 }
 
-func (d *Dices) roll() int {
-	sum := 0
+func (d *Dices) Roll() {
 	for _, dice := range *d {
-		sum += dice.roll()
+		dice.Roll()
 	}
-	return sum
 }
 
-func (d *Dices) Total() int {
+func (d *Dices) GetTotalNumber() int {
 	total := 0
 	for _, dice := range *d {
 		total += dice.Number

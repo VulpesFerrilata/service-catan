@@ -24,7 +24,7 @@ func (d *Dice) SetGame(game *Game) {
 	game.dices.append(d)
 }
 
-func (d *Dice) roll() int {
+func (d *Dice) Roll() int {
 	d.Number = rand.Intn(6) + 1
 	return d.Number
 }

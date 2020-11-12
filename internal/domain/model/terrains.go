@@ -27,7 +27,7 @@ func NewFields(game *Game) Terrains {
 		}
 	}
 
-	normalTerrains, specialTerrains, desertTerrain := terrains.split()
+	normalTerrains, specialTerrains, desertTerrain := terrains.splitRandomly()
 
 	desertTerrain.Type = datamodel.TT_DESERT
 	desertTerrain.Number = 7
@@ -93,7 +93,7 @@ func (t *Terrains) append(terrain *Terrain) {
 	*t = append(*t, terrain)
 }
 
-func (t *Terrains) split() (Terrains, Terrains, *Terrain) {
+func (t *Terrains) splitRandomly() (Terrains, Terrains, *Terrain) {
 	var specialFields Terrains
 	var normalFields Terrains
 	var desertField *Terrain
