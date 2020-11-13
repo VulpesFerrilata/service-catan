@@ -11,16 +11,16 @@ func NewConstructions(game *Game) Constructions {
 		for q := minQ; q <= maxQ; q++ {
 			if (r > 0 && q != minQ && q != maxQ) || r > 3 {
 				topConstruction := NewConstruction(game)
-				topConstruction.Q = q
-				topConstruction.R = r
-				topConstruction.Location = datamodel.CL_TOP
+				topConstruction.construction.Q = q
+				topConstruction.construction.R = r
+				topConstruction.construction.Location = datamodel.CL_TOP
 				constructions.append(topConstruction)
 			}
 			if (r < 6 && q != minQ && q != maxQ) || r < 3 {
 				botConstruction := NewConstruction(game)
-				botConstruction.Q = q
-				botConstruction.R = r
-				botConstruction.Location = datamodel.CL_BOT
+				botConstruction.construction.Q = q
+				botConstruction.construction.R = r
+				botConstruction.construction.Location = datamodel.CL_BOT
 				constructions.append(botConstruction)
 			}
 		}

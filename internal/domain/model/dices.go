@@ -32,7 +32,7 @@ func (d *Dices) Roll() {
 func (d *Dices) GetTotalNumber() int {
 	total := 0
 	for _, dice := range *d {
-		total += dice.Number
+		total += dice.dice.Number
 	}
 	return total
 }

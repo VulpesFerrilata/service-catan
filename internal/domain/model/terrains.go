@@ -15,8 +15,8 @@ func NewFields(game *Game) Terrains {
 	for r := 1; r <= 5; r++ {
 		for q := minQ; q <= maxQ; q++ {
 			terrain := NewTerrain(game)
-			terrain.Q = q
-			terrain.R = r
+			terrain.terrain.Q = q
+			terrain.terrain.R = r
 			terrains.append(terrain)
 		}
 
@@ -29,8 +29,8 @@ func NewFields(game *Game) Terrains {
 
 	normalTerrains, specialTerrains, desertTerrain := terrains.splitRandomly()
 
-	desertTerrain.Type = datamodel.TT_DESERT
-	desertTerrain.Number = 7
+	desertTerrain.terrain.Type = datamodel.TT_DESERT
+	desertTerrain.terrain.Number = 7
 
 	specialNumbers := map[int]int{
 		6: 2,
@@ -40,7 +40,7 @@ func NewFields(game *Game) Terrains {
 	specialTerrainIdx := 0
 	for specialNumber, quantity := range specialNumbers {
 		for i := 1; i <= quantity; i++ {
-			specialTerrains[specialTerrainIdx].Number = specialNumber
+			specialTerrains[specialTerrainIdx].terrain.Number = specialNumber
 			specialTerrainIdx++
 		}
 	}
@@ -59,7 +59,7 @@ func NewFields(game *Game) Terrains {
 	normalTerrainIdx := 0
 	for numbers, quantity := range numbers {
 		for i := 1; i <= quantity; i++ {
-			normalTerrains[normalTerrainIdx].Number = numbers
+			normalTerrains[normalTerrainIdx].terrain.Number = numbers
 			normalTerrainIdx++
 		}
 	}
@@ -76,10 +76,10 @@ func NewFields(game *Game) Terrains {
 	terrainIdx := 0
 	for terrainType, quantity := range terrainTypes {
 		for i := 1; i <= quantity; i++ {
-			if terrains[terrainIdx].Type == datamodel.TT_DESERT {
+			if terrains[terrainIdx].terrain.Type == datamodel.TT_DESERT {
 				terrainIdx++
 			}
-			terrains[terrainIdx].Type = terrainType
+			terrains[terrainIdx].terrain.Type = terrainType
 			terrainIdx++
 		}
 	}
@@ -114,7 +114,7 @@ func (t *Terrains) splitRandomly() (Terrains, Terrains, *Terrain) {
 		specialField := whitelistFields[idx]
 		specialFields.append(specialField)
 		whitelistFields = whitelistFields.Filter(func(terrain *Terrain) bool {
-			if math.Abs(float64(terrain.Q-specialField.Q)) <= 1 && math.Abs(float64(terrain.R-specialField.R)) <= 1 {
+			if math.Abs(float64(terrain.GetQ()-specialField.GetQ())) <= 1 && math.Abs(float64(terrain.GetR()-specialField.GetR())) <= 1 {
 				return false
 			}
 			return true

@@ -11,25 +11,25 @@ func NewRoads(game *Game) Roads {
 		for q := minQ; q <= maxQ; q++ {
 			if (r > 0 && q != maxQ) || r > 3 {
 				topRoad := NewRoad(game)
-				topRoad.Q = q
-				topRoad.R = r
-				topRoad.Location = datamodel.RL_TOP_LEFT
+				topRoad.road.Q = q
+				topRoad.road.R = r
+				topRoad.road.Location = datamodel.RL_TOP_LEFT
 				roads.append(topRoad)
 			}
 
 			if r > 0 && r < 6 {
 				midRoad := NewRoad(game)
-				midRoad.Q = q
-				midRoad.R = r
-				midRoad.Location = datamodel.RL_MID_LEFT
+				midRoad.road.Q = q
+				midRoad.road.R = r
+				midRoad.road.Location = datamodel.RL_MID_LEFT
 				roads.append(midRoad)
 			}
 
 			if (r < 6 && q != maxQ) || r < 3 {
 				botRoad := NewRoad(game)
-				botRoad.Q = q
-				botRoad.R = r
-				botRoad.Location = datamodel.RL_BOT_LEFT
+				botRoad.road.Q = q
+				botRoad.road.R = r
+				botRoad.road.Location = datamodel.RL_BOT_LEFT
 				roads.append(botRoad)
 			}
 		}
