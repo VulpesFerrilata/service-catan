@@ -2,7 +2,7 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewResourceCards(game *Game) ResourceCards {
+func NewResourceCards() ResourceCards {
 	var resourceCards ResourceCards
 
 	resourceTypes := map[datamodel.ResourceType]int{
@@ -14,7 +14,8 @@ func NewResourceCards(game *Game) ResourceCards {
 	}
 	for resourceType, quantity := range resourceTypes {
 		for i := 1; i <= quantity; i++ {
-			resourceCard := NewResourceCard(game, resourceType)
+			resourceCard := NewResourceCard()
+			resourceCard.resourceCard.Type = resourceType
 			resourceCards.append(resourceCard)
 		}
 	}
@@ -26,12 +27,6 @@ type ResourceCards []*ResourceCard
 
 func (rc *ResourceCards) append(resourceCard *ResourceCard) {
 	*rc = append(*rc, resourceCard)
-}
-
-func (rc ResourceCards) SetGame(game *Game) {
-	for _, resourceCard := range rc {
-		resourceCard.SetGame(game)
-	}
 }
 
 type ResourceCardFilterFunc func(resourceCard *ResourceCard) bool

@@ -2,11 +2,10 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewConstruction(game *Game) *Construction {
+func NewConstruction() *Construction {
 	construction := new(Construction)
 	construction.construction = new(datamodel.Construction)
 	construction.construction.IsUpgradedCastle = false
-	construction.SetGame(game)
 	return construction
 }
 
@@ -24,26 +23,19 @@ func (c *Construction) GetId() uint {
 	return c.construction.ID
 }
 
-func (c *Construction) GetGameId() uint {
+func (c *Construction) GetGameId() *uint {
 	return c.construction.GameID
 }
 
-func (c *Construction) setGameId(gameId uint) {
-	if c.construction.GameID != gameId {
-		c.construction.GameID = gameId
-		c.isModified = true
+func (c *Construction) setGame(game *Game) {
+	if game != nil {
+		c.construction.GameID = &game.game.ID
+		c.game = game
 	}
 }
 
 func (c *Construction) GetPlayerId() *uint {
 	return c.construction.PlayerID
-}
-
-func (c *Construction) SetPlayerId(playerId *uint) {
-	if c.construction.PlayerID != playerId {
-		c.construction.PlayerID = playerId
-		c.isModified = true
-	}
 }
 
 func (c *Construction) GetQ() int {
@@ -73,11 +65,6 @@ func (c *Construction) IsModified() bool {
 	return c.isModified
 }
 
-func (c *Construction) SetGame(game *Game) {
-	c.game = game
-	game.constructions.append(c)
-}
-
 func (c *Construction) GetPlayer() *Player {
 	if c.GetPlayerId() == nil {
 		return nil
@@ -86,4 +73,13 @@ func (c *Construction) GetPlayer() *Player {
 	return c.game.players.Filter(func(player *Player) bool {
 		return player.GetId() == *c.GetPlayerId()
 	}).First()
+}
+
+func (c *Construction) SetPlayer(player *Player) {
+	if player == nil {
+		c.construction.PlayerID = nil
+	} else {
+		c.construction.PlayerID = &player.player.ID
+	}
+	c.isModified = true
 }

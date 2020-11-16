@@ -2,10 +2,9 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewRoad(game *Game) *Road {
+func NewRoad() *Road {
 	road := new(Road)
 	road.road = new(datamodel.Road)
-	road.SetGame(game)
 	return road
 }
 
@@ -23,26 +22,19 @@ func (r *Road) GetId() uint {
 	return r.road.ID
 }
 
-func (r *Road) GetGameId() uint {
+func (r *Road) GetGameId() *uint {
 	return r.road.GameID
 }
 
-func (r *Road) setGameId(gameId uint) {
-	if r.road.GameID != gameId {
-		r.road.GameID = gameId
-		r.isModified = true
+func (r *Road) setGame(game *Game) {
+	if game != nil {
+		r.road.GameID = &game.game.ID
+		r.game = game
 	}
 }
 
 func (r *Road) GetPlayerId() *uint {
 	return r.road.PlayerID
-}
-
-func (r *Road) SetPlayerId(playerId *uint) {
-	if r.road.PlayerID != playerId {
-		r.road.PlayerID = playerId
-		r.isModified = true
-	}
 }
 
 func (r *Road) GetQ() int {
@@ -61,11 +53,6 @@ func (r *Road) IsModified() bool {
 	return r.isModified
 }
 
-func (r *Road) SetGame(game *Game) {
-	r.game = game
-	game.roads.append(r)
-}
-
 func (r *Road) GetPlayer(game *Game) *Player {
 	if r.GetPlayerId() == nil {
 		return nil
@@ -74,6 +61,15 @@ func (r *Road) GetPlayer(game *Game) *Player {
 	return r.game.players.Filter(func(player *Player) bool {
 		return player.GetId() == *r.GetPlayerId()
 	}).First()
+}
+
+func (r *Road) SetPlayer(player *Player) {
+	if player == nil {
+		r.road.PlayerID = nil
+	} else {
+		r.road.PlayerID = &player.player.ID
+	}
+	r.isModified = true
 }
 
 func (r *Road) GetAdjacentConstructions() Constructions {

@@ -1,12 +1,12 @@
 package model
 
-func NewAchievements(game *Game) Achievements {
+func NewAchievements() Achievements {
 	var achievements Achievements
 
-	longestRoadAchievement := NewLongestRoadAchievement(game)
+	longestRoadAchievement := NewLongestRoadAchievement()
 	achievements.append(longestRoadAchievement)
 
-	largestArmyAchievement := NewLargestArmyAchievement(game)
+	largestArmyAchievement := NewLargestArmyAchievement()
 	achievements.append(largestArmyAchievement)
 
 	return achievements
@@ -16,12 +16,6 @@ type Achievements []*Achievement
 
 func (a *Achievements) append(achievement *Achievement) {
 	*a = append(*a, achievement)
-}
-
-func (a *Achievements) SetGame(game *Game) {
-	for _, achievement := range *a {
-		achievement.SetGame(game)
-	}
 }
 
 type AchievementFilterFunc func(achievement *Achievement) bool

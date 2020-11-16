@@ -7,14 +7,14 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 )
 
-func NewFields(game *Game) Terrains {
+func NewTerrains() Terrains {
 	var terrains Terrains
 
 	minQ := 1
 	maxQ := 3
 	for r := 1; r <= 5; r++ {
 		for q := minQ; q <= maxQ; q++ {
-			terrain := NewTerrain(game)
+			terrain := NewTerrain()
 			terrain.terrain.Q = q
 			terrain.terrain.R = r
 			terrains.append(terrain)
@@ -134,12 +134,6 @@ func (t *Terrains) splitRandomly() (Terrains, Terrains, *Terrain) {
 	})
 
 	return normalFields, specialFields, desertField
-}
-
-func (t *Terrains) SetGame(game *Game) {
-	for _, terrain := range *t {
-		terrain.SetGame(game)
-	}
 }
 
 type TerrainFilterFunc func(terrain *Terrain) bool

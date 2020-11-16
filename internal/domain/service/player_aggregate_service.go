@@ -28,7 +28,7 @@ func (pas *playerAggregateService) FindByGameId(ctx context.Context, gameId uint
 
 	for _, player := range players {
 		userRequest := new(user.UserRequest)
-		userRequest.ID = int64(player.UserID)
+		userRequest.ID = int64(player.GetUserId())
 		userPb, err := pas.userService.GetUserById(ctx, userRequest)
 		if err != nil {
 			return nil, err

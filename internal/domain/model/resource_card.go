@@ -2,11 +2,9 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewResourceCard(game *Game, resourceType datamodel.ResourceType) *ResourceCard {
+func NewResourceCard() *ResourceCard {
 	resourceCard := new(ResourceCard)
 	resourceCard.resourceCard = new(datamodel.ResourceCard)
-	resourceCard.resourceCard.Type = resourceType
-	resourceCard.SetGame(game)
 	return resourceCard
 }
 
@@ -24,26 +22,19 @@ func (rc *ResourceCard) GetId() uint {
 	return rc.resourceCard.ID
 }
 
-func (rc *ResourceCard) GetGameId() uint {
+func (rc *ResourceCard) GetGameId() *uint {
 	return rc.resourceCard.GameID
 }
 
-func (rc *ResourceCard) setGameId(gameId uint) {
-	if rc.resourceCard.GameID != gameId {
-		rc.resourceCard.GameID = gameId
-		rc.isModified = true
+func (rc *ResourceCard) setGame(game *Game) {
+	if game != nil {
+		rc.resourceCard.GameID = &game.game.ID
+		rc.game = game
 	}
 }
 
 func (rc *ResourceCard) GetPlayerId() *uint {
 	return rc.resourceCard.PlayerID
-}
-
-func (rc *ResourceCard) SetPlayerId(playerId *uint) {
-	if rc.resourceCard.PlayerID != playerId {
-		rc.resourceCard.PlayerID = playerId
-		rc.isModified = true
-	}
 }
 
 func (rc *ResourceCard) GetType() datamodel.ResourceType {
@@ -54,11 +45,6 @@ func (rc *ResourceCard) IsModified() bool {
 	return rc.isModified
 }
 
-func (rc *ResourceCard) SetGame(game *Game) {
-	rc.game = game
-	game.resourceCards.append(rc)
-}
-
 func (rc *ResourceCard) GetPlayer() *Player {
 	if rc.GetPlayerId() == nil {
 		return nil
@@ -67,4 +53,13 @@ func (rc *ResourceCard) GetPlayer() *Player {
 	return rc.game.players.Filter(func(player *Player) bool {
 		return player.GetId() == *rc.GetPlayerId()
 	}).First()
+}
+
+func (rc *ResourceCard) SetPlayer(player *Player) {
+	if player == nil {
+		rc.resourceCard.PlayerID = nil
+	} else {
+		rc.resourceCard.PlayerID = &player.player.ID
+	}
+	rc.isModified = true
 }

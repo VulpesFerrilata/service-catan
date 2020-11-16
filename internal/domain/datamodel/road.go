@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Road struct {
 	gorm.Model
-	GameID   uint
+	GameID   *uint
 	PlayerID *uint
 	Q        int
 	R        int

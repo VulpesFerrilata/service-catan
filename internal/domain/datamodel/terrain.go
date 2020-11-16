@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Terrain struct {
 	gorm.Model
-	GameID uint
+	GameID *uint
 	Q      int
 	R      int
 	Number int

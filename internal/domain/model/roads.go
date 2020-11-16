@@ -2,7 +2,7 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewRoads(game *Game) Roads {
+func NewRoads() Roads {
 	var roads Roads
 
 	minQ := 2
@@ -10,7 +10,7 @@ func NewRoads(game *Game) Roads {
 	for r := 0; r <= 6; r++ {
 		for q := minQ; q <= maxQ; q++ {
 			if (r > 0 && q != maxQ) || r > 3 {
-				topRoad := NewRoad(game)
+				topRoad := NewRoad()
 				topRoad.road.Q = q
 				topRoad.road.R = r
 				topRoad.road.Location = datamodel.RL_TOP_LEFT
@@ -18,7 +18,7 @@ func NewRoads(game *Game) Roads {
 			}
 
 			if r > 0 && r < 6 {
-				midRoad := NewRoad(game)
+				midRoad := NewRoad()
 				midRoad.road.Q = q
 				midRoad.road.R = r
 				midRoad.road.Location = datamodel.RL_MID_LEFT
@@ -26,7 +26,7 @@ func NewRoads(game *Game) Roads {
 			}
 
 			if (r < 6 && q != maxQ) || r < 3 {
-				botRoad := NewRoad(game)
+				botRoad := NewRoad()
 				botRoad.road.Q = q
 				botRoad.road.R = r
 				botRoad.road.Location = datamodel.RL_BOT_LEFT
@@ -48,12 +48,6 @@ type Roads []*Road
 
 func (r *Roads) append(road *Road) {
 	*r = append(*r, road)
-}
-
-func (r *Roads) SetGame(game *Game) {
-	for _, road := range *r {
-		road.SetGame(game)
-	}
 }
 
 type RoadFilterFunc func(road *Road) bool

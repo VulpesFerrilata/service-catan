@@ -1,10 +1,10 @@
 package model
 
-func NewDices(game *Game) Dices {
+func NewDices() Dices {
 	var dices Dices
 
 	for i := 1; i <= 2; i++ {
-		dice := NewDice(game)
+		dice := NewDice()
 		dices.append(dice)
 	}
 
@@ -17,10 +17,13 @@ func (d *Dices) append(dice *Dice) {
 	*d = append(*d, dice)
 }
 
-func (d *Dices) SetGame(game *Game) {
-	for _, dice := range *d {
-		dice.SetGame(game)
+func (d Dices) IsRolled() bool {
+	for _, dice := range d {
+		if !dice.IsRolled() {
+			return false
+		}
 	}
+	return true
 }
 
 func (d *Dices) Roll() {

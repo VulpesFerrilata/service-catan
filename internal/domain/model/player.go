@@ -24,23 +24,18 @@ func (p *Player) GetId() uint {
 	return p.player.ID
 }
 
-func (p *Player) GetGameId() uint {
+func (p *Player) GetGameId() *uint {
 	return p.player.GameID
 }
 
-func (p *Player) setGameId(gameId uint) {
-	if p.player.GameID != gameId {
-		p.player.GameID = gameId
-		p.isModified = true
+func (p *Player) setGame(game *Game) {
+	if game != nil {
+		p.player.GameID = &game.game.ID
+		p.game = game
 	}
 }
 
-func (p *Player) SetGame(game *Game) {
-	p.game = game
-	game.players.append(p)
-}
-
-func (p *Player) GetUserId() uint {
+func (p *Player) GetUserId() *uint {
 	return p.player.UserID
 }
 
@@ -48,8 +43,18 @@ func (p *Player) GetColor() string {
 	return p.player.Color
 }
 
+func (p *Player) SetColor(color string) {
+	p.player.Color = color
+	p.isModified = true
+}
+
 func (p *Player) GetTurnOrder() int {
 	return p.player.TurnOrder
+}
+
+func (p *Player) SetTurnOrder(turnOrder int) {
+	p.player.TurnOrder = turnOrder
+	p.isModified = true
 }
 
 func (p *Player) IsLeft() bool {
@@ -63,16 +68,17 @@ func (p *Player) Leave() {
 	}
 }
 
-func (p *Player) SetUser(user *User) {
-	if user != nil && p.player.UserID != user.ID {
-		p.player.UserID = user.ID
-		p.isModified = true
-	}
-	p.user = user
-}
-
 func (p *Player) GetUser() *User {
 	return p.user
+}
+
+func (p *Player) SetUser(user *User) {
+	if user == nil {
+		p.player.UserID = nil
+	} else {
+		p.player.UserID = &user.ID
+	}
+	p.user = user
 }
 
 func (p *Player) GetAchievements() Achievements {
@@ -115,5 +121,5 @@ func (p *Player) IsHost() bool {
 }
 
 func (p *Player) IsInTurn() bool {
-	return p.game.PlayerInTurn == p.GetId()
+	return p.game.GetPlayerInTurn() == p.GetId()
 }

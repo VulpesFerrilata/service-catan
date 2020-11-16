@@ -33,14 +33,14 @@ func (r *Robber) GetId() uint {
 	return r.robber.ID
 }
 
-func (r *Robber) GetGameId() uint {
+func (r *Robber) GetGameId() *uint {
 	return r.robber.GameID
 }
 
-func (r *Robber) setGameId(gameId uint) {
-	if r.robber.GameID != gameId {
-		r.robber.GameID = gameId
-		r.isModified = true
+func (r *Robber) setGame(game *Game) {
+	if game != nil {
+		r.robber.GameID = &game.game.ID
+		r.game = game
 	}
 }
 
@@ -65,9 +65,4 @@ func (r *Robber) SetStatus(robberStatus datamodel.RobberStatus) {
 
 func (r *Robber) IsModified() bool {
 	return r.isModified
-}
-
-func (r *Robber) SetGame(game *Game) {
-	r.game = game
-	game.robber = r
 }

@@ -6,12 +6,6 @@ func (p *Players) append(player *Player) {
 	*p = append(*p, player)
 }
 
-func (p Players) SetGame(game *Game) {
-	for _, player := range p {
-		player.SetGame(game)
-	}
-}
-
 type PlayerFilterFunc func(player *Player) bool
 
 func (p Players) Filter(playerFilterFunc PlayerFilterFunc) Players {

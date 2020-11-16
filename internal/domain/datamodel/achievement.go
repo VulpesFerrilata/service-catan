@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Achievement struct {
 	gorm.Model
-	GameID      uint
+	GameID      *uint
 	PlayerID    *uint
 	Type        AchievementType
 	BonusPoints int

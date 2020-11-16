@@ -5,10 +5,9 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/pkg/math"
 )
 
-func NewHarbor(game *Game) *Harbor {
+func NewHarbor() *Harbor {
 	harbor := new(Harbor)
 	harbor.harbor = new(datamodel.Harbor)
-	harbor.SetGame(game)
 	return harbor
 }
 
@@ -26,14 +25,14 @@ func (h *Harbor) GetId() uint {
 	return h.harbor.ID
 }
 
-func (h *Harbor) GetGameId() uint {
+func (h *Harbor) GetGameId() *uint {
 	return h.harbor.GameID
 }
 
-func (h *Harbor) setGameId(gameId uint) {
-	if h.harbor.GameID != gameId {
-		h.harbor.GameID = gameId
-		h.isModified = true
+func (h *Harbor) setGame(game *Game) {
+	if game != nil {
+		h.harbor.GameID = &game.game.ID
+		h.game = game
 	}
 }
 
@@ -59,11 +58,6 @@ func (h *Harbor) GetFieldR() int {
 
 func (h *Harbor) IsModified() bool {
 	return h.isModified
-}
-
-func (h *Harbor) SetGame(game *Game) {
-	h.game = game
-	game.harbors.append(h)
 }
 
 func (h *Harbor) GetIntersectRoad() *Road {

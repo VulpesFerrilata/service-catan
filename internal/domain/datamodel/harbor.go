@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Harbor struct {
 	gorm.Model
-	GameID uint
+	GameID *uint
 	Q      int
 	R      int
 	Type   HarborType

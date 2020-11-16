@@ -2,10 +2,9 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewTerrain(game *Game) *Terrain {
+func NewTerrain() *Terrain {
 	terrain := new(Terrain)
 	terrain.terrain = new(datamodel.Terrain)
-	terrain.SetGame(game)
 	return terrain
 }
 
@@ -23,14 +22,14 @@ func (t *Terrain) GetId() uint {
 	return t.terrain.ID
 }
 
-func (t *Terrain) GetGameId() uint {
+func (t *Terrain) GetGameId() *uint {
 	return t.terrain.GameID
 }
 
-func (t *Terrain) setGameId(gameId uint) {
-	if t.terrain.GameID != gameId {
-		t.terrain.GameID = gameId
-		t.isModified = true
+func (t *Terrain) setGame(game *Game) {
+	if game != nil {
+		t.terrain.GameID = &game.game.ID
+		t.game = game
 	}
 }
 
@@ -52,11 +51,6 @@ func (t *Terrain) GetType() datamodel.TerrainType {
 
 func (t *Terrain) IsModified() bool {
 	return t.isModified
-}
-
-func (t *Terrain) SetGame(game *Game) {
-	t.game = game
-	game.terrains.append(t)
 }
 
 func (t *Terrain) HasRobber() bool {
