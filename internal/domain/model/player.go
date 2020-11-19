@@ -83,19 +83,51 @@ func (p *Player) SetUser(user *User) {
 
 func (p *Player) GetAchievements() Achievements {
 	return p.game.achievements.Filter(func(achievement *Achievement) bool {
-		return achievement.GetPlayerId() == &p.player.ID
+		playerId := achievement.GetPlayerId()
+		if playerId == nil {
+			return false
+		}
+		return *playerId == p.GetId()
 	})
 }
 
 func (p *Player) GetDevelopmentCards() DevelopmentCards {
 	return p.game.developmentCards.Filter(func(developmentCard *DevelopmentCard) bool {
-		return developmentCard.GetPlayerId() == &p.player.ID
+		playerId := developmentCard.GetPlayerId()
+		if playerId == nil {
+			return false
+		}
+		return *playerId == p.GetId()
 	})
 }
 
 func (p *Player) GetResourceCards() ResourceCards {
 	return p.game.resourceCards.Filter(func(resourceCard *ResourceCard) bool {
-		return resourceCard.resourceCard.PlayerID == &p.player.ID
+		playerId := resourceCard.GetPlayerId()
+		if playerId == nil {
+			return false
+		}
+		return *playerId == p.GetId()
+	})
+}
+
+func (p *Player) GetRoads() Roads {
+	return p.game.roads.Filter(func(road *Road) bool {
+		playerId := road.GetPlayerId()
+		if playerId == nil {
+			return false
+		}
+		return *playerId == p.GetId()
+	})
+}
+
+func (p *Player) GetConstructions() Constructions {
+	return p.game.constructions.Filter(func(construction *Construction) bool {
+		playerId := construction.GetPlayerId()
+		if playerId == nil {
+			return false
+		}
+		return *playerId == p.GetId()
 	})
 }
 

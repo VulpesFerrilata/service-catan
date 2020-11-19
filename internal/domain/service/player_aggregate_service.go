@@ -27,14 +27,17 @@ func (pas *playerAggregateService) FindByGameId(ctx context.Context, gameId uint
 	}
 
 	for _, player := range players {
-		userRequest := new(user.UserRequest)
-		userRequest.ID = int64(player.GetUserId())
-		userPb, err := pas.userService.GetUserById(ctx, userRequest)
-		if err != nil {
-			return nil, err
+		userId := player.GetUserId()
+		if userId != nil {
+			userRequest := new(user.UserRequest)
+			userRequest.ID = int64(*userId)
+			userPb, err := pas.userService.GetUserById(ctx, userRequest)
+			if err != nil {
+				return nil, err
+			}
+			user := model.NewUser(userPb)
+			player.SetUser(user)
 		}
-		user := model.NewUser(userPb)
-		player.SetUser(user)
 	}
 
 	return players, nil

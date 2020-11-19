@@ -6,70 +6,88 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 )
 
-func NewHarbors() Harbors {
+func NewHarbors(terrains Terrains) Harbors {
 	var harbors Harbors
 
 	firstHarbor := NewHarbor()
 	firstHarbor.harbor.Q = 1
 	firstHarbor.harbor.R = 0
-	firstHarbor.harbor.FieldQ = 1
-	firstHarbor.harbor.FieldR = 1
+	terrain := terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == 1 && terrain.GetR() == 1
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(firstHarbor)
 
 	secondHarbor := NewHarbor()
 	secondHarbor.harbor.Q = 3
 	secondHarbor.harbor.R = 0
-	secondHarbor.harbor.FieldQ = 2
-	secondHarbor.harbor.FieldR = 1
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == 2 && terrain.GetR() == 1
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(secondHarbor)
 
 	thirdHarbor := NewHarbor()
 	thirdHarbor.harbor.Q = 4
 	thirdHarbor.harbor.R = 1
-	thirdHarbor.harbor.FieldQ = 3
-	thirdHarbor.harbor.FieldR = 2
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == 3 && terrain.GetR() == 2
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(thirdHarbor)
 
 	fourthHarbor := NewHarbor()
 	fourthHarbor.harbor.Q = -1
 	fourthHarbor.harbor.R = 2
-	fourthHarbor.harbor.FieldQ = 0
-	fourthHarbor.harbor.FieldR = 2
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == 0 && terrain.GetR() == 2
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(fourthHarbor)
 
 	fifthHarbor := NewHarbor()
 	fifthHarbor.harbor.Q = 4
 	fifthHarbor.harbor.R = 3
-	fifthHarbor.harbor.FieldQ = 3
-	fifthHarbor.harbor.FieldR = 3
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == 3 && terrain.GetR() == 3
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(fifthHarbor)
 
 	sixthHarbor := NewHarbor()
 	sixthHarbor.harbor.Q = -2
 	sixthHarbor.harbor.R = 4
-	sixthHarbor.harbor.FieldQ = -1
-	sixthHarbor.harbor.FieldR = 4
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == -1 && terrain.GetR() == 4
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(sixthHarbor)
 
 	seventhHarbor := NewHarbor()
 	seventhHarbor.harbor.Q = 2
 	seventhHarbor.harbor.R = 5
-	seventhHarbor.harbor.FieldQ = 2
-	seventhHarbor.harbor.FieldR = 4
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == 2 && terrain.GetR() == 4
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(seventhHarbor)
 
 	eighthHarbor := NewHarbor()
 	eighthHarbor.harbor.Q = -2
 	eighthHarbor.harbor.R = 6
-	eighthHarbor.harbor.FieldQ = -1
-	eighthHarbor.harbor.FieldR = 5
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == -1 && terrain.GetR() == 5
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(eighthHarbor)
 
 	ninthHarbor := NewHarbor()
 	ninthHarbor.harbor.Q = 0
 	ninthHarbor.harbor.R = 6
-	ninthHarbor.harbor.FieldQ = 0
-	ninthHarbor.harbor.FieldR = 5
+	terrain = terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.GetQ() == 0 && terrain.GetR() == 5
+	}).First()
+	firstHarbor.SetTerrain(terrain)
 	harbors.append(ninthHarbor)
 
 	harborTypes := map[datamodel.HarborType]int{

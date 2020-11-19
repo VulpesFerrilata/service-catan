@@ -50,8 +50,9 @@ func (d *Dice) IsModified() bool {
 	return d.isModified
 }
 
-func (d *Dice) Roll() {
+func (d *Dice) Roll() int {
 	d.dice.Number = rand.Intn(6) + 1
 	d.dice.IsRolled = true
 	d.isModified = true
+	return d.GetNumber()
 }

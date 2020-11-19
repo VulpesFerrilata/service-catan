@@ -4,12 +4,11 @@ import "gorm.io/gorm"
 
 type Harbor struct {
 	gorm.Model
-	GameID *uint
-	Q      int
-	R      int
-	Type   HarborType
-	FieldQ int
-	FieldR int
+	GameID    *uint
+	TerrainID *uint
+	Q         int
+	R         int
+	Type      HarborType
 }
 
 type HarborType string

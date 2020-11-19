@@ -26,16 +26,10 @@ func (d Dices) IsRolled() bool {
 	return true
 }
 
-func (d *Dices) Roll() {
-	for _, dice := range *d {
-		dice.Roll()
-	}
-}
-
-func (d *Dices) GetTotalNumber() int {
+func (d *Dices) Roll() int {
 	total := 0
 	for _, dice := range *d {
-		total += dice.dice.Number
+		total += dice.Roll()
 	}
 	return total
 }

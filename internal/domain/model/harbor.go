@@ -48,12 +48,21 @@ func (h *Harbor) GetType() datamodel.HarborType {
 	return h.harbor.Type
 }
 
-func (h *Harbor) GetFieldQ() int {
-	return h.harbor.FieldQ
+func (h *Harbor) GetTerrainId() *uint {
+	return h.harbor.TerrainID
 }
 
-func (h *Harbor) GetFieldR() int {
-	return h.harbor.FieldR
+func (h *Harbor) GetTerrain() *Terrain {
+	return h.game.terrains.Filter(func(terrain *Terrain) bool {
+		if h.harbor.TerrainID == nil {
+			return false
+		}
+		return terrain.GetId() == *h.GetTerrainId()
+	}).First()
+}
+
+func (h *Harbor) SetTerrain(terrain *Terrain) {
+	h.harbor.TerrainID = &terrain.terrain.ID
 }
 
 func (h *Harbor) IsModified() bool {
@@ -61,12 +70,18 @@ func (h *Harbor) IsModified() bool {
 }
 
 func (h *Harbor) GetIntersectRoad() *Road {
+	terrain := h.GetTerrain()
+
+	if terrain == nil {
+		return nil
+	}
+
 	return h.game.roads.Filter(func(road *Road) bool {
-		if h.GetQ() == h.GetFieldQ() {
-			return road.GetQ() == h.GetQ() && road.GetR() == math.Max(h.GetR(), h.GetFieldR()) && road.GetLocation() == datamodel.RL_TOP_LEFT
-		} else if h.GetR() == h.GetFieldR() {
-			return road.GetQ() == math.Max(h.GetQ(), h.GetFieldQ()) && road.GetR() == h.GetR() && road.GetLocation() == datamodel.RL_MID_LEFT
+		if h.GetQ() == terrain.GetQ() {
+			return road.GetQ() == h.GetQ() && road.GetR() == math.Max(h.GetR(), terrain.GetR()) && road.GetLocation() == datamodel.RL_TOP_LEFT
+		} else if h.GetR() == terrain.GetR() {
+			return road.GetQ() == math.Max(h.GetQ(), terrain.GetQ()) && road.GetR() == h.GetR() && road.GetLocation() == datamodel.RL_MID_LEFT
 		}
-		return road.GetQ() == math.Max(h.GetQ(), h.GetFieldQ()) && road.GetR() == math.Min(h.GetR(), h.GetFieldR()) && road.GetLocation() == datamodel.RL_BOT_LEFT
+		return road.GetQ() == math.Max(h.GetQ(), terrain.GetQ()) && road.GetR() == math.Min(h.GetR(), terrain.GetR()) && road.GetLocation() == datamodel.RL_BOT_LEFT
 	}).First()
 }
