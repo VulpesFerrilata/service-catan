@@ -12,6 +12,12 @@ type DevelopmentCardService interface {
 	Save(ctx context.Context, developmentCard *model.DevelopmentCard) error
 }
 
+func NewDevelopmentCardService(developmentCardRepository repository.DevelopmentCardRepository) DevelopmentCardService {
+	return &developmentCardService{
+		developmentCardRepository: developmentCardRepository,
+	}
+}
+
 type developmentCardService struct {
 	developmentCardRepository repository.DevelopmentCardRepository
 }

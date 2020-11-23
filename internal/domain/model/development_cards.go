@@ -15,8 +15,8 @@ func NewDevelopmentCards() DevelopmentCards {
 
 	for developmentType, quantity := range developmentTypes {
 		for i := 1; i <= quantity; i++ {
-			developmentCard := NewDevelopmentCard()
-			developmentCard.developmentCard.Type = developmentType
+			developmentCard := new(DevelopmentCard)
+			developmentCard.Type = developmentType
 			developmentCards.append(developmentCard)
 		}
 	}

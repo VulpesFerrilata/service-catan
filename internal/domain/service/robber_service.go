@@ -12,6 +12,12 @@ type RobberService interface {
 	Save(ctx context.Context, robber *model.Robber) error
 }
 
+func NewRobberService(robberRepository repository.RobberRepository) RobberService {
+	return &robberService{
+		robberRepository: robberRepository,
+	}
+}
+
 type robberService struct {
 	robberRepository repository.RobberRepository
 }

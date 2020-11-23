@@ -14,8 +14,8 @@ func NewResourceCards() ResourceCards {
 	}
 	for resourceType, quantity := range resourceTypes {
 		for i := 1; i <= quantity; i++ {
-			resourceCard := NewResourceCard()
-			resourceCard.resourceCard.Type = resourceType
+			resourceCard := new(ResourceCard)
+			resourceCard.Type = resourceType
 			resourceCards.append(resourceCard)
 		}
 	}

@@ -12,6 +12,12 @@ type TerrainService interface {
 	Save(ctx context.Context, terrain *model.Terrain) error
 }
 
+func NewTerrainService(terrainRepository repository.TerrainRepository) TerrainService {
+	return &terrainService{
+		terrainRepository: terrainRepository,
+	}
+}
+
 type terrainService struct {
 	terrainRepository repository.TerrainRepository
 }

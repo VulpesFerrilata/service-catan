@@ -4,7 +4,8 @@ func NewDices() Dices {
 	var dices Dices
 
 	for i := 1; i <= 2; i++ {
-		dice := NewDice()
+		dice := new(Dice)
+		dice.Roll()
 		dices.append(dice)
 	}
 
@@ -19,17 +20,19 @@ func (d *Dices) append(dice *Dice) {
 
 func (d Dices) IsRolled() bool {
 	for _, dice := range d {
-		if !dice.IsRolled() {
-			return false
+		if dice.IsRolled {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func (d *Dices) Roll() int {
 	total := 0
+
 	for _, dice := range *d {
 		total += dice.Roll()
 	}
+
 	return total
 }

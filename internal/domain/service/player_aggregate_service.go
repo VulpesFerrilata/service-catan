@@ -12,12 +12,17 @@ type PlayerAggregateService interface {
 	Save(ctx context.Context, player *model.Player) error
 }
 
+func NewPlayerAggregateService(playerService PlayerService,
+	userService user.UserService) PlayerAggregateService {
+	return &playerAggregateService{
+		playerService: playerService,
+		userService:   userService,
+	}
+}
+
 type playerAggregateService struct {
-	playerService          PlayerService
-	userService            user.UserService
-	achievementService     AchievementService
-	resourceCardService    ResourceCardService
-	developmentCardService DevelopmentCardService
+	playerService PlayerService
+	userService   user.UserService
 }
 
 func (pas *playerAggregateService) FindByGameId(ctx context.Context, gameId uint) (model.Players, error) {
@@ -27,7 +32,7 @@ func (pas *playerAggregateService) FindByGameId(ctx context.Context, gameId uint
 	}
 
 	for _, player := range players {
-		userId := player.GetUserId()
+		userId := player.UserID
 		if userId != nil {
 			userRequest := new(user.UserRequest)
 			userRequest.ID = int64(*userId)

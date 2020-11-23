@@ -12,6 +12,12 @@ type RoadService interface {
 	Save(ctx context.Context, road *model.Road) error
 }
 
+func NewRoadService(roadRepository repository.RoadRepository) RoadService {
+	return &roadService{
+		roadRepository: roadRepository,
+	}
+}
+
 type roadService struct {
 	roadRepository repository.RoadRepository
 }

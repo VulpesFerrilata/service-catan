@@ -12,6 +12,12 @@ type PlayerService interface {
 	Save(ctx context.Context, player *model.Player) error
 }
 
+func NewPlayerService(playerRepository repository.PlayerRepository) PlayerService {
+	return &playerService{
+		playerRepository: playerRepository,
+	}
+}
+
 type playerService struct {
 	playerRepository repository.PlayerRepository
 }

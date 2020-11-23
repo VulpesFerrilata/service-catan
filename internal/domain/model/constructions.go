@@ -10,17 +10,17 @@ func NewConstructions() Constructions {
 	for r := 0; r <= 6; r++ {
 		for q := minQ; q <= maxQ; q++ {
 			if (r > 0 && q != minQ && q != maxQ) || r > 3 {
-				topConstruction := NewConstruction()
-				topConstruction.construction.Q = q
-				topConstruction.construction.R = r
-				topConstruction.construction.Location = datamodel.CL_TOP
+				topConstruction := new(Construction)
+				topConstruction.Q = q
+				topConstruction.R = r
+				topConstruction.Location = datamodel.CL_TOP
 				constructions.append(topConstruction)
 			}
 			if (r < 6 && q != minQ && q != maxQ) || r < 3 {
-				botConstruction := NewConstruction()
-				botConstruction.construction.Q = q
-				botConstruction.construction.R = r
-				botConstruction.construction.Location = datamodel.CL_BOT
+				botConstruction := new(Construction)
+				botConstruction.Q = q
+				botConstruction.R = r
+				botConstruction.Location = datamodel.CL_BOT
 				constructions.append(botConstruction)
 			}
 		}

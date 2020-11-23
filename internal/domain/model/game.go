@@ -6,14 +6,13 @@ import (
 
 func NewGame() *Game {
 	game := new(Game)
-	game.game = new(datamodel.Game)
-	game.game.Status = datamodel.GS_WAITING
-	game.game.Turn = 1
+	game.Status = datamodel.GS_WAITING
+	game.Turn = 1
 	return game
 }
 
 type Game struct {
-	game             *datamodel.Game
+	datamodel.Game
 	players          Players
 	dices            Dices
 	achievements     Achievements
@@ -25,46 +24,6 @@ type Game struct {
 	roads            Roads
 	harbors          Harbors
 	isRemoved        bool
-	isModified       bool
-}
-
-func (g *Game) GetGame() datamodel.Game {
-	return *g.game
-}
-
-func (g *Game) GetId() uint {
-	return g.game.ID
-}
-
-func (g *Game) GetTurn() int {
-	return g.game.Turn
-}
-
-func (g *Game) NextTurn() {
-	g.game.Turn++
-	g.isModified = true
-}
-
-func (g *Game) GetPlayerInTurn() uint {
-	return g.game.PlayerInTurn
-}
-
-func (g *Game) SetPlayerInTurn(playerId uint) {
-	g.game.PlayerInTurn = playerId
-	g.isModified = true
-}
-
-func (g *Game) GetStatus() datamodel.GameStatus {
-	return g.game.Status
-}
-
-func (g *Game) SetStatus(status datamodel.GameStatus) {
-	g.game.Status = status
-	g.isModified = true
-}
-
-func (g *Game) IsModified() bool {
-	return g.isModified
 }
 
 func (g *Game) GetPlayers() Players {
@@ -74,7 +33,7 @@ func (g *Game) GetPlayers() Players {
 func (g *Game) AddPlayers(players ...*Player) {
 	for _, player := range players {
 		g.players.append(player)
-		player.setGame(g)
+		player.SetGame(g)
 	}
 }
 
@@ -85,7 +44,7 @@ func (g *Game) GetDices() Dices {
 func (g *Game) AddDices(dices ...*Dice) {
 	for _, dice := range dices {
 		g.dices.append(dice)
-		dice.setGame(g)
+		dice.SetGame(g)
 	}
 }
 
@@ -96,7 +55,7 @@ func (g *Game) GetAchievements() Achievements {
 func (g *Game) AddAchievements(achievements ...*Achievement) {
 	for _, achievement := range achievements {
 		g.achievements.append(achievement)
-		achievement.setGame(g)
+		achievement.SetGame(g)
 	}
 }
 
@@ -107,7 +66,7 @@ func (g *Game) GetResourceCards() ResourceCards {
 func (g *Game) AddResourceCards(resourceCards ...*ResourceCard) {
 	for _, resourceCard := range resourceCards {
 		g.resourceCards.append(resourceCard)
-		resourceCard.setGame(g)
+		resourceCard.SetGame(g)
 	}
 }
 
@@ -118,7 +77,7 @@ func (g *Game) GetDevelopmentCards() DevelopmentCards {
 func (g *Game) AddDevelopmentCards(developmentCards ...*DevelopmentCard) {
 	for _, developmentCard := range developmentCards {
 		g.developmentCards.append(developmentCard)
-		developmentCard.setGame(g)
+		developmentCard.SetGame(g)
 	}
 }
 
@@ -129,7 +88,7 @@ func (g *Game) GetTerrains() Terrains {
 func (g *Game) AddTerrains(terrains ...*Terrain) {
 	for _, terrain := range terrains {
 		g.terrains.append(terrain)
-		terrain.setGame(g)
+		terrain.SetGame(g)
 	}
 }
 
@@ -139,7 +98,7 @@ func (g *Game) GetRobber() *Robber {
 
 func (g *Game) SetRobber(robber *Robber) {
 	g.robber = robber
-	robber.setGame(g)
+	robber.SetGame(g)
 }
 
 func (g *Game) GetConstructions() Constructions {
@@ -149,7 +108,7 @@ func (g *Game) GetConstructions() Constructions {
 func (g *Game) AddConstructions(constructions ...*Construction) {
 	for _, construction := range constructions {
 		g.constructions.append(construction)
-		construction.setGame(g)
+		construction.SetGame(g)
 	}
 }
 
@@ -160,7 +119,7 @@ func (g *Game) GetRoads() Roads {
 func (g *Game) AddRoads(roads ...*Road) {
 	for _, road := range roads {
 		g.roads.append(road)
-		road.setGame(g)
+		road.SetGame(g)
 	}
 }
 
@@ -171,7 +130,7 @@ func (g *Game) GetHarbors() Harbors {
 func (g *Game) AddHarbors(harbors ...*Harbor) {
 	for _, harbor := range harbors {
 		g.harbors.append(harbor)
-		harbor.setGame(g)
+		harbor.SetGame(g)
 	}
 }
 

@@ -5,68 +5,25 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/pkg/math"
 )
 
-func NewHarbor() *Harbor {
-	harbor := new(Harbor)
-	harbor.harbor = new(datamodel.Harbor)
-	return harbor
-}
-
 type Harbor struct {
-	harbor     *datamodel.Harbor
-	game       *Game
-	isModified bool
+	datamodel.Harbor
+	game *Game
 }
 
-func (h *Harbor) GetHarbor() datamodel.Harbor {
-	return *h.harbor
-}
-
-func (h *Harbor) GetId() uint {
-	return h.harbor.ID
-}
-
-func (h *Harbor) GetGameId() *uint {
-	return h.harbor.GameID
-}
-
-func (h *Harbor) setGame(game *Game) {
+func (h *Harbor) SetGame(game *Game) {
 	if game != nil {
-		h.harbor.GameID = &game.game.ID
-		h.game = game
+		h.GameID = &game.ID
 	}
-}
-
-func (h *Harbor) GetQ() int {
-	return h.harbor.Q
-}
-
-func (h *Harbor) GetR() int {
-	return h.harbor.R
-}
-
-func (h *Harbor) GetType() datamodel.HarborType {
-	return h.harbor.Type
-}
-
-func (h *Harbor) GetTerrainId() *uint {
-	return h.harbor.TerrainID
+	h.game = game
 }
 
 func (h *Harbor) GetTerrain() *Terrain {
+	if h.TerrainID == nil {
+		return nil
+	}
 	return h.game.terrains.Filter(func(terrain *Terrain) bool {
-		if h.harbor.TerrainID == nil {
-			return false
-		}
-		return terrain.GetId() == *h.GetTerrainId()
+		return terrain.ID == *h.TerrainID
 	}).First()
-}
-
-func (h *Harbor) SetTerrain(terrain *Terrain) {
-	h.harbor.TerrainID = &terrain.terrain.ID
-}
-
-func (h *Harbor) IsModified() bool {
-	return h.isModified
 }
 
 func (h *Harbor) GetIntersectRoad() *Road {
@@ -77,11 +34,11 @@ func (h *Harbor) GetIntersectRoad() *Road {
 	}
 
 	return h.game.roads.Filter(func(road *Road) bool {
-		if h.GetQ() == terrain.GetQ() {
-			return road.GetQ() == h.GetQ() && road.GetR() == math.Max(h.GetR(), terrain.GetR()) && road.GetLocation() == datamodel.RL_TOP_LEFT
-		} else if h.GetR() == terrain.GetR() {
-			return road.GetQ() == math.Max(h.GetQ(), terrain.GetQ()) && road.GetR() == h.GetR() && road.GetLocation() == datamodel.RL_MID_LEFT
+		if h.Q == terrain.Q {
+			return road.Q == h.Q && road.R == math.Max(h.R, terrain.R) && road.Location == datamodel.RL_TOP_LEFT
+		} else if h.R == terrain.R {
+			return road.Q == math.Max(h.Q, terrain.Q) && road.R == h.R && road.Location == datamodel.RL_MID_LEFT
 		}
-		return road.GetQ() == math.Max(h.GetQ(), terrain.GetQ()) && road.GetR() == math.Min(h.GetR(), terrain.GetR()) && road.GetLocation() == datamodel.RL_BOT_LEFT
+		return road.Q == math.Max(h.Q, terrain.Q) && road.R == math.Min(h.R, terrain.R) && road.Location == datamodel.RL_BOT_LEFT
 	}).First()
 }

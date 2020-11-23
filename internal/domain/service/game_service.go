@@ -12,6 +12,12 @@ type GameService interface {
 	Save(ctx context.Context, game *model.Game) error
 }
 
+func NewGameService(gameRepository repository.GameRepository) GameService {
+	return &gameService{
+		gameRepository: gameRepository,
+	}
+}
+
 type gameService struct {
 	gameRepository repository.GameRepository
 }

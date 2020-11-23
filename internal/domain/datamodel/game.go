@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Game struct {
 	gorm.Model
-	PlayerInTurn uint
+	PlayerInTurn *uint
 	Turn         int
 	Status       GameStatus
 }

@@ -64,7 +64,7 @@ func (ci *catanInteractor) CreateGame(ctx context.Context) (*response.GameRespon
 		return nil, err
 	}
 
-	return response.NewGameResponse(game), nil
+	return nil, nil
 }
 
 func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
@@ -75,7 +75,7 @@ func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Ga
 		return nil, err
 	}
 
-	switch game.GetStatus() {
+	switch game.Status {
 	case datamodel.GS_STARTED:
 		return nil, errors.New("game has already started")
 	case datamodel.GS_FINISHED:
@@ -88,10 +88,10 @@ func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Ga
 	}
 
 	player := players.Filter(func(player *model.Player) bool {
-		if player.GetUserId() == nil {
+		if player.UserID == nil {
 			return false
 		}
-		return *player.GetUserId() == uint(userId)
+		return *player.UserID == uint(userId)
 	}).First()
 
 	if player == nil {
@@ -102,7 +102,7 @@ func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Ga
 			return nil, err
 		}
 		user := model.NewUser(userPb)
-		player := model.NewPlayer()
+		player := new(model.Player)
 		player.SetUser(user)
 		game.AddPlayers(player)
 
@@ -111,7 +111,7 @@ func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Ga
 		}
 	}
 
-	return response.NewGameResponse(game), nil
+	return nil, nil
 }
 
 func (ci *catanInteractor) LoadGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
@@ -128,7 +128,7 @@ func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.G
 		return nil, err
 	}
 
-	switch game.GetStatus() {
+	switch game.Status {
 	case datamodel.GS_STARTED:
 		return nil, errors.New("game has already started")
 	case datamodel.GS_FINISHED:
@@ -137,10 +137,10 @@ func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.G
 
 	userId := uint(0) //todo: userid from context
 	player := game.GetPlayers().Filter(func(player *model.Player) bool {
-		if player.GetUserId() == nil {
+		if player.UserID == nil {
 			return false
 		}
-		return *player.GetUserId() == userId
+		return *player.UserID == userId
 	}).First()
 	if player == nil {
 		return nil, errors.New("player is not exists")
@@ -149,7 +149,7 @@ func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.G
 		return nil, errors.New("only host player can start game")
 	}
 
-	game.SetStatus(datamodel.GS_STARTED)
+	game.Status = datamodel.GS_STARTED
 
 	dices := model.NewDices()
 	game.AddDices(dices...)
@@ -175,7 +175,7 @@ func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.G
 	roads := model.NewRoads()
 	game.AddRoads(roads...)
 
-	harbors := model.NewHarbors()
+	harbors := model.NewHarbors(terrains)
 	game.AddHarbors(harbors...)
 
 	players := game.GetPlayers()
@@ -189,10 +189,10 @@ func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.G
 
 	rand.Shuffle(len(players), func(i, j int) { players[i], players[j] = players[j], players[i] })
 	for idx, player := range players {
-		player.SetTurnOrder(idx + 1)
-		player.SetColor(colors[idx])
-		if player.GetTurnOrder() == 1 {
-			game.SetPlayerInTurn(player.GetId())
+		player.TurnOrder = idx + 1
+		player.Color = colors[idx]
+		if player.TurnOrder == 1 {
+			game.PlayerInTurn = &player.ID
 		}
 	}
 
@@ -200,7 +200,7 @@ func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.G
 		return nil, err
 	}
 
-	return response.NewGameResponse(game), nil
+	return nil, nil
 }
 
 func (ci *catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
@@ -211,17 +211,17 @@ func (ci *catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.G
 
 	userId := uint(0) //todo: userid from context
 	player := game.GetPlayers().Filter(func(player *model.Player) bool {
-		if player.GetUserId() == nil {
+		if player.UserID == nil {
 			return false
 		}
-		return *player.GetUserId() == userId
+		return *player.UserID == userId
 	}).First()
 	if player != nil {
-		switch game.GetStatus() {
+		switch game.Status {
 		case datamodel.GS_WAITING:
 			player.Remove()
 		case datamodel.GS_STARTED:
-			player.Leave()
+			player.IsLeft = true
 		}
 
 		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
@@ -229,7 +229,7 @@ func (ci *catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.G
 		}
 	}
 
-	return response.NewGameResponse(game), nil
+	return nil, nil
 }
 
 func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
@@ -241,10 +241,10 @@ func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.G
 	}
 
 	player := game.GetPlayers().Filter(func(player *model.Player) bool {
-		if player.GetUserId() == nil {
+		if player.UserID == nil {
 			return false
 		}
-		return *player.GetUserId() == uint(userId)
+		return *player.UserID == uint(userId)
 	}).First()
 	if player == nil {
 		return nil, errors.New("player is not exists")
@@ -253,7 +253,7 @@ func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.G
 		return nil, errors.New("player is not in turn")
 	}
 
-	if game.GetTurn() == 1 || game.GetTurn() == 2 {
+	if game.Turn == 1 || game.Turn == 2 {
 		return nil, errors.New("action is restricted in setup phase")
 	}
 
@@ -265,18 +265,18 @@ func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.G
 	totalNumber := dices.Roll()
 	if totalNumber == 7 {
 		robber := game.GetRobber()
-		robber.SetStatus(datamodel.RS_MOVE)
+		robber.Status = datamodel.RS_MOVE
 	} else {
 		terrains := game.GetTerrains().Filter(func(terrain *model.Terrain) bool {
-			return terrain.GetNumber() == totalNumber && !terrain.HasRobber()
+			return terrain.Number == totalNumber && !terrain.HasRobber()
 		})
 		for _, terrain := range terrains {
 			constructions := terrain.GetAdjacentConstructions().Filter(func(construction *model.Construction) bool {
-				return construction.GetPlayerId() != nil
+				return construction.PlayerID != nil
 			})
 			resourceCards := game.GetResourceCards().Filter(func(resourceCard *model.ResourceCard) bool {
 				var resourceType datamodel.ResourceType
-				switch terrain.GetType() {
+				switch terrain.Type {
 				case datamodel.TT_FOREST:
 					resourceType = datamodel.RT_LUMBER
 				case datamodel.TT_HILL:
@@ -288,13 +288,13 @@ func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.G
 				case datamodel.TT_MOUNTAIN:
 					resourceType = datamodel.RT_ORE
 				}
-				return resourceCard.GetPlayerId() == nil && resourceCard.GetType() == resourceType
+				return resourceCard.PlayerID == nil && resourceCard.Type == resourceType
 			})
 
 			resourceCardsDemand := 0
 			for _, construction := range constructions {
 				resourceCardsDemand++
-				if construction.IsUpgradedCastle() {
+				if construction.IsUpgradedCastle {
 					resourceCardsDemand++
 				}
 			}
@@ -305,12 +305,12 @@ func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.G
 			resourceCardIdx := 0
 			for _, construction := range constructions {
 				resourceDispatchQuantity := 1
-				if construction.IsUpgradedCastle() {
+				if construction.IsUpgradedCastle {
 					resourceDispatchQuantity++
 				}
 
 				for i := 1; i <= resourceDispatchQuantity; i++ {
-					resourceCards[resourceCardIdx].SetPlayer(construction.GetPlayer())
+					resourceCards[resourceCardIdx].PlayerID = construction.PlayerID
 					resourceCardIdx++
 				}
 			}
@@ -321,7 +321,7 @@ func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.G
 		return nil, err
 	}
 
-	return response.NewGameResponse(game), nil
+	return nil, nil
 }
 
 func (ci *catanInteractor) BuildRoad(ctx context.Context, roadRequest *request.RoadRequest) (*response.GameResponse, error) {
@@ -333,10 +333,10 @@ func (ci *catanInteractor) BuildRoad(ctx context.Context, roadRequest *request.R
 	}
 
 	player := game.GetPlayers().Filter(func(player *model.Player) bool {
-		if player.GetUserId() == nil {
+		if player.UserID == nil {
 			return false
 		}
-		return *player.GetUserId() == uint(userId)
+		return *player.UserID == uint(userId)
 	}).First()
 	if player == nil {
 		return nil, errors.New("player is not exists")
@@ -346,16 +346,16 @@ func (ci *catanInteractor) BuildRoad(ctx context.Context, roadRequest *request.R
 	}
 
 	road := game.GetRoads().Filter(func(road *model.Road) bool {
-		return road.GetId() == uint(roadRequest.ID)
+		return road.ID == uint(roadRequest.ID)
 	}).First()
 	if road == nil {
 		return nil, errors.New("road is not exists")
 	}
-	if road.GetPlayerId() != nil {
+	if road.PlayerID != nil {
 		return nil, errors.New("road is owned by another player")
 	}
 
-	gameTurn := game.GetTurn()
+	gameTurn := game.Turn
 	if gameTurn == 1 || gameTurn == 2 {
 		roads := player.GetRoads()
 
@@ -363,27 +363,44 @@ func (ci *catanInteractor) BuildRoad(ctx context.Context, roadRequest *request.R
 			return nil, errors.New("player has already build road")
 		}
 	} else {
+		nearbyConstructions := road.GetAdjacentConstructions().Filter(func(construction *model.Construction) bool {
+			if construction.PlayerID == nil {
+				return false
+			}
+			return *construction.PlayerID == player.ID
+		})
+
+		nearbyRoads := road.GetAdjacentRoads().Filter(func(road *model.Road) bool {
+			if road.PlayerID == nil {
+				return false
+			}
+			return *road.PlayerID == player.ID
+		})
+
+		if len(nearbyConstructions) == 0 && len(nearbyRoads) == 0 {
+			return nil, errors.New("road should be build next to another road or construction")
+		}
+
 		lumberResourceCards := player.GetResourceCards().Filter(func(resourceCard *model.ResourceCard) bool {
-			return resourceCard.GetType() == datamodel.RT_LUMBER
+			return resourceCard.Type == datamodel.RT_LUMBER
 		})
 
 		brickResourceCards := player.GetResourceCards().Filter(func(resourceCard *model.ResourceCard) bool {
-			return resourceCard.GetType() == datamodel.RT_BRICK
+			return resourceCard.Type == datamodel.RT_BRICK
 		})
 
 		if len(lumberResourceCards) < 1 || len(brickResourceCards) < 1 {
 			return nil, errors.New("insufficient resources")
 		}
 
-		lumberResourceCards[0].SetPlayer(nil)
-		brickResourceCards[0].SetPlayer(nil)
+		lumberResourceCards[0].PlayerID = nil
+		brickResourceCards[0].PlayerID = nil
 	}
-
-	road.SetPlayer(player)
+	road.PlayerID = &player.ID
 
 	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
 	}
 
-	return response.NewGameResponse(game), nil
+	return nil, nil
 }

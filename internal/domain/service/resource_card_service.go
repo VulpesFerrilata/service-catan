@@ -12,6 +12,12 @@ type ResourceCardService interface {
 	Save(ctx context.Context, resourceCard *model.ResourceCard) error
 }
 
+func NewResourceCardService(resourceCardRepository repository.ResourceCardRepository) ResourceCardService {
+	return &resourceCardService{
+		resourceCardRepository: resourceCardRepository,
+	}
+}
+
 type resourceCardService struct {
 	resourceCardRepository repository.ResourceCardRepository
 }

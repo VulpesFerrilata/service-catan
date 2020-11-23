@@ -12,6 +12,12 @@ type AchievementService interface {
 	Save(ctx context.Context, achievement *model.Achievement) error
 }
 
+func NewAchievementService(achievementRepository repository.AchievementRepository) AchievementService {
+	return &achievementService{
+		achievementRepository: achievementRepository,
+	}
+}
+
 type achievementService struct {
 	achievementRepository repository.AchievementRepository
 }

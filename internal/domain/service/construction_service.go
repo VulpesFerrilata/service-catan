@@ -12,6 +12,12 @@ type ConstructionService interface {
 	Save(ctx context.Context, construction *model.Construction) error
 }
 
+func NewConstructionService(constructionRepository repository.ConstructionRepository) ConstructionService {
+	return &constructionService{
+		constructionRepository: constructionRepository,
+	}
+}
+
 type constructionService struct {
 	constructionRepository repository.ConstructionRepository
 }

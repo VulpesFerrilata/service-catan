@@ -2,70 +2,18 @@ package model
 
 import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewPlayer() *Player {
-	player := new(Player)
-	player.player = new(datamodel.Player)
-	return player
-}
-
 type Player struct {
-	player     *datamodel.Player
-	game       *Game
-	user       *User
-	isModified bool
-	isRemoved  bool
+	datamodel.Player
+	game      *Game
+	user      *User
+	isRemoved bool
 }
 
-func (p *Player) GetPlayer() datamodel.Player {
-	return *p.player
-}
-
-func (p *Player) GetId() uint {
-	return p.player.ID
-}
-
-func (p *Player) GetGameId() *uint {
-	return p.player.GameID
-}
-
-func (p *Player) setGame(game *Game) {
+func (p *Player) SetGame(game *Game) {
 	if game != nil {
-		p.player.GameID = &game.game.ID
-		p.game = game
+		p.GameID = &game.ID
 	}
-}
-
-func (p *Player) GetUserId() *uint {
-	return p.player.UserID
-}
-
-func (p *Player) GetColor() string {
-	return p.player.Color
-}
-
-func (p *Player) SetColor(color string) {
-	p.player.Color = color
-	p.isModified = true
-}
-
-func (p *Player) GetTurnOrder() int {
-	return p.player.TurnOrder
-}
-
-func (p *Player) SetTurnOrder(turnOrder int) {
-	p.player.TurnOrder = turnOrder
-	p.isModified = true
-}
-
-func (p *Player) IsLeft() bool {
-	return p.player.IsLeft
-}
-
-func (p *Player) Leave() {
-	if !p.player.IsLeft {
-		p.player.IsLeft = true
-		p.isModified = true
-	}
+	p.game = game
 }
 
 func (p *Player) GetUser() *User {
@@ -74,60 +22,60 @@ func (p *Player) GetUser() *User {
 
 func (p *Player) SetUser(user *User) {
 	if user == nil {
-		p.player.UserID = nil
+		p.UserID = nil
 	} else {
-		p.player.UserID = &user.ID
+		p.UserID = &user.ID
 	}
 	p.user = user
 }
 
 func (p *Player) GetAchievements() Achievements {
 	return p.game.achievements.Filter(func(achievement *Achievement) bool {
-		playerId := achievement.GetPlayerId()
+		playerId := achievement.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.GetId()
+		return *playerId == p.ID
 	})
 }
 
 func (p *Player) GetDevelopmentCards() DevelopmentCards {
 	return p.game.developmentCards.Filter(func(developmentCard *DevelopmentCard) bool {
-		playerId := developmentCard.GetPlayerId()
+		playerId := developmentCard.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.GetId()
+		return *playerId == p.ID
 	})
 }
 
 func (p *Player) GetResourceCards() ResourceCards {
 	return p.game.resourceCards.Filter(func(resourceCard *ResourceCard) bool {
-		playerId := resourceCard.GetPlayerId()
+		playerId := resourceCard.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.GetId()
+		return *playerId == p.ID
 	})
 }
 
 func (p *Player) GetRoads() Roads {
 	return p.game.roads.Filter(func(road *Road) bool {
-		playerId := road.GetPlayerId()
+		playerId := road.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.GetId()
+		return *playerId == p.ID
 	})
 }
 
 func (p *Player) GetConstructions() Constructions {
 	return p.game.constructions.Filter(func(construction *Construction) bool {
-		playerId := construction.GetPlayerId()
+		playerId := construction.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.GetId()
+		return *playerId == p.ID
 	})
 }
 
@@ -143,15 +91,18 @@ func (p *Player) Remove() {
 }
 
 func (p *Player) IsHost() bool {
-	minPlayerId := p.GetId()
+	minPlayerId := p.ID
 	for _, player := range p.game.players {
-		if player.GetId() < minPlayerId {
-			minPlayerId = player.GetId()
+		if player.ID < minPlayerId {
+			minPlayerId = player.ID
 		}
 	}
-	return p.player.ID == minPlayerId
+	return p.ID == minPlayerId
 }
 
 func (p *Player) IsInTurn() bool {
-	return p.game.GetPlayerInTurn() == p.GetId()
+	if p.game.PlayerInTurn == nil {
+		return false
+	}
+	return *p.game.PlayerInTurn == p.ID
 }

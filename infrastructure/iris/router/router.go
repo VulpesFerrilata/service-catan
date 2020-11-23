@@ -40,9 +40,11 @@ func (r router) InitRoutes(app *iris.Application) {
 		r.transactionMiddleware.ServeWithTxOptions(&sql.TxOptions{}),
 		r.translatorMiddleware.Serve,
 	)
-	wsAPI := apiRoot.Party("/ws")
-	mvcApp := mvc.New(wsAPI)
+
+	catanRoot := apiRoot.Party("/catan")
+
+	mvcApp := mvc.New(catanRoot)
 	mvcApp.HandleWebsocket(r.catanController)
 	wsServer := websocket.New(websocket.DefaultGorillaUpgrader, mvcApp)
-	wsAPI.Get("/catan", websocket.Handler(wsServer))
+	catanRoot.Get("/ws", websocket.Handler(wsServer))
 }

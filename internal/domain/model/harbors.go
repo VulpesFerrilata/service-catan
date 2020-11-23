@@ -9,85 +9,85 @@ import (
 func NewHarbors(terrains Terrains) Harbors {
 	var harbors Harbors
 
-	firstHarbor := NewHarbor()
-	firstHarbor.harbor.Q = 1
-	firstHarbor.harbor.R = 0
+	firstHarbor := new(Harbor)
+	firstHarbor.Q = 1
+	firstHarbor.R = 0
 	terrain := terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == 1 && terrain.GetR() == 1
+		return terrain.Q == 1 && terrain.R == 1
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	firstHarbor.TerrainID = &terrain.ID
 	harbors.append(firstHarbor)
 
-	secondHarbor := NewHarbor()
-	secondHarbor.harbor.Q = 3
-	secondHarbor.harbor.R = 0
+	secondHarbor := new(Harbor)
+	secondHarbor.Q = 3
+	secondHarbor.R = 0
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == 2 && terrain.GetR() == 1
+		return terrain.Q == 2 && terrain.R == 1
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	secondHarbor.TerrainID = &terrain.ID
 	harbors.append(secondHarbor)
 
-	thirdHarbor := NewHarbor()
-	thirdHarbor.harbor.Q = 4
-	thirdHarbor.harbor.R = 1
+	thirdHarbor := new(Harbor)
+	thirdHarbor.Q = 4
+	thirdHarbor.R = 1
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == 3 && terrain.GetR() == 2
+		return terrain.Q == 3 && terrain.R == 2
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	thirdHarbor.TerrainID = &terrain.ID
 	harbors.append(thirdHarbor)
 
-	fourthHarbor := NewHarbor()
-	fourthHarbor.harbor.Q = -1
-	fourthHarbor.harbor.R = 2
+	fourthHarbor := new(Harbor)
+	fourthHarbor.Q = -1
+	fourthHarbor.R = 2
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == 0 && terrain.GetR() == 2
+		return terrain.Q == 0 && terrain.R == 2
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	fourthHarbor.TerrainID = &terrain.ID
 	harbors.append(fourthHarbor)
 
-	fifthHarbor := NewHarbor()
-	fifthHarbor.harbor.Q = 4
-	fifthHarbor.harbor.R = 3
+	fifthHarbor := new(Harbor)
+	fifthHarbor.Q = 4
+	fifthHarbor.R = 3
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == 3 && terrain.GetR() == 3
+		return terrain.Q == 3 && terrain.R == 3
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	fifthHarbor.TerrainID = &terrain.ID
 	harbors.append(fifthHarbor)
 
-	sixthHarbor := NewHarbor()
-	sixthHarbor.harbor.Q = -2
-	sixthHarbor.harbor.R = 4
+	sixthHarbor := new(Harbor)
+	sixthHarbor.Q = -2
+	sixthHarbor.R = 4
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == -1 && terrain.GetR() == 4
+		return terrain.Q == -1 && terrain.R == 4
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	sixthHarbor.TerrainID = &terrain.ID
 	harbors.append(sixthHarbor)
 
-	seventhHarbor := NewHarbor()
-	seventhHarbor.harbor.Q = 2
-	seventhHarbor.harbor.R = 5
+	seventhHarbor := new(Harbor)
+	seventhHarbor.Q = 2
+	seventhHarbor.R = 5
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == 2 && terrain.GetR() == 4
+		return terrain.Q == 2 && terrain.R == 4
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	seventhHarbor.TerrainID = &terrain.ID
 	harbors.append(seventhHarbor)
 
-	eighthHarbor := NewHarbor()
-	eighthHarbor.harbor.Q = -2
-	eighthHarbor.harbor.R = 6
+	eighthHarbor := new(Harbor)
+	eighthHarbor.Q = -2
+	eighthHarbor.R = 6
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == -1 && terrain.GetR() == 5
+		return terrain.Q == -1 && terrain.R == 5
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	eighthHarbor.TerrainID = &terrain.ID
 	harbors.append(eighthHarbor)
 
-	ninthHarbor := NewHarbor()
-	ninthHarbor.harbor.Q = 0
-	ninthHarbor.harbor.R = 6
+	ninthHarbor := new(Harbor)
+	ninthHarbor.Q = 0
+	ninthHarbor.R = 6
 	terrain = terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.GetQ() == 0 && terrain.GetR() == 5
+		return terrain.Q == 0 && terrain.R == 5
 	}).First()
-	firstHarbor.SetTerrain(terrain)
+	ninthHarbor.TerrainID = &terrain.ID
 	harbors.append(ninthHarbor)
 
 	harborTypes := map[datamodel.HarborType]int{
@@ -102,7 +102,7 @@ func NewHarbors(terrains Terrains) Harbors {
 	harborIdx := 0
 	for harborType, quantity := range harborTypes {
 		for i := 1; i <= quantity; i++ {
-			harbors[harborIdx].harbor.Type = harborType
+			harbors[harborIdx].Type = harborType
 			harborIdx++
 		}
 	}

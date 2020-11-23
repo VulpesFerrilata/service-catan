@@ -4,10 +4,9 @@ import "gorm.io/gorm"
 
 type Robber struct {
 	gorm.Model
-	GameID *uint
-	Q      int
-	R      int
-	Status RobberStatus
+	GameID    *uint
+	TerrainID *uint
+	Status    RobberStatus
 }
 
 type RobberStatus string

@@ -12,6 +12,12 @@ type HarborService interface {
 	Save(ctx context.Context, harbor *model.Harbor) error
 }
 
+func NewHarborService(harborRepository repository.HarborRepository) HarborService {
+	return &harborService{
+		harborRepository: harborRepository,
+	}
+}
+
 type harborService struct {
 	harborRepository repository.HarborRepository
 }

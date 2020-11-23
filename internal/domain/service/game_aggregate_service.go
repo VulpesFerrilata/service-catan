@@ -11,6 +11,32 @@ type GameAggregateService interface {
 	Save(ctx context.Context, game *model.Game) error
 }
 
+func NewGameAggregateService(gameService GameService,
+	playerAggregateService PlayerAggregateService,
+	diceService DiceService,
+	achievementService AchievementService,
+	resourceCardService ResourceCardService,
+	developmentCardService DevelopmentCardService,
+	terrainService TerrainService,
+	robberService RobberService,
+	constructionService ConstructionService,
+	roadService RoadService,
+	harborService HarborService) GameAggregateService {
+	return &gameAggregateService{
+		gameService:            gameService,
+		playerAggregateService: playerAggregateService,
+		diceService:            diceService,
+		achievementService:     achievementService,
+		resourceCardService:    resourceCardService,
+		developmentCardService: developmentCardService,
+		terrainService:         terrainService,
+		robberService:          robberService,
+		constructionService:    constructionService,
+		roadService:            roadService,
+		harborService:          harborService,
+	}
+}
+
 type gameAggregateService struct {
 	gameService            GameService
 	playerAggregateService PlayerAggregateService
@@ -31,61 +57,61 @@ func (gas *gameAggregateService) GetById(ctx context.Context, id uint) (*model.G
 		return nil, err
 	}
 
-	players, err := gas.playerAggregateService.FindByGameId(ctx, game.GetId())
+	players, err := gas.playerAggregateService.FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddPlayers(players...)
 
-	dices, err := gas.diceService.GetDiceRepository().FindByGameId(ctx, game.GetId())
+	dices, err := gas.diceService.GetDiceRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddDices(dices...)
 
-	achievements, err := gas.achievementService.GetAchievementRepository().FindByGameId(ctx, game.GetId())
+	achievements, err := gas.achievementService.GetAchievementRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddAchievements(achievements...)
 
-	resourceCards, err := gas.resourceCardService.GetResourceCardRepository().FindByGameId(ctx, game.GetId())
+	resourceCards, err := gas.resourceCardService.GetResourceCardRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddResourceCards(resourceCards...)
 
-	developmentCards, err := gas.developmentCardService.GetDevelopmentCardRepository().FindByGameId(ctx, game.GetId())
+	developmentCards, err := gas.developmentCardService.GetDevelopmentCardRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddDevelopmentCards(developmentCards...)
 
-	terrains, err := gas.terrainService.GetFieldRepository().FindByGameId(ctx, game.GetId())
+	terrains, err := gas.terrainService.GetFieldRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddTerrains(terrains...)
 
-	robber, err := gas.robberService.GetRobberRepository().GetByGameId(ctx, game.GetId())
+	robber, err := gas.robberService.GetRobberRepository().GetByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.SetRobber(robber)
 
-	constructions, err := gas.constructionService.GetConstructionRepository().FindByGameId(ctx, game.GetId())
+	constructions, err := gas.constructionService.GetConstructionRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddConstructions(constructions...)
 
-	roads, err := gas.roadService.GetRoadRepository().FindByGameId(ctx, game.GetId())
+	roads, err := gas.roadService.GetRoadRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
 	game.AddRoads(roads...)
 
-	harbors, err := gas.harborService.GetHarborRepository().FindByGameId(ctx, game.GetId())
+	harbors, err := gas.harborService.GetHarborRepository().FindByGameId(ctx, game.ID)
 	if err != nil {
 		return nil, err
 	}
