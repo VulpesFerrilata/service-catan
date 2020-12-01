@@ -57,61 +57,61 @@ func (gas *gameAggregateService) GetById(ctx context.Context, id uint) (*model.G
 		return nil, err
 	}
 
-	players, err := gas.playerAggregateService.FindByGameId(ctx, game.ID)
+	players, err := gas.playerAggregateService.FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddPlayers(players...)
 
-	dices, err := gas.diceService.GetDiceRepository().FindByGameId(ctx, game.ID)
+	dices, err := gas.diceService.GetDiceRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddDices(dices...)
 
-	achievements, err := gas.achievementService.GetAchievementRepository().FindByGameId(ctx, game.ID)
+	achievements, err := gas.achievementService.GetAchievementRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddAchievements(achievements...)
 
-	resourceCards, err := gas.resourceCardService.GetResourceCardRepository().FindByGameId(ctx, game.ID)
+	resourceCards, err := gas.resourceCardService.GetResourceCardRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddResourceCards(resourceCards...)
 
-	developmentCards, err := gas.developmentCardService.GetDevelopmentCardRepository().FindByGameId(ctx, game.ID)
+	developmentCards, err := gas.developmentCardService.GetDevelopmentCardRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddDevelopmentCards(developmentCards...)
 
-	terrains, err := gas.terrainService.GetFieldRepository().FindByGameId(ctx, game.ID)
+	terrains, err := gas.terrainService.GetFieldRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddTerrains(terrains...)
 
-	robber, err := gas.robberService.GetRobberRepository().GetByGameId(ctx, game.ID)
+	robber, err := gas.robberService.GetRobberRepository().GetByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.SetRobber(robber)
 
-	constructions, err := gas.constructionService.GetConstructionRepository().FindByGameId(ctx, game.ID)
+	constructions, err := gas.constructionService.GetConstructionRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddConstructions(constructions...)
 
-	roads, err := gas.roadService.GetRoadRepository().FindByGameId(ctx, game.ID)
+	roads, err := gas.roadService.GetRoadRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	game.AddRoads(roads...)
 
-	harbors, err := gas.harborService.GetHarborRepository().FindByGameId(ctx, game.ID)
+	harbors, err := gas.harborService.GetHarborRepository().FindByGameId(ctx, id)
 	if err != nil {
 		return nil, err
 	}

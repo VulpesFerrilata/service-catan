@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/library/pkg/db"
 	server_errors "github.com/VulpesFerrilata/library/pkg/errors"
@@ -12,6 +13,7 @@ import (
 
 type SafeGameRepository interface {
 	GetById(ctx context.Context, id uint) (*model.Game, error)
+	FindByGameStatus(ctx context.Context, gameStatus datamodel.GameStatus) ([]*model.Game, error)
 }
 
 type GameRepository interface {
@@ -37,6 +39,11 @@ func (gr *gameRepository) GetById(ctx context.Context, gameId uint) (*model.Game
 		return nil, server_errors.NewNotFoundError("game")
 	}
 	return game, err
+}
+
+func (gr *gameRepository) FindByGameStatus(ctx context.Context, gameStatus datamodel.GameStatus) ([]*model.Game, error) {
+	games := make([]*model.Game, 0)
+	return games, gr.dbContext.GetDB(ctx).Find(&games, "status", gameStatus).Error
 }
 
 func (gr *gameRepository) InsertOrUpdate(ctx context.Context, game *model.Game) error {

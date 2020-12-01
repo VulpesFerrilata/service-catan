@@ -14,63 +14,39 @@ import (
 	"github.com/VulpesFerrilata/library/pkg/validator"
 )
 
-type CatanInteractor interface {
+type GameInteractor interface {
 }
 
-func NewCatanInteractor(validate validator.Validate,
-	roomService service.RoomService,
+func NewGameInteractor(validate validator.Validate,
 	gameAggregateService service.GameAggregateService,
-	userService user.UserService) CatanInteractor {
-	return &catanInteractor{
+	userService user.UserService) GameInteractor {
+	return &gameInteractor{
 		validate:             validate,
-		roomService:          roomService,
 		gameAggregateService: gameAggregateService,
 		userService:          userService,
 	}
 }
 
-type catanInteractor struct {
+type gameInteractor struct {
 	validate             validator.Validate
-	roomService          service.RoomService
 	gameAggregateService service.GameAggregateService
 	userService          user.UserService
 }
 
-func (ci *catanInteractor) FindRooms(ctx context.Context, roomRequest *request.RoomRequest) (response.RoomsResponse, error) {
-	if err := ci.validate.Struct(ctx, roomRequest); err != nil {
-		return nil, err
-	}
-
-	if roomRequest.ID != 0 {
-		room, err := ci.roomService.GetRoomById(ctx, uint(roomRequest.ID))
-		if err != nil {
-			return nil, err
-		}
-
-		return response.NewRoomsResponse(room), nil
-	}
-
-	rooms, err := ci.roomService.FindRoomsByStatus(ctx, roomRequest.Status)
-	if err != nil {
-		return nil, err
-	}
-	return response.NewRoomsResponse(rooms...), nil
-}
-
-func (ci *catanInteractor) CreateGame(ctx context.Context) (*response.GameResponse, error) {
+func (gi *gameInteractor) CreateGame(ctx context.Context) (*response.GameResponse, error) {
 	game := model.NewGame()
 
-	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (gi *gameInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	userId := 0 //todo: userid from context
 
-	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +73,7 @@ func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Ga
 	if player == nil {
 		userRequestPb := new(user.UserRequest)
 		userRequestPb.ID = int64(userId)
-		userPb, err := ci.userService.GetUserById(ctx, userRequestPb)
+		userPb, err := gi.userService.GetUserById(ctx, userRequestPb)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +82,7 @@ func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Ga
 		player.SetUser(user)
 		game.AddPlayers(player)
 
-		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+		if err := gi.gameAggregateService.Save(ctx, game); err != nil {
 			return nil, err
 		}
 	}
@@ -114,16 +90,16 @@ func (ci *catanInteractor) JoinGame(ctx context.Context, gameRequest *request.Ga
 	return nil, nil
 }
 
-func (ci *catanInteractor) LoadGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (gi *gameInteractor) LoadGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	return nil, nil
 }
 
-func (ci *catanInteractor) UpdateGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (gi *gameInteractor) UpdateGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	return nil, nil
 }
 
-func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+func (gi *gameInteractor) StartGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -196,15 +172,15 @@ func (ci *catanInteractor) StartGame(ctx context.Context, gameRequest *request.G
 		}
 	}
 
-	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (ci *catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+func (gi *gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +200,7 @@ func (ci *catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.G
 			player.IsLeft = true
 		}
 
-		if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+		if err := gi.gameAggregateService.Save(ctx, game); err != nil {
 			return nil, err
 		}
 	}
@@ -232,10 +208,10 @@ func (ci *catanInteractor) LeaveGame(ctx context.Context, gameRequest *request.G
 	return nil, nil
 }
 
-func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (gi *gameInteractor) RollDices(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	userId := 0
 
-	game, err := ci.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -317,17 +293,17 @@ func (ci *catanInteractor) RollDices(ctx context.Context, gameRequest *request.G
 		}
 	}
 
-	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (ci *catanInteractor) BuildRoad(ctx context.Context, roadRequest *request.RoadRequest) (*response.GameResponse, error) {
+func (gi *gameInteractor) BuildRoad(ctx context.Context, roadRequest *request.RoadRequest) (*response.GameResponse, error) {
 	userId := 0
 
-	game, err := ci.gameAggregateService.GetById(ctx, uint(roadRequest.GameID))
+	game, err := gi.gameAggregateService.GetById(ctx, uint(roadRequest.GameID))
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +366,7 @@ func (ci *catanInteractor) BuildRoad(ctx context.Context, roadRequest *request.R
 		})
 
 		if len(lumberResourceCards) < 1 || len(brickResourceCards) < 1 {
-			return nil, errors.New("insufficient resources")
+			return nil, errors.New("insuffigient resources")
 		}
 
 		lumberResourceCards[0].PlayerID = nil
@@ -398,7 +374,7 @@ func (ci *catanInteractor) BuildRoad(ctx context.Context, roadRequest *request.R
 	}
 	road.PlayerID = &player.ID
 
-	if err := ci.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
 		return nil, err
 	}
 

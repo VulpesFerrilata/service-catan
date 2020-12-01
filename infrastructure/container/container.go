@@ -4,6 +4,7 @@ import (
 	"github.com/VulpesFerrilata/catan/infrastructure/iris/router"
 	"github.com/VulpesFerrilata/catan/infrastructure/iris/server"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/VulpesFerrilata/catan/internal/domain/service"
 	"github.com/VulpesFerrilata/library/config"
 	"github.com/VulpesFerrilata/library/pkg/database"
 	"github.com/VulpesFerrilata/library/pkg/db"
@@ -31,6 +32,20 @@ func NewContainer() *dig.Container {
 	container.Provide(repository.NewRoadRepository)
 	container.Provide(repository.NewRobberRepository)
 	container.Provide(repository.NewTerrainRepository)
+
+	container.Provide(service.NewAchievementService)
+	container.Provide(service.NewConstructionService)
+	container.Provide(service.NewDevelopmentCardService)
+	container.Provide(service.NewDiceService)
+	container.Provide(service.NewGameService)
+	container.Provide(service.NewGameAggregateService)
+	container.Provide(service.NewHarborService)
+	container.Provide(service.NewPlayerService)
+	container.Provide(service.NewPlayerAggregateService)
+	container.Provide(service.NewResourceCardService)
+	container.Provide(service.NewRoadService)
+	container.Provide(service.NewRobberService)
+	container.Provide(service.NewTerrainService)
 	//--Usecase
 	container.Provide(interactor.NewAuthInteractor)
 	//--Gateways
