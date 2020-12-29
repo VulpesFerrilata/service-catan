@@ -1,32 +1,51 @@
 package model
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
-
-type Player struct {
-	datamodel.Player
-	game      *Game
-	user      *User
-	isRemoved bool
+func NewPlayer(user *User) *Player {
+	player := new(Player)
+	return player
 }
 
-func (p *Player) SetGame(game *Game) {
-	if game != nil {
-		p.GameID = &game.ID
+type Player struct {
+	id         uint
+	userId     uint
+	color      string
+	turnOrder  int
+	isLeft     bool
+	game       *Game
+	user       *User
+	isModified bool
+	isRemoved  bool
+}
+
+func (p Player) GetId() uint {
+	return p.id
+}
+
+func (p Player) GetUserId() uint {
+	return p.userId
+}
+
+func (p Player) GetColor() string {
+	return p.color
+}
+
+func (p Player) SetColor(color string) error {
+	isDuplicateColor := p.game.players.Any(func(player Player) bool {
+		if player.id != p.id && player.color == color {
+			return true
+		}
+		return false
+	})
+	if isDuplicateColor {
+		//TODO: duplicate color error
 	}
-	p.game = game
+	p.color = color
+	p.isModified = true
+	return nil
 }
 
 func (p *Player) GetUser() *User {
 	return p.user
-}
-
-func (p *Player) SetUser(user *User) {
-	if user == nil {
-		p.UserID = nil
-	} else {
-		p.UserID = &user.ID
-	}
-	p.user = user
 }
 
 func (p *Player) GetAchievements() Achievements {

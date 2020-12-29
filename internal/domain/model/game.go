@@ -6,13 +6,15 @@ import (
 
 func NewGame() *Game {
 	game := new(Game)
-	game.Status = datamodel.GS_WAITING
-	game.Turn = 1
+	game.status = datamodel.GS_WAITING
 	return game
 }
 
 type Game struct {
-	datamodel.Game
+	id               uint
+	playerInTurn     uint
+	turn             int
+	status           datamodel.GameStatus
 	players          Players
 	dices            Dices
 	achievements     Achievements
@@ -23,21 +25,61 @@ type Game struct {
 	constructions    Constructions
 	roads            Roads
 	harbors          Harbors
+	isModified       bool
 	isRemoved        bool
 }
 
-func (g *Game) GetPlayers() Players {
+func (g Game) GetId() uint {
+	return g.id
+}
+
+func (g Game) GetPlayerInTurn() *Player {
+	return g.players.Filter(func(player Player) bool {
+		return player.id == g.playerInTurn
+	}).First()
+}
+
+func (g *Game) NextPlayerInTurn() {
+	players := g.players
+
+	players.Sort(func(a, b Player) bool {
+		return a.turnOrder < b.turnOrder
+	})
+
+	for idx, player := range players {
+		if player.id == g.playerInTurn {
+			if idx+1 == len(players) {
+				g.playerInTurn = players[0].id
+			} else {
+				g.playerInTurn = players[idx+1].id
+			}
+			g.isModified = true
+			return
+		}
+	}
+}
+
+func (g Game) GetTurn() int {
+	return g.turn
+}
+
+func (g *Game) NextTurn() {
+	g.turn++
+	g.isModified = true
+}
+
+func (g Game) GetPlayers() Players {
 	return g.players
 }
 
 func (g *Game) AddPlayers(players ...*Player) {
 	for _, player := range players {
-		g.players.append(player)
-		player.SetGame(g)
+		g.players = append(g.players, player)
+		player.game = g
 	}
 }
 
-func (g *Game) GetDices() Dices {
+func (g Game) GetDices() Dices {
 	return g.dices
 }
 
@@ -48,7 +90,7 @@ func (g *Game) AddDices(dices ...*Dice) {
 	}
 }
 
-func (g *Game) GetAchievements() Achievements {
+func (g Game) GetAchievements() Achievements {
 	return g.achievements
 }
 
@@ -59,7 +101,7 @@ func (g *Game) AddAchievements(achievements ...*Achievement) {
 	}
 }
 
-func (g *Game) GetResourceCards() ResourceCards {
+func (g Game) GetResourceCards() ResourceCards {
 	return g.resourceCards
 }
 
@@ -70,7 +112,7 @@ func (g *Game) AddResourceCards(resourceCards ...*ResourceCard) {
 	}
 }
 
-func (g *Game) GetDevelopmentCards() DevelopmentCards {
+func (g Game) GetDevelopmentCards() DevelopmentCards {
 	return g.developmentCards
 }
 
@@ -81,7 +123,7 @@ func (g *Game) AddDevelopmentCards(developmentCards ...*DevelopmentCard) {
 	}
 }
 
-func (g *Game) GetTerrains() Terrains {
+func (g Game) GetTerrains() Terrains {
 	return g.terrains
 }
 
@@ -92,7 +134,7 @@ func (g *Game) AddTerrains(terrains ...*Terrain) {
 	}
 }
 
-func (g *Game) GetRobber() *Robber {
+func (g Game) GetRobber() *Robber {
 	return g.robber
 }
 
@@ -101,7 +143,7 @@ func (g *Game) SetRobber(robber *Robber) {
 	robber.SetGame(g)
 }
 
-func (g *Game) GetConstructions() Constructions {
+func (g Game) GetConstructions() Constructions {
 	return g.constructions
 }
 
@@ -112,7 +154,7 @@ func (g *Game) AddConstructions(constructions ...*Construction) {
 	}
 }
 
-func (g *Game) GetRoads() Roads {
+func (g Game) GetRoads() Roads {
 	return g.roads
 }
 
@@ -123,7 +165,7 @@ func (g *Game) AddRoads(roads ...*Road) {
 	}
 }
 
-func (g *Game) GetHarbors() Harbors {
+func (g Game) GetHarbors() Harbors {
 	return g.harbors
 }
 
@@ -134,6 +176,10 @@ func (g *Game) AddHarbors(harbors ...*Harbor) {
 	}
 }
 
-func (g *Game) IsRemoved() bool {
+func (g Game) IsModified() bool {
+	return g.isModified
+}
+
+func (g Game) IsRemoved() bool {
 	return g.isRemoved
 }

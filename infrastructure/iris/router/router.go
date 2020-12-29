@@ -15,12 +15,12 @@ type Router interface {
 	InitRoutes(app *iris.Application)
 }
 
-func NewRouter(catanController controller.CatanController,
+func NewRouter(websocketController controller.WebsocketController,
 	transactionMiddleware *middleware.TransactionMiddleware,
 	translatorMiddleware *middleware.TranslatorMiddleware,
 	errorMiddleware *middleware.ErrorMiddleware) Router {
 	return &router{
-		catanController:       catanController,
+		websocketController:   websocketController,
 		transactionMiddleware: transactionMiddleware,
 		translatorMiddleware:  translatorMiddleware,
 		errorMiddleware:       errorMiddleware,
@@ -28,7 +28,7 @@ func NewRouter(catanController controller.CatanController,
 }
 
 type router struct {
-	catanController       controller.CatanController
+	websocketController   controller.WebsocketController
 	transactionMiddleware *middleware.TransactionMiddleware
 	translatorMiddleware  *middleware.TranslatorMiddleware
 	errorMiddleware       *middleware.ErrorMiddleware
@@ -44,7 +44,7 @@ func (r router) InitRoutes(app *iris.Application) {
 	catanRoot := apiRoot.Party("/catan")
 
 	mvcApp := mvc.New(catanRoot)
-	mvcApp.HandleWebsocket(r.catanController)
+	mvcApp.HandleWebsocket(r.websocketController)
 	wsServer := websocket.New(websocket.DefaultGorillaUpgrader, mvcApp)
 	catanRoot.Get("/ws", websocket.Handler(wsServer))
 }
