@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/db"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
 )
 
 type SafeDiceRepository interface {
@@ -16,21 +16,21 @@ type DiceRepository interface {
 	InsertOrUpdate(ctx context.Context, dice *model.Dice) error
 }
 
-func NewDiceRepository(dbContext *db.DbContext) DiceRepository {
+func NewDiceRepository(transactionMiddleware *middleware.TransactionMiddleware) DiceRepository {
 	return &diceRepository{
-		dbContext: dbContext,
+		transactionMiddleware: transactionMiddleware,
 	}
 }
 
 type diceRepository struct {
-	dbContext *db.DbContext
+	transactionMiddleware *middleware.TransactionMiddleware
 }
 
 func (dr *diceRepository) FindByGameId(ctx context.Context, gameId uint) (model.Dices, error) {
 	var dices model.Dices
-	return dices, dr.dbContext.GetDB(ctx).Find(&dices, "game_id = ?", gameId).Error
+	return dices, dr.transactionMiddleware.Get(ctx).Find(&dices, "game_id = ?", gameId).Error
 }
 
 func (dr *diceRepository) InsertOrUpdate(ctx context.Context, dice *model.Dice) error {
-	return dr.dbContext.GetDB(ctx).Save(dice).Error
+	return dr.transactionMiddleware.Get(ctx).Save(dice).Error
 }

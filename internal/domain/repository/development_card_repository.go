@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/db"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
 )
 
 type SafeDevelopmentCardRepository interface {
@@ -16,21 +16,21 @@ type DevelopmentCardRepository interface {
 	InsertOrUpdate(ctx context.Context, developmentCard *model.DevelopmentCard) error
 }
 
-func NewDevelopmentCardRepository(dbContext *db.DbContext) DevelopmentCardRepository {
+func NewDevelopmentCardRepository(transactionMiddleware *middleware.TransactionMiddleware) DevelopmentCardRepository {
 	return &developmentCardRepository{
-		dbContext: dbContext,
+		transactionMiddleware: transactionMiddleware,
 	}
 }
 
 type developmentCardRepository struct {
-	dbContext *db.DbContext
+	transactionMiddleware *middleware.TransactionMiddleware
 }
 
 func (dcr *developmentCardRepository) FindByGameId(ctx context.Context, gameId uint) (model.DevelopmentCards, error) {
 	var developmentCards model.DevelopmentCards
-	return developmentCards, dcr.dbContext.GetDB(ctx).Find(&developmentCards, "game_id = ?", gameId).Error
+	return developmentCards, dcr.transactionMiddleware.Get(ctx).Find(&developmentCards, "game_id = ?", gameId).Error
 }
 
 func (dcr *developmentCardRepository) InsertOrUpdate(ctx context.Context, developmentCard *model.DevelopmentCard) error {
-	return dcr.dbContext.GetDB(ctx).Save(developmentCard).Error
+	return dcr.transactionMiddleware.Get(ctx).Save(developmentCard).Error
 }

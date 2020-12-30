@@ -2,8 +2,9 @@ package interactor
 
 import (
 	"context"
-	"errors"
 	"math/rand"
+
+	"github.com/pkg/errors"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/db"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
 )
 
 type SafeTerrainRepository interface {
@@ -16,21 +16,21 @@ type TerrainRepository interface {
 	InsertOrUpdate(ctx context.Context, terrain *model.Terrain) error
 }
 
-func NewTerrainRepository(dbContext *db.DbContext) TerrainRepository {
+func NewTerrainRepository(transactionMiddleware *middleware.TransactionMiddleware) TerrainRepository {
 	return &terrainRepository{
-		dbContext: dbContext,
+		transactionMiddleware: transactionMiddleware,
 	}
 }
 
 type terrainRepository struct {
-	dbContext *db.DbContext
+	transactionMiddleware *middleware.TransactionMiddleware
 }
 
 func (tr *terrainRepository) FindByGameId(ctx context.Context, gameId uint) (model.Terrains, error) {
 	var terrains model.Terrains
-	return terrains, tr.dbContext.GetDB(ctx).Find(&terrains, "game_id = ?", gameId).Error
+	return terrains, tr.transactionMiddleware.Get(ctx).Find(&terrains, "game_id = ?", gameId).Error
 }
 
 func (tr *terrainRepository) InsertOrUpdate(ctx context.Context, terrain *model.Terrain) error {
-	return tr.dbContext.GetDB(ctx).Save(terrain).Error
+	return tr.transactionMiddleware.Get(ctx).Save(terrain).Error
 }

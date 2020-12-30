@@ -12,7 +12,7 @@ type Harbor struct {
 
 func (h *Harbor) SetGame(game *Game) {
 	if game != nil {
-		h.GameID = &game.ID
+		h.GameID = &game.id
 	}
 	h.game = game
 }

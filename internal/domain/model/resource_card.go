@@ -9,7 +9,7 @@ type ResourceCard struct {
 
 func (rc *ResourceCard) SetGame(game *Game) {
 	if game != nil {
-		rc.GameID = &game.ID
+		rc.GameID = &game.id
 	}
 	rc.game = game
 }
@@ -19,7 +19,7 @@ func (rc *ResourceCard) GetPlayer() *Player {
 		return nil
 	}
 
-	return rc.game.players.Filter(func(player *Player) bool {
-		return player.ID == *rc.PlayerID
+	return rc.game.players.Filter(func(player Player) bool {
+		return player.id == *rc.PlayerID
 	}).First()
 }

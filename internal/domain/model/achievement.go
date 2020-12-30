@@ -9,7 +9,7 @@ type Achievement struct {
 
 func (a *Achievement) SetGame(game *Game) {
 	if game != nil {
-		a.GameID = &game.ID
+		a.GameID = &game.id
 	}
 	a.game = game
 }
@@ -19,7 +19,7 @@ func (a *Achievement) GetPlayer() *Player {
 		return nil
 	}
 
-	return a.game.players.Filter(func(player *Player) bool {
-		return player.ID == *a.PlayerID
+	return a.game.players.Filter(func(player Player) bool {
+		return player.id == *a.PlayerID
 	}).First()
 }

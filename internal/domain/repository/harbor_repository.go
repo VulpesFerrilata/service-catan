@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/db"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
 )
 
 type SafeHarborRepository interface {
@@ -16,21 +16,21 @@ type HarborRepository interface {
 	InsertOrUpdate(ctx context.Context, harbor *model.Harbor) error
 }
 
-func NewHarborRepository(dbContext *db.DbContext) HarborRepository {
+func NewHarborRepository(transactionMiddleware *middleware.TransactionMiddleware) HarborRepository {
 	return &harborRepository{
-		dbContext: dbContext,
+		transactionMiddleware: transactionMiddleware,
 	}
 }
 
 type harborRepository struct {
-	dbContext *db.DbContext
+	transactionMiddleware *middleware.TransactionMiddleware
 }
 
 func (hr *harborRepository) FindByGameId(ctx context.Context, gameId uint) (model.Harbors, error) {
 	var harbors model.Harbors
-	return harbors, hr.dbContext.GetDB(ctx).Find(&harbors, "game_id = ?", gameId).Error
+	return harbors, hr.transactionMiddleware.Get(ctx).Find(&harbors, "game_id = ?", gameId).Error
 }
 
 func (hr *harborRepository) InsertOrUpdate(ctx context.Context, harbor *model.Harbor) error {
-	return hr.dbContext.GetDB(ctx).Save(harbor).Error
+	return hr.transactionMiddleware.Get(ctx).Save(harbor).Error
 }

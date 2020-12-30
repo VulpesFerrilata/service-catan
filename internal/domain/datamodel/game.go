@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Game struct {
 	gorm.Model
-	PlayerInTurn *uint
+	PlayerInTurn uint
 	Turn         int
 	Status       GameStatus
 }
@@ -12,7 +12,7 @@ type Game struct {
 type GameStatus string
 
 const (
-	GS_WAITING  GameStatus = "WAITING"
-	GS_STARTED  GameStatus = "STARTED"
-	GS_FINISHED GameStatus = "FINISHED"
+	Waiting  GameStatus = "waiting"
+	Started  GameStatus = "started"
+	Finished GameStatus = "finished"
 )

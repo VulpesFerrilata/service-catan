@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/db"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
 )
 
 type SafeConstructionRepository interface {
@@ -16,22 +16,22 @@ type ConstructionRepository interface {
 	InsertOrUpdate(ctx context.Context, construction *model.Construction) error
 }
 
-func NewConstructionRepository(dbContext *db.DbContext) ConstructionRepository {
+func NewConstructionRepository(transactionMiddleware *middleware.TransactionMiddleware) ConstructionRepository {
 	return &constructionRepository{
-		dbContext: dbContext,
+		transactionMiddleware: transactionMiddleware,
 	}
 }
 
 type constructionRepository struct {
-	dbContext *db.DbContext
+	transactionMiddleware *middleware.TransactionMiddleware
 }
 
 func (cr *constructionRepository) FindByGameId(ctx context.Context, gameId uint) (model.Constructions, error) {
 	var constructions model.Constructions
-	return constructions, cr.dbContext.GetDB(ctx).Find(&constructions, "game_id = ?", gameId).Error
+	return constructions, cr.transactionMiddleware.Get(ctx).Find(&constructions, "game_id = ?", gameId).Error
 }
 
 func (cr *constructionRepository) InsertOrUpdate(ctx context.Context, construction *model.Construction) error {
-	return cr.dbContext.GetDB(ctx).Save(construction).Error
+	return cr.transactionMiddleware.Get(ctx).Save(construction).Error
 
 }

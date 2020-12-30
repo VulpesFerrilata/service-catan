@@ -9,7 +9,7 @@ type Construction struct {
 
 func (c *Construction) SetGame(game *Game) {
 	if game != nil {
-		c.GameID = &game.ID
+		c.GameID = &game.id
 	}
 	c.game = game
 }
@@ -19,7 +19,7 @@ func (c *Construction) GetPlayer() *Player {
 		return nil
 	}
 
-	return c.game.players.Filter(func(player *Player) bool {
-		return player.ID == *c.PlayerID
+	return c.game.players.Filter(func(player Player) bool {
+		return player.id == *c.PlayerID
 	}).First()
 }

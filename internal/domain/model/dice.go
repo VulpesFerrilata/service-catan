@@ -13,7 +13,7 @@ type Dice struct {
 
 func (d *Dice) SetGame(game *Game) {
 	if game != nil {
-		d.GameID = &game.ID
+		d.GameID = &game.id
 	}
 	d.game = game
 }

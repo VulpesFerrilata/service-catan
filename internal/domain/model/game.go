@@ -6,7 +6,7 @@ import (
 
 func NewGame() *Game {
 	game := new(Game)
-	game.status = datamodel.GS_WAITING
+	game.status = datamodel.Waiting
 	return game
 }
 

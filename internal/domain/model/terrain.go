@@ -9,7 +9,7 @@ type Terrain struct {
 
 func (t *Terrain) SetGame(game *Game) {
 	if game != nil {
-		t.GameID = &game.ID
+		t.GameID = &game.id
 	}
 	t.game = game
 }

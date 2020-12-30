@@ -4,8 +4,8 @@ import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
 func NewRoom(game *Game) *Room {
 	room := new(Room)
-	room.ID = game.ID
-	room.Status = game.Status
+	room.ID = game.id
+	room.Status = game.status
 	for _, player := range game.GetPlayers() {
 		room.users = append(room.users, player.GetUser())
 	}

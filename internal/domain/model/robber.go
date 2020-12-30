@@ -24,7 +24,7 @@ type Robber struct {
 
 func (r *Robber) SetGame(game *Game) {
 	if game != nil {
-		r.GameID = &game.ID
+		r.GameID = &game.id
 	}
 	r.game = game
 }

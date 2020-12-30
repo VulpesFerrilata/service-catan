@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/db"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
 )
 
 type SafeRoadRepository interface {
@@ -16,21 +16,21 @@ type RoadRepository interface {
 	InsertOrUpdate(ctx context.Context, road *model.Road) error
 }
 
-func NewRoadRepository(dbContext *db.DbContext) RoadRepository {
+func NewRoadRepository(transactionMiddleware *middleware.TransactionMiddleware) RoadRepository {
 	return &roadRepository{
-		dbContext: dbContext,
+		transactionMiddleware: transactionMiddleware,
 	}
 }
 
 type roadRepository struct {
-	dbContext *db.DbContext
+	transactionMiddleware *middleware.TransactionMiddleware
 }
 
 func (rr *roadRepository) FindByGameId(ctx context.Context, gameId uint) (model.Roads, error) {
 	var roads model.Roads
-	return roads, rr.dbContext.GetDB(ctx).Find(&roads, "game_id = ?", gameId).Error
+	return roads, rr.transactionMiddleware.Get(ctx).Find(&roads, "game_id = ?", gameId).Error
 }
 
 func (rr *roadRepository) InsertOrUpdate(ctx context.Context, road *model.Road) error {
-	return rr.dbContext.GetDB(ctx).Save(road).Error
+	return rr.transactionMiddleware.Get(ctx).Save(road).Error
 }

@@ -10,7 +10,7 @@ type Road struct {
 
 func (r *Road) SetGame(game *Game) {
 	if game != nil {
-		r.GameID = &game.ID
+		r.GameID = &game.id
 	}
 	r.game = game
 }
@@ -20,8 +20,8 @@ func (r *Road) GetPlayer(game *Game) *Player {
 		return nil
 	}
 
-	return r.game.players.Filter(func(player *Player) bool {
-		return player.ID == *r.PlayerID
+	return r.game.players.Filter(func(player Player) bool {
+		return player.id == *r.PlayerID
 	}).First()
 }
 

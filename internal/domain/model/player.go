@@ -1,13 +1,27 @@
 package model
 
-func NewPlayer(user *User) *Player {
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/pkg/errors"
+)
+
+func NewPlayer(game *Game, user *User) *Player {
 	player := new(Player)
+
+	game.AddPlayers(player)
+	player.SetUser(user)
+
 	return player
+}
+
+func EmptyPlayer() *Player {
+	player := new(Player)
+	player.isModified = false
+	player.isRemoved = false
 }
 
 type Player struct {
 	id         uint
-	userId     uint
 	color      string
 	turnOrder  int
 	isLeft     bool
@@ -21,15 +35,14 @@ func (p Player) GetId() uint {
 	return p.id
 }
 
-func (p Player) GetUserId() uint {
-	return p.userId
-}
-
 func (p Player) GetColor() string {
 	return p.color
 }
 
-func (p Player) SetColor(color string) error {
+func (p *Player) SetColor(color string) error {
+	if p.game.status != datamodel.Waiting {
+		//TODO: action is unavailable in this state error
+	}
 	isDuplicateColor := p.game.players.Any(func(player Player) bool {
 		if player.id != p.id && player.color == color {
 			return true
@@ -44,61 +57,111 @@ func (p Player) SetColor(color string) error {
 	return nil
 }
 
-func (p *Player) GetUser() *User {
+func (p Player) GetTurnOrder() int {
+	return p.turnOrder
+}
+
+func (p *Player) SetTurnOrder(turnOrder int) error {
+	isDuplicateTurnOrder := p.game.players.Any(func(player Player) bool {
+		if player.id != p.id && player.turnOrder == turnOrder {
+			return true
+		}
+		return false
+	})
+	if isDuplicateTurnOrder {
+		//TODO: duplicate turn order error
+	}
+	p.turnOrder = turnOrder
+	p.isModified = true
+	return nil
+}
+
+func (p Player) IsLeft() bool {
+	return p.isLeft
+}
+
+func (p Player) Leave() {
+	p.isLeft = true
+	p.isModified = true
+}
+
+func (p Player) GetUser() *User {
 	return p.user
 }
 
-func (p *Player) GetAchievements() Achievements {
+func (p *Player) SetUser(user *User) {
+	p.user = user
+}
+
+func (p Player) GetAchievements() Achievements {
 	return p.game.achievements.Filter(func(achievement *Achievement) bool {
 		playerId := achievement.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.ID
+		return *playerId == p.id
 	})
 }
 
-func (p *Player) GetDevelopmentCards() DevelopmentCards {
+func (p Player) GetDevelopmentCards() DevelopmentCards {
 	return p.game.developmentCards.Filter(func(developmentCard *DevelopmentCard) bool {
 		playerId := developmentCard.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.ID
+		return *playerId == p.id
 	})
 }
 
-func (p *Player) GetResourceCards() ResourceCards {
+func (p Player) GetResourceCards() ResourceCards {
 	return p.game.resourceCards.Filter(func(resourceCard *ResourceCard) bool {
 		playerId := resourceCard.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.ID
+		return *playerId == p.id
 	})
 }
 
-func (p *Player) GetRoads() Roads {
+func (p Player) GetRoads() Roads {
 	return p.game.roads.Filter(func(road *Road) bool {
 		playerId := road.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.ID
+		return *playerId == p.id
 	})
 }
 
-func (p *Player) GetConstructions() Constructions {
+func (p Player) GetConstructions() Constructions {
 	return p.game.constructions.Filter(func(construction *Construction) bool {
 		playerId := construction.PlayerID
 		if playerId == nil {
 			return false
 		}
-		return *playerId == p.ID
+		return *playerId == p.id
 	})
 }
 
-func (p *Player) IsRemoved() bool {
+func (p Player) IsHost() bool {
+	minPlayerId := p.id
+	for _, player := range p.game.players {
+		if player.id < minPlayerId {
+			minPlayerId = player.id
+		}
+	}
+	return p.id == minPlayerId
+}
+
+func (p *Player) IsInTurn() bool {
+	return p.game.playerInTurn == p.id
+}
+
+func (p Player) IsModified() bool {
+	return p.isModified
+}
+
+func (p Player) IsRemoved() bool {
 	return p.isRemoved
 }
 
@@ -109,19 +172,24 @@ func (p *Player) Remove() {
 	}
 }
 
-func (p *Player) IsHost() bool {
-	minPlayerId := p.ID
-	for _, player := range p.game.players {
-		if player.ID < minPlayerId {
-			minPlayerId = player.ID
-		}
+func (p *Player) Persist(f func(player *datamodel.Player) error) error {
+	player := new(datamodel.Player)
+	player.ID = p.id
+	if p.game != nil {
+		player.GameID = p.game.id
 	}
-	return p.ID == minPlayerId
-}
+	if p.user != nil {
+		player.UserID = p.user.id
+	}
+	player.Color = p.color
+	player.TurnOrder = p.turnOrder
 
-func (p *Player) IsInTurn() bool {
-	if p.game.PlayerInTurn == nil {
-		return false
+	if err := f(player); err != nil {
+		return errors.Wrap(err, "model.Player.Persist")
 	}
-	return *p.game.PlayerInTurn == p.ID
+
+	p.id = player.ID
+	p.color = player.Color
+	p.turnOrder = player.TurnOrder
+	return nil
 }

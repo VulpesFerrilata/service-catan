@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/db"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
 )
 
 type SafeAchievementRepository interface {
@@ -16,22 +16,22 @@ type AchievementRepository interface {
 	InsertOrUpdate(ctx context.Context, achievement *model.Achievement) error
 }
 
-func NewAchievementRepository(dbContext *db.DbContext) AchievementRepository {
+func NewAchievementRepository(transactionMiddleware *middleware.TransactionMiddleware) AchievementRepository {
 	return &achievementRepository{
-		dbContext: dbContext,
+		transactionMiddleware: transactionMiddleware,
 	}
 }
 
 type achievementRepository struct {
-	dbContext *db.DbContext
+	transactionMiddleware *middleware.TransactionMiddleware
 }
 
 func (ar *achievementRepository) FindByGameId(ctx context.Context, gameId uint) (model.Achievements, error) {
 	var achievements model.Achievements
-	return achievements, ar.dbContext.GetDB(ctx).Find(&achievements, "game_id = ?", gameId).Error
+	return achievements, ar.transactionMiddleware.Get(ctx).Find(&achievements, "game_id = ?", gameId).Error
 }
 
 func (ar *achievementRepository) InsertOrUpdate(ctx context.Context, achievement *model.Achievement) error {
-	return ar.dbContext.GetDB(ctx).Save(achievement).Error
+	return ar.transactionMiddleware.Get(ctx).Save(achievement).Error
 
 }
