@@ -1,23 +1,44 @@
-package datamodel
+package model
 
-import "gorm.io/gorm"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/pkg/math"
+)
 
 type Harbor struct {
-	gorm.Model
-	GameID    *uint
-	TerrainID *uint
-	Q         int
-	R         int
-	Type      HarborType
+	datamodel.Harbor
+	game *Game
 }
 
-type HarborType string
+func (h *Harbor) SetGame(game *Game) {
+	if game != nil {
+		h.GameID = &game.id
+	}
+	h.game = game
+}
 
-const (
-	HT_GENERAL HarborType = "GENERAL"
-	HT_LUMBER  HarborType = "LUMBER"
-	HT_BRICK   HarborType = "BRICK"
-	HT_WOOL    HarborType = "WOOL"
-	HT_GRAIN   HarborType = "GRAIN"
-	HT_ORE     HarborType = "ORE"
-)
+func (h *Harbor) GetTerrain() *Terrain {
+	if h.TerrainID == nil {
+		return nil
+	}
+	return h.game.terrains.Filter(func(terrain *Terrain) bool {
+		return terrain.ID == *h.TerrainID
+	}).First()
+}
+
+func (h *Harbor) GetIntersectRoad() *Road {
+	terrain := h.GetTerrain()
+
+	if terrain == nil {
+		return nil
+	}
+
+	return h.game.roads.Filter(func(road *Road) bool {
+		if h.Q == terrain.Q {
+			return road.Q == h.Q && road.R == math.Max(h.R, terrain.R) && road.Location == datamodel.RL_TOP_LEFT
+		} else if h.R == terrain.R {
+			return road.Q == math.Max(h.Q, terrain.Q) && road.R == h.R && road.Location == datamodel.RL_MID_LEFT
+		}
+		return road.Q == math.Max(h.Q, terrain.Q) && road.R == math.Min(h.R, terrain.R) && road.Location == datamodel.RL_BOT_LEFT
+	}).First()
+}

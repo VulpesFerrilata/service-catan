@@ -1,25 +1,21 @@
-package model
+package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import "github.com/VulpesFerrilata/library/pkg/model"
 
 type DevelopmentCard struct {
-	datamodel.DevelopmentCard
-	game *Game
+	model.Model
+	ID       int `gorm:"primaryKey"`
+	GameID   int
+	Type     DevelopmentType
+	PlayerID *int
 }
 
-func (dc *DevelopmentCard) SetGame(game *Game) {
-	if game != nil {
-		dc.GameID = &game.id
-	}
-	dc.game = game
-}
+type DevelopmentType string
 
-func (dc *DevelopmentCard) GetPlayer() *Player {
-	if dc.PlayerID == nil {
-		return nil
-	}
-
-	return dc.game.players.Filter(func(player Player) bool {
-		return player.id == *dc.PlayerID
-	}).First()
-}
+const (
+	Knight        DevelopmentType = "Knight"
+	Monopoly      DevelopmentType = "Monopoly"
+	RoadBuilding  DevelopmentType = "RoadBuilding"
+	YearOfPlenty  DevelopmentType = "YearOfPlenty"
+	VictoryPoints DevelopmentType = "VictoryPoints"
+)

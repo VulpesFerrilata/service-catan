@@ -1,18 +1,30 @@
-package datamodel
+package model
 
-import "gorm.io/gorm"
+import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-type Robber struct {
-	gorm.Model
-	GameID    *uint
-	TerrainID *uint
-	Status    RobberStatus
+func NewRobber(terrains Terrains) *Robber {
+	robber := new(Robber)
+	robber.Status = datamodel.RS_IDLE
+
+	desertTerrain := terrains.Filter(func(terrain *Terrain) bool {
+		if terrain.Type == datamodel.TT_DESERT {
+			return true
+		}
+		return false
+	}).First()
+	robber.TerrainID = &desertTerrain.ID
+
+	return robber
 }
 
-type RobberStatus string
+type Robber struct {
+	datamodel.Robber
+	game *Game
+}
 
-const (
-	RS_IDLE = "IDLE"
-	RS_MOVE = "MOVE"
-	RS_ROB  = "ROB"
-)
+func (r *Robber) SetGame(game *Game) {
+	if game != nil {
+		r.GameID = &game.id
+	}
+	r.game = game
+}

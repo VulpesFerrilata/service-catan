@@ -1,25 +1,20 @@
-package model
+package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import "github.com/VulpesFerrilata/library/pkg/model"
 
 type Construction struct {
-	datamodel.Construction
-	game *Game
+	model.Model
+	GameID           int                  `gorm:"primaryKey"`
+	Q                int                  `gorm:"primaryKey"`
+	R                int                  `gorm:"primaryKey"`
+	Location         ConstructionLocation `gorm:"primaryKey"`
+	PlayerID         *int
+	IsUpgradedCastle bool
 }
 
-func (c *Construction) SetGame(game *Game) {
-	if game != nil {
-		c.GameID = &game.id
-	}
-	c.game = game
-}
+type ConstructionLocation string
 
-func (c *Construction) GetPlayer() *Player {
-	if c.PlayerID == nil {
-		return nil
-	}
-
-	return c.game.players.Filter(func(player Player) bool {
-		return player.id == *c.PlayerID
-	}).First()
-}
+const (
+	Top    ConstructionLocation = "Top"
+	Bottom ConstructionLocation = "Bottom"
+)

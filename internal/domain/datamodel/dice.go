@@ -1,10 +1,25 @@
-package datamodel
+package model
 
-import "gorm.io/gorm"
+import (
+	"math/rand"
+
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+)
 
 type Dice struct {
-	gorm.Model
-	GameID   *uint
-	Number   int
-	IsRolled bool
+	datamodel.Dice
+	game *Game
+}
+
+func (d *Dice) SetGame(game *Game) {
+	if game != nil {
+		d.GameID = &game.id
+	}
+	d.game = game
+}
+
+func (d *Dice) Roll() int {
+	d.Number = rand.Intn(6) + 1
+	d.IsRolled = true
+	return d.Number
 }

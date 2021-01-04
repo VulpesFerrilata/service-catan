@@ -1,10 +1,13 @@
 package container
 
 import (
+	"github.com/VulpesFerrilata/catan/infrastructure/iris/controller"
 	"github.com/VulpesFerrilata/catan/infrastructure/iris/router"
 	"github.com/VulpesFerrilata/catan/infrastructure/iris/server"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 	"github.com/VulpesFerrilata/catan/internal/domain/service"
+	"github.com/VulpesFerrilata/catan/internal/usecase/interactor"
+	gateway "github.com/VulpesFerrilata/grpc/service"
 	"github.com/VulpesFerrilata/library/config"
 	"github.com/VulpesFerrilata/library/pkg/database"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
@@ -40,13 +43,12 @@ func NewContainer() *dig.Container {
 	container.Provide(service.NewGameAggregateService)
 	container.Provide(service.NewHarborService)
 	container.Provide(service.NewPlayerService)
-	container.Provide(service.NewPlayerAggregateService)
 	container.Provide(service.NewResourceCardService)
 	container.Provide(service.NewRoadService)
 	container.Provide(service.NewRobberService)
 	container.Provide(service.NewTerrainService)
 	//--Usecase
-	container.Provide(interactor.NewAuthInteractor)
+	container.Provide(interactor.NewGameInteractor)
 	//--Gateways
 	container.Provide(gateway.NewUserService)
 
@@ -58,17 +60,14 @@ func NewContainer() *dig.Container {
 	//--Middleware
 	container.Provide(middleware.NewTransactionMiddleware)
 	container.Provide(middleware.NewTranslatorMiddleware)
-	container.Provide(middleware.NewErrorMiddleware)
+	container.Provide(middleware.NewErrorHandlerMiddleware)
 
 	//--Controller
-	container.Provide(controller.NewAuthController)
+	container.Provide(controller.NewWebsocketController)
 	//--Router
 	container.Provide(router.NewRouter)
 	//--Server
 	container.Provide(server.NewServer)
-
-	//--Grpc
-	container.Provide(handler.NewAuthHandler)
 
 	return container
 }

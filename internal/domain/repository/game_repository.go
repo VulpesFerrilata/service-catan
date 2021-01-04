@@ -15,7 +15,6 @@ import (
 
 type SafeGameRepository interface {
 	GetById(ctx context.Context, id uint) (*model.Game, error)
-	FindByGameStatus(ctx context.Context, gameStatus datamodel.GameStatus) ([]*model.Game, error)
 }
 
 type GameRepository interface {
@@ -42,16 +41,14 @@ type gameRepository struct {
 
 func (gr *gameRepository) GetById(ctx context.Context, gameId uint) (*model.Game, error) {
 	game := new(model.Game)
-	err := gr.transactionMiddleware.Get(ctx).First(&game, "game_id = ?", gameId).Error
+	err := gr.transactionMiddleware.Get(ctx).First(&game, gameId).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, app_error.NewNotFoundError("game")
 	}
-	return game, err
-}
 
-func (gr *gameRepository) FindByGameStatus(ctx context.Context, gameStatus datamodel.GameStatus) ([]*model.Game, error) {
-	games := make([]*model.Game, 0)
-	return games, gr.transactionMiddleware.Get(ctx).Find(&games, "status", gameStatus).Error
+	game
+
+	return game, err
 }
 
 func (gr *gameRepository) Save(ctx context.Context, game *model.Game) error {

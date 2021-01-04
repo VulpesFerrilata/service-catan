@@ -1,25 +1,20 @@
-package model
+package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import (
+	"github.com/VulpesFerrilata/library/pkg/model"
+)
 
 type Achievement struct {
-	datamodel.Achievement
-	game *Game
+	model.Model
+	GameID      int             `gorm:"primaryKey"`
+	Type        AchievementType `gorm:"primaryKey"`
+	PlayerID    *int
+	BonusPoints int
 }
 
-func (a *Achievement) SetGame(game *Game) {
-	if game != nil {
-		a.GameID = &game.id
-	}
-	a.game = game
-}
+type AchievementType string
 
-func (a *Achievement) GetPlayer() *Player {
-	if a.PlayerID == nil {
-		return nil
-	}
-
-	return a.game.players.Filter(func(player Player) bool {
-		return player.id == *a.PlayerID
-	}).First()
-}
+const (
+	LongestRoad AchievementType = "LongestRoad"
+	LargestArmy AchievementType = "LargestArmy"
+)

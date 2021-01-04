@@ -1,20 +1,25 @@
-package datamodel
+package model
 
-import "gorm.io/gorm"
+import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
 type Construction struct {
-	gorm.Model
-	GameID           *uint
-	PlayerID         *uint
-	Q                int
-	R                int
-	Location         ConstructionLocation
-	IsUpgradedCastle bool
+	datamodel.Construction
+	game *Game
 }
 
-type ConstructionLocation string
+func (c *Construction) SetGame(game *Game) {
+	if game != nil {
+		c.GameID = &game.id
+	}
+	c.game = game
+}
 
-const (
-	CL_TOP ConstructionLocation = "TOP"
-	CL_BOT ConstructionLocation = "BOT"
-)
+func (c *Construction) GetPlayer() *Player {
+	if c.PlayerID == nil {
+		return nil
+	}
+
+	return c.game.players.Filter(func(player Player) bool {
+		return player.id == *c.PlayerID
+	}).First()
+}

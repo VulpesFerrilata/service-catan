@@ -1,20 +1,25 @@
-package datamodel
+package model
 
-import "gorm.io/gorm"
+import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
 type DevelopmentCard struct {
-	gorm.Model
-	GameID   *uint
-	PlayerID *uint
-	Type     DevelopmentType
+	datamodel.DevelopmentCard
+	game *Game
 }
 
-type DevelopmentType string
+func (dc *DevelopmentCard) SetGame(game *Game) {
+	if game != nil {
+		dc.GameID = &game.id
+	}
+	dc.game = game
+}
 
-const (
-	DT_KNIGHT         DevelopmentType = "KNIGHT"
-	DT_MONOPOLY       DevelopmentType = "MONOPOLY"
-	DT_ROAD_BUILDING  DevelopmentType = "ROAD_BUILDING"
-	DT_YEAR_OF_PLENTY DevelopmentType = "YEAR_OF_PLENTY"
-	DT_VICTORY_POINTS DevelopmentType = "VICTORY_POINTS"
-)
+func (dc *DevelopmentCard) GetPlayer() *Player {
+	if dc.PlayerID == nil {
+		return nil
+	}
+
+	return dc.game.players.Filter(func(player Player) bool {
+		return player.id == *dc.PlayerID
+	}).First()
+}

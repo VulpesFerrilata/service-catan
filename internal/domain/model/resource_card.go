@@ -1,25 +1,21 @@
-package model
+package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import "github.com/VulpesFerrilata/library/pkg/model"
 
 type ResourceCard struct {
-	datamodel.ResourceCard
-	game *Game
+	model.Model
+	ID       int `gorm:"primaryKey"`
+	GameID   int
+	PlayerID *int
+	Type     ResourceType
 }
 
-func (rc *ResourceCard) SetGame(game *Game) {
-	if game != nil {
-		rc.GameID = &game.id
-	}
-	rc.game = game
-}
+type ResourceType string
 
-func (rc *ResourceCard) GetPlayer() *Player {
-	if rc.PlayerID == nil {
-		return nil
-	}
-
-	return rc.game.players.Filter(func(player Player) bool {
-		return player.id == *rc.PlayerID
-	}).First()
-}
+const (
+	LumberResource ResourceType = "Lumber"
+	BrickResource  ResourceType = "Brick"
+	WoolResource   ResourceType = "Wool"
+	GrainResource  ResourceType = "Grain"
+	OreResource    ResourceType = "Ore"
+)

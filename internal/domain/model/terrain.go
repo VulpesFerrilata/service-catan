@@ -1,33 +1,23 @@
-package model
+package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import "gorm.io/gorm"
 
 type Terrain struct {
-	datamodel.Terrain
-	game *Game
+	gorm.Model
+	GameID int `gorm:"primaryKey"`
+	Q      int `gorm:"primaryKey"`
+	R      int `gorm:"primaryKey"`
+	Number int
+	Type   TerrainType
 }
 
-func (t *Terrain) SetGame(game *Game) {
-	if game != nil {
-		t.GameID = &game.id
-	}
-	t.game = game
-}
+type TerrainType string
 
-func (t *Terrain) HasRobber() bool {
-	if t.game.robber.TerrainID == nil {
-		return false
-	}
-	return *t.game.robber.TerrainID == t.ID
-}
-
-func (t *Terrain) GetAdjacentConstructions() Constructions {
-	return t.game.constructions.Filter(func(construction *Construction) bool {
-		return (construction.Q == t.Q+1 && construction.R == t.R-1 && construction.Location == datamodel.CL_BOT) ||
-			(construction.Q == t.Q && construction.R == t.R-1 && construction.Location == datamodel.CL_BOT) ||
-			(construction.Q == t.Q && construction.R == t.R && construction.Location == datamodel.CL_TOP) ||
-			(construction.Q == t.Q && construction.R == t.R && construction.Location == datamodel.CL_BOT) ||
-			(construction.Q == t.Q && construction.R == t.R+1 && construction.Location == datamodel.CL_TOP) ||
-			(construction.Q == t.Q-1 && construction.R == t.R+1 && construction.Location == datamodel.CL_TOP)
-	})
-}
+const (
+	HillTerrain     TerrainType = "Hill"
+	FieldTerrain    TerrainType = "Field"
+	PastureTerrain  TerrainType = "Pasture"
+	MountainTerrain TerrainType = "Mountain"
+	ForestTerrain   TerrainType = "Forest"
+	DesertTerrain   TerrainType = "Desert"
+)

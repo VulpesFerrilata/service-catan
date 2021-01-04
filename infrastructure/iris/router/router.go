@@ -18,20 +18,20 @@ type Router interface {
 func NewRouter(websocketController controller.WebsocketController,
 	transactionMiddleware *middleware.TransactionMiddleware,
 	translatorMiddleware *middleware.TranslatorMiddleware,
-	errorMiddleware *middleware.ErrorMiddleware) Router {
+	errorHandlerMiddleware *middleware.ErrorHandlerMiddleware) Router {
 	return &router{
-		websocketController:   websocketController,
-		transactionMiddleware: transactionMiddleware,
-		translatorMiddleware:  translatorMiddleware,
-		errorMiddleware:       errorMiddleware,
+		websocketController:    websocketController,
+		transactionMiddleware:  transactionMiddleware,
+		translatorMiddleware:   translatorMiddleware,
+		errorHandlerMiddleware: errorHandlerMiddleware,
 	}
 }
 
 type router struct {
-	websocketController   controller.WebsocketController
-	transactionMiddleware *middleware.TransactionMiddleware
-	translatorMiddleware  *middleware.TranslatorMiddleware
-	errorMiddleware       *middleware.ErrorMiddleware
+	websocketController    controller.WebsocketController
+	transactionMiddleware  *middleware.TransactionMiddleware
+	translatorMiddleware   *middleware.TranslatorMiddleware
+	errorHandlerMiddleware *middleware.ErrorHandlerMiddleware
 }
 
 func (r router) InitRoutes(app *iris.Application) {
@@ -45,6 +45,7 @@ func (r router) InitRoutes(app *iris.Application) {
 
 	mvcApp := mvc.New(catanRoot)
 	mvcApp.HandleWebsocket(r.websocketController)
+	mvcApp.HandleError(r.errorHandlerMiddleware.ErrorHandler)
 	wsServer := websocket.New(websocket.DefaultGorillaUpgrader, mvcApp)
 	catanRoot.Get("/ws", websocket.Handler(wsServer))
 }
