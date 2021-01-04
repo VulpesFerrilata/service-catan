@@ -1,27 +1,23 @@
-package model
+package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/pkg/errors"
 )
 
-func NewPlayer(game *Game, user *User) *Player {
+func NewPlayer() *Player {
 	player := new(Player)
-
-	game.AddPlayers(player)
-	player.SetUser(user)
 
 	return player
 }
 
-func EmptyPlayer() *Player {
+func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
 	player := new(Player)
 	player.isModified = false
 	player.isRemoved = false
 }
 
 type Player struct {
-	id         uint
 	color      string
 	turnOrder  int
 	isLeft     bool
@@ -29,10 +25,6 @@ type Player struct {
 	user       *User
 	isModified bool
 	isRemoved  bool
-}
-
-func (p Player) GetId() uint {
-	return p.id
 }
 
 func (p Player) GetColor() string {

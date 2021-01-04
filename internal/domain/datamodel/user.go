@@ -1,15 +1,15 @@
-package model
+package datamodel
 
 import "github.com/VulpesFerrilata/grpc/protoc/user"
 
-func NewUser(userPb *user.UserResponse) *User {
+func NewUserFromUserPb(userPb *user.UserResponse) *User {
 	user := new(User)
-	user.id = uint(userPb.GetID())
+	user.id = int(userPb.GetID())
 	return user
 }
 
 type User struct {
-	id       uint
+	id       int
 	username string
 }
 

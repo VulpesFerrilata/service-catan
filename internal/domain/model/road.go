@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 import "gorm.io/gorm"
 
@@ -8,7 +8,7 @@ type Road struct {
 	Q        int          `gorm:"primaryKey"`
 	R        int          `gorm:"primaryKey"`
 	Location RoadLocation `gorm:"primaryKey"`
-	PlayerID *int
+	UserID   *int
 }
 
 type RoadLocation string

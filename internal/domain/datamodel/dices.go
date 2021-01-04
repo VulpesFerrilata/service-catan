@@ -1,4 +1,4 @@
-package model
+package datamodel
 
 func NewDices() Dices {
 	var dices Dices

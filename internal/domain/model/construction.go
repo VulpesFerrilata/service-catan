@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 import "github.com/VulpesFerrilata/library/pkg/model"
 
@@ -8,7 +8,7 @@ type Construction struct {
 	Q                int                  `gorm:"primaryKey"`
 	R                int                  `gorm:"primaryKey"`
 	Location         ConstructionLocation `gorm:"primaryKey"`
-	PlayerID         *int
+	UserID           *int
 	IsUpgradedCastle bool
 }
 

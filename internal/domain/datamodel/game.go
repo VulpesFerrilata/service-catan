@@ -1,20 +1,31 @@
-package model
+package datamodel
 
 import (
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
 func NewGame() *Game {
 	game := new(Game)
-	game.status = datamodel.Waiting
+	game.status = model.Waiting
+	return game
+}
+
+func NewGameFromGameModel(gameModel *model.Game) *Game {
+	game := new(Game)
+	game.id = gameModel.ID
+	game.playerInTurn = gameModel.PlayerInTurn
+	game.turn = gameModel.Turn
+	game.status = gameModel.Status
+	game.isModified = false
+	game.isRemoved = false
 	return game
 }
 
 type Game struct {
-	id               uint
-	playerInTurn     uint
+	id               int
+	playerInTurn     int
 	turn             int
-	status           datamodel.GameStatus
+	status           model.GameStatus
 	players          Players
 	dices            Dices
 	achievements     Achievements
@@ -29,13 +40,16 @@ type Game struct {
 	isRemoved        bool
 }
 
-func (g Game) GetId() uint {
+func (g Game) GetId() int {
 	return g.id
 }
 
 func (g Game) GetPlayerInTurn() *Player {
 	return g.players.Filter(func(player Player) bool {
-		return player.id == g.playerInTurn
+		if player.user == nil {
+			return false
+		}
+		return player.user.id == g.playerInTurn
 	}).First()
 }
 
@@ -47,7 +61,7 @@ func (g *Game) NextPlayerInTurn() {
 	})
 
 	for idx, player := range players {
-		if player.id == g.playerInTurn {
+		if player.user != nil && player.user.id == g.playerInTurn {
 			if idx+1 == len(players) {
 				g.playerInTurn = players[0].id
 			} else {

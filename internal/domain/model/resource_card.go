@@ -1,13 +1,13 @@
-package datamodel
+package model
 
 import "github.com/VulpesFerrilata/library/pkg/model"
 
 type ResourceCard struct {
 	model.Model
-	ID       int `gorm:"primaryKey"`
-	GameID   int
-	PlayerID *int
-	Type     ResourceType
+	ID     int `gorm:"primaryKey"`
+	GameID int
+	UserID *int
+	Type   ResourceType
 }
 
 type ResourceType string

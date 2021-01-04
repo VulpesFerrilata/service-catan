@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 import (
 	"github.com/VulpesFerrilata/library/pkg/model"
