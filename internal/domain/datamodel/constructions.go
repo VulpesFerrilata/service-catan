@@ -1,6 +1,20 @@
 package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+)
+
+func NewConstructionsFromConstructionModels(constructionModels []*model.Construction) Constructions {
+	constructions := make(Constructions, 0)
+
+	for _, constructionModel := range constructionModels {
+		construction := NewConstructionFromConstructionModel(constructionModel)
+		constructions = append(constructions, construction)
+	}
+
+	return constructions
+}
 
 func NewConstructions() Constructions {
 	var constructions Constructions
@@ -37,10 +51,6 @@ func NewConstructions() Constructions {
 
 type Constructions []*Construction
 
-func (c *Constructions) append(construction *Construction) {
-	*c = append(*c, construction)
-}
-
 type ConstructionFilterFunc func(construction *Construction) bool
 
 func (c Constructions) Filter(constructionFilterFunc ConstructionFilterFunc) Constructions {
@@ -48,7 +58,7 @@ func (c Constructions) Filter(constructionFilterFunc ConstructionFilterFunc) Con
 
 	for _, construction := range c {
 		if constructionFilterFunc(construction) {
-			constructions.append(construction)
+			constructions = append(constructions, construction)
 		}
 	}
 

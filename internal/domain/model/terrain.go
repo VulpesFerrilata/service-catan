@@ -4,11 +4,12 @@ import "gorm.io/gorm"
 
 type Terrain struct {
 	gorm.Model
-	GameID int `gorm:"primaryKey"`
-	Q      int `gorm:"primaryKey"`
-	R      int `gorm:"primaryKey"`
-	Number int
-	Type   TerrainType
+	ID          int `gorm:"primaryKey"`
+	GameID      int
+	Q           int
+	R           int
+	Number      int
+	TerrainType TerrainType
 }
 
 type TerrainType string

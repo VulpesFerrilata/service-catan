@@ -13,12 +13,12 @@ import (
 )
 
 type SafePlayerRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (model.Players, error)
+	FindByGameId(ctx context.Context, gameId int) (datamodel.Players, error)
 }
 
 type PlayerRepository interface {
 	SafePlayerRepository
-	Save(ctx context.Context, player *model.Player) error
+	Save(ctx context.Context, player *datamodel.Player) error
 }
 
 func NewPlayerRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -37,37 +37,33 @@ type playerRepository struct {
 	userService           user.UserService
 }
 
-func (pr *playerRepository) FindByGameId(ctx context.Context, gameId uint) (model.Players, error) {
-	playerDMs := make([]*datamodel.Player, 0)
-	err := pr.transactionMiddleware.Get(ctx).Find(&playerDMs, "game_id = ?", gameId).Error
+func (pr playerRepository) FindByGameId(ctx context.Context, gameId int) (datamodel.Players, error) {
+	playerModels := make([]*model.Player, 0)
+	err := pr.transactionMiddleware.Get(ctx).Find(&playerModels, "game_id = ?", gameId).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 	}
-	var players model.Players
 
-	for _, playerDM := range playerDMs {
-		player := model.EmptyPlayer()
-		player.Persist(func(player *datamodel.Player) error {
-			player = playerDM
-			return nil
-		})
+	players := make(datamodel.Players, 0)
+	for _, playerModel := range playerModels {
+		player := datamodel.NewPlayerFromPlayerModel(playerModel)
 
-		userRequest := new(user.UserRequest)
-		userRequest.ID = int64(playerDM.UserID)
-		userPb, err := pr.userService.GetUserById(ctx, userRequest)
+		userRequestPb := new(user.UserRequest)
+		userRequestPb.ID = int64(playerModel.UserID)
+		userResponsePb, err := pr.userService.GetUserById(ctx, userRequestPb)
 		if err != nil {
 			return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 		}
-		user := model.NewUser(userPb)
+		user := datamodel.NewUserFromUserPb(userResponsePb)
 		player.SetUser(user)
 
 		players = append(players, player)
 	}
 
-	return players, nil
+	return datamodel.NewPlayersFromPlayerModels(playerModels), errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 }
 
-func (pr *playerRepository) Save(ctx context.Context, player *model.Player) error {
+func (pr playerRepository) Save(ctx context.Context, player *datamodel.Player) error {
 	if player.IsRemoved() {
 		err := pr.delete(ctx, player)
 		return errors.Wrap(err, "repository.PlayerRepository.Save")
@@ -79,22 +75,22 @@ func (pr *playerRepository) Save(ctx context.Context, player *model.Player) erro
 	return nil
 }
 
-func (pr *playerRepository) insertOrUpdate(ctx context.Context, player *model.Player) error {
-	return player.Persist(func(player *datamodel.Player) error {
-		if err := pr.validate.StructCtx(ctx, player); err != nil {
+func (pr playerRepository) insertOrUpdate(ctx context.Context, player *datamodel.Player) error {
+	return player.Persist(func(playerModel *model.Player) error {
+		if err := pr.validate.StructCtx(ctx, playerModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewValidationError(app_error.EntityValidation, "player", fieldErrors)
+				err = app_error.NewEntityValidationError(playerModel, fieldErrors)
 			}
-			return errors.Wrap(err, "repository.UserRepository.Insert")
+			return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
 		}
-		err := pr.transactionMiddleware.Get(ctx).Save(player).Error
+		err := pr.transactionMiddleware.Get(ctx).Save(playerModel).Error
 		return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
 	})
 }
 
-func (pr *playerRepository) delete(ctx context.Context, player *model.Player) error {
-	return player.Persist(func(player *datamodel.Player) error {
-		err := pr.transactionMiddleware.Get(ctx).Delete(player).Error
+func (pr playerRepository) delete(ctx context.Context, player *datamodel.Player) error {
+	return player.Persist(func(playerModel *model.Player) error {
+		err := pr.transactionMiddleware.Get(ctx).Delete(playerModel).Error
 		return errors.Wrap(err, "repository.PlayerRepository.Delete")
 	})
 }

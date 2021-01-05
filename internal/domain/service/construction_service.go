@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type ConstructionService interface {
 	GetConstructionRepository() repository.SafeConstructionRepository
-	Save(ctx context.Context, construction *model.Construction) error
+	Save(ctx context.Context, construction *datamodel.Construction) error
 }
 
 func NewConstructionService(constructionRepository repository.ConstructionRepository) ConstructionService {
@@ -22,19 +23,17 @@ type constructionService struct {
 	constructionRepository repository.ConstructionRepository
 }
 
-func (cs *constructionService) GetConstructionRepository() repository.SafeConstructionRepository {
+func (cs constructionService) GetConstructionRepository() repository.SafeConstructionRepository {
 	return cs.constructionRepository
 }
 
-func (cs *constructionService) validate(ctx context.Context, construction *model.Construction) error {
-	//TODO: validate construction
-	return nil
-}
-
-func (cs *constructionService) Save(ctx context.Context, construction *model.Construction) error {
-	if err := cs.validate(ctx, construction); err != nil {
-		return err
+func (cs constructionService) Save(ctx context.Context, construction *datamodel.Construction) error {
+	if construction.IsRemoved() {
+		return nil
 	}
-
-	return cs.constructionRepository.InsertOrUpdate(ctx, construction)
+	if construction.IsModified() {
+		err := cs.constructionRepository.InsertOrUpdate(ctx, construction)
+		return errors.Wrap(err, "service.ConstructionService.Save")
+	}
+	return nil
 }

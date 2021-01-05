@@ -4,7 +4,19 @@ import (
 	"math/rand"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
+
+func NewHarborsFromHarborModels(harborModels []*model.Harbor) Harbors {
+	harbors := make(Harbors, 0)
+
+	for _, harborModel := range harborModels {
+		harbor := NewHarborFromHarborModel(harborModel)
+		harbors = append(harbors, harbor)
+	}
+
+	return harbors
+}
 
 func NewHarbors(terrains Terrains) Harbors {
 	var harbors Harbors
@@ -112,10 +124,6 @@ func NewHarbors(terrains Terrains) Harbors {
 
 type Harbors []*Harbor
 
-func (h *Harbors) append(harbor *Harbor) {
-	*h = append(*h, harbor)
-}
-
 type HarborFilterFunc func(harbor *Harbor) bool
 
 func (h Harbors) Filter(harborFilterFunc HarborFilterFunc) Harbors {
@@ -123,7 +131,7 @@ func (h Harbors) Filter(harborFilterFunc HarborFilterFunc) Harbors {
 
 	for _, harbor := range h {
 		if harborFilterFunc(harbor) {
-			harbors.append(harbor)
+			harbors = append(harbors, harbor)
 		}
 	}
 

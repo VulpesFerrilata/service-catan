@@ -4,12 +4,13 @@ import "github.com/VulpesFerrilata/library/pkg/model"
 
 type Construction struct {
 	model.Model
-	GameID           int                  `gorm:"primaryKey"`
-	Q                int                  `gorm:"primaryKey"`
-	R                int                  `gorm:"primaryKey"`
-	Location         ConstructionLocation `gorm:"primaryKey"`
-	UserID           *int
-	IsUpgradedCastle bool
+	ID               int `gorm:"primaryKey"`
+	GameID           int
+	Q                int
+	R                int
+	Location         ConstructionLocation
+	PlayerID         *int
+	ConstructionType ConstructionType
 }
 
 type ConstructionLocation string
@@ -17,4 +18,12 @@ type ConstructionLocation string
 const (
 	Top    ConstructionLocation = "Top"
 	Bottom ConstructionLocation = "Bottom"
+)
+
+type ConstructionType string
+
+const (
+	Land       ConstructionType = "Land"
+	Settlement ConstructionType = "Settlement"
+	City       ConstructionType = "City"
 )

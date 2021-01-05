@@ -6,12 +6,13 @@ import (
 
 type Harbor struct {
 	model.Model
-	GameID   int `gorm:"primaryKey"`
-	Q        int `gorm:"primaryKey"`
-	R        int `gorm:"primaryKey"`
-	TerrainQ int
-	TerrainR int
-	Type     HarborType
+	ID         int `gorm:"primaryKey"`
+	GameID     int
+	Q          int
+	R          int
+	TerrainQ   int
+	TerrainR   int
+	HarborType HarborType
 }
 
 type HarborType string

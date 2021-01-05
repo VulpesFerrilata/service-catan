@@ -1,32 +1,42 @@
 package datamodel
 
 import (
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/pkg/math"
+	"github.com/pkg/errors"
 )
 
+func NewHarborFromHarborModel(harborModel *model.Harbor) *Harbor {
+	harbor := new(Harbor)
+	harbor.id = harborModel.ID
+	harbor.q = harborModel.Q
+	harbor.r = harborModel.R
+	harbor.terrainQ = harborModel.TerrainQ
+	harbor.terrainR = harborModel.TerrainR
+	harbor.harborType = harborModel.HarborType
+	harbor.isModified = false
+	harbor.isRemoved = false
+	return harbor
+}
+
 type Harbor struct {
-	datamodel.Harbor
-	game *Game
+	base
+	id         int
+	q          int
+	r          int
+	terrainQ   int
+	terrainR   int
+	harborType model.HarborType
+	game       *Game
 }
 
-func (h *Harbor) SetGame(game *Game) {
-	if game != nil {
-		h.GameID = &game.id
-	}
-	h.game = game
-}
-
-func (h *Harbor) GetTerrain() *Terrain {
-	if h.TerrainID == nil {
-		return nil
-	}
+func (h Harbor) GetTerrain() *Terrain {
 	return h.game.terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.ID == *h.TerrainID
+		return terrain.q == h.terrainQ && terrain.r == h.terrainR
 	}).First()
 }
 
-func (h *Harbor) GetIntersectRoad() *Road {
+func (h *Harbor) GetIntersectroad() *Road {
 	terrain := h.GetTerrain()
 
 	if terrain == nil {
@@ -34,11 +44,36 @@ func (h *Harbor) GetIntersectRoad() *Road {
 	}
 
 	return h.game.roads.Filter(func(road *Road) bool {
-		if h.Q == terrain.Q {
-			return road.Q == h.Q && road.R == math.Max(h.R, terrain.R) && road.Location == datamodel.RL_TOP_LEFT
-		} else if h.R == terrain.R {
-			return road.Q == math.Max(h.Q, terrain.Q) && road.R == h.R && road.Location == datamodel.RL_MID_LEFT
+		if h.q == terrain.q {
+			return road.q == h.q && road.r == math.Max(h.r, terrain.r) && road.location == model.TopLeft
+		} else if h.r == terrain.r {
+			return road.q == math.Max(h.q, terrain.q) && road.r == h.r && road.location == model.MiddleLeft
 		}
-		return road.Q == math.Max(h.Q, terrain.Q) && road.R == math.Min(h.R, terrain.R) && road.Location == datamodel.RL_BOT_LEFT
+		return road.q == math.Max(h.q, terrain.q) && road.r == math.Min(h.r, terrain.r) && road.location == model.BottomLeft
 	}).First()
+}
+
+func (h *Harbor) Persist(f func(harborModel *model.Harbor) error) error {
+	harborModel := new(model.Harbor)
+	harborModel.ID = h.id
+	harborModel.Q = h.q
+	harborModel.R = h.r
+	harborModel.TerrainQ = h.terrainQ
+	harborModel.TerrainR = h.terrainR
+	harborModel.HarborType = h.harborType
+
+	if err := f(harborModel); err != nil {
+		return errors.Wrap(err, "datamodel.Harbor.Persist")
+	}
+	h.isModified = false
+	h.isRemoved = false
+
+	h.id = harborModel.ID
+	h.q = harborModel.Q
+	h.r = harborModel.R
+	h.terrainQ = harborModel.TerrainQ
+	h.terrainR = harborModel.TerrainR
+	h.harborType = harborModel.HarborType
+
+	return nil
 }

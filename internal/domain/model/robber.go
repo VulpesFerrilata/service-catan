@@ -4,7 +4,8 @@ import "gorm.io/gorm"
 
 type Robber struct {
 	gorm.Model
-	GameID   int `gorm:"primaryKey"`
+	ID       int `gorm:"primaryKey"`
+	GameID   int
 	TerrainQ int
 	TerrainR int
 	Status   RobberStatus

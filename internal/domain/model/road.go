@@ -4,11 +4,12 @@ import "gorm.io/gorm"
 
 type Road struct {
 	gorm.Model
-	GameID   int          `gorm:"primaryKey"`
-	Q        int          `gorm:"primaryKey"`
-	R        int          `gorm:"primaryKey"`
-	Location RoadLocation `gorm:"primaryKey"`
-	UserID   *int
+	ID       int `gorm:"primaryKey"`
+	GameID   int
+	Q        int
+	R        int
+	Location RoadLocation
+	PlayerID *int
 }
 
 type RoadLocation string

@@ -1,15 +1,29 @@
 package datamodel
 
-import "sort"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"sort"
+)
+
+func NewPlayersFromPlayerModels(playerModels []*model.Player) Players {
+	players := make(Players, 0)
+
+	for _, playerModel := range playerModels {
+		player := NewPlayerFromPlayerModel(playerModel)
+		players = append(players, player)
+	}
+
+	return players
+}
 
 type Players []*Player
 
-type PlayerFilterFunc func(player Player) bool
+type PlayerFilterFunc func(player *Player) bool
 
 func (p Players) Filter(f PlayerFilterFunc) Players {
 	var players Players
 	for _, player := range p {
-		if f(*player) {
+		if f(player) {
 			players = append(players, player)
 		}
 	}
@@ -25,7 +39,7 @@ func (p Players) First() *Player {
 
 func (p Players) Any(f PlayerFilterFunc) bool {
 	for _, player := range p {
-		if f(*player) {
+		if f(player) {
 			return true
 		}
 	}

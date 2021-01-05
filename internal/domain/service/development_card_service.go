@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type DevelopmentCardService interface {
 	GetDevelopmentCardRepository() repository.SafeDevelopmentCardRepository
-	Save(ctx context.Context, developmentCard *model.DevelopmentCard) error
+	Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
 }
 
 func NewDevelopmentCardService(developmentCardRepository repository.DevelopmentCardRepository) DevelopmentCardService {
@@ -22,19 +23,17 @@ type developmentCardService struct {
 	developmentCardRepository repository.DevelopmentCardRepository
 }
 
-func (dcs *developmentCardService) GetDevelopmentCardRepository() repository.SafeDevelopmentCardRepository {
+func (dcs developmentCardService) GetDevelopmentCardRepository() repository.SafeDevelopmentCardRepository {
 	return dcs.developmentCardRepository
 }
 
-func (dcs *developmentCardService) validate(ctx context.Context, developmentCard *model.DevelopmentCard) error {
-	//TODO: validate dice
-	return nil
-}
-
-func (dcs *developmentCardService) Save(ctx context.Context, developmentCard *model.DevelopmentCard) error {
-	if err := dcs.validate(ctx, developmentCard); err != nil {
-		return err
+func (dcs developmentCardService) Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
+	if developmentCard.IsRemoved() {
+		return nil
 	}
-
-	return dcs.developmentCardRepository.InsertOrUpdate(ctx, developmentCard)
+	if developmentCard.IsModified() {
+		err := dcs.developmentCardRepository.InsertOrUpdate(ctx, developmentCard)
+		return errors.Wrap(err, "service.DevelopmentCardService.Save")
+	}
+	return nil
 }

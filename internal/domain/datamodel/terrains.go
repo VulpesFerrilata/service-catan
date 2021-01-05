@@ -5,7 +5,19 @@ import (
 	"math/rand"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
+
+func NewTerrainsFromTerrainModels(terrainModels []*model.Terrain) Terrains {
+	terrains := make(Terrains, 0)
+
+	for _, terrainModel := range terrainModels {
+		terrain := NewTerrainFromTerrainModel(terrainModel)
+		terrains = append(terrains, terrain)
+	}
+
+	return terrains
+}
 
 func NewTerrains() Terrains {
 	var terrains Terrains
@@ -89,10 +101,6 @@ func NewTerrains() Terrains {
 
 type Terrains []*Terrain
 
-func (t *Terrains) append(terrain *Terrain) {
-	*t = append(*t, terrain)
-}
-
 func (t *Terrains) splitRandomly() (Terrains, Terrains, *Terrain) {
 	var specialTerrains Terrains
 	var normalTerrains Terrains
@@ -112,9 +120,9 @@ func (t *Terrains) splitRandomly() (Terrains, Terrains, *Terrain) {
 	for i := 1; i <= 4; i++ {
 		idx := rand.Intn(len(whitelistTerrains))
 		specialTerrain := whitelistTerrains[idx]
-		specialTerrains.append(specialTerrain)
+		specialTerrains = append(specialTerrains, specialTerrain)
 		whitelistTerrains = whitelistTerrains.Filter(func(terrain *Terrain) bool {
-			if math.Abs(float64(terrain.Q-specialTerrain.Q)) <= 1 && math.Abs(float64(terrain.R-specialTerrain.R)) <= 1 {
+			if math.Abs(float64(terrain.q-specialTerrain.q)) <= 1 && math.Abs(float64(terrain.r-specialTerrain.r)) <= 1 {
 				return false
 			}
 			return true
@@ -142,7 +150,7 @@ func (t Terrains) Filter(terrainFilterFunc TerrainFilterFunc) Terrains {
 	var terrains Terrains
 	for _, terrain := range t {
 		if terrainFilterFunc(terrain) {
-			terrains.append(terrain)
+			terrains = append(terrains, terrain)
 		}
 	}
 	return terrains

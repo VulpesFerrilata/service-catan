@@ -1,6 +1,20 @@
 package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+)
+
+func NewAchievementsFromAchievementModels(achievementModels []*model.Achievement) Achievements {
+	achievements := make(Achievements, 0)
+
+	for _, achievementModel := range achievementModels {
+		achievement := NewAchievementFromAchievementModel(achievementModel)
+		achievements = append(achievements, achievement)
+	}
+
+	return achievements
+}
 
 func NewAchievements() Achievements {
 	var achievements Achievements
@@ -20,17 +34,13 @@ func NewAchievements() Achievements {
 
 type Achievements []*Achievement
 
-func (a *Achievements) append(achievement *Achievement) {
-	*a = append(*a, achievement)
-}
-
 type AchievementFilterFunc func(achievement *Achievement) bool
 
 func (a Achievements) Filter(achievementFilterFunc AchievementFilterFunc) Achievements {
 	var achievements Achievements
 	for _, achievement := range a {
 		if achievementFilterFunc(achievement) {
-			achievements.append(achievement)
+			achievements = append(achievements, achievement)
 		}
 	}
 	return achievements

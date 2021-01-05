@@ -1,6 +1,20 @@
 package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+)
+
+func NewRoadsFromRoadModels(roadModels []*model.Road) Roads {
+	roads := make(Roads, 0)
+
+	for _, roadModel := range roadModels {
+		road := NewRoadFromRoadModel(roadModel)
+		roads = append(roads, road)
+	}
+
+	return roads
+}
 
 func NewRoads() Roads {
 	var roads Roads
@@ -11,26 +25,26 @@ func NewRoads() Roads {
 		for q := minQ; q <= maxQ; q++ {
 			if (r > 0 && q != maxQ) || r > 3 {
 				topRoad := new(Road)
-				topRoad.Q = q
-				topRoad.R = r
-				topRoad.Location = datamodel.RL_TOP_LEFT
-				roads.append(topRoad)
+				topRoad.q = q
+				topRoad.r = r
+				topRoad.location = model.TopLeft
+				roads = append(roads, topRoad)
 			}
 
 			if r > 0 && r < 6 {
 				midRoad := new(Road)
-				midRoad.Q = q
-				midRoad.R = r
-				midRoad.Location = datamodel.RL_MID_LEFT
-				roads.append(midRoad)
+				midRoad.q = q
+				midRoad.r = r
+				midRoad.location = datamodel.RL_MID_LEFT
+				roads = append(roads, midRoad)
 			}
 
 			if (r < 6 && q != maxQ) || r < 3 {
 				botRoad := new(Road)
-				botRoad.Q = q
-				botRoad.R = r
-				botRoad.Location = datamodel.RL_BOT_LEFT
-				roads.append(botRoad)
+				botRoad.q = q
+				botRoad.r = r
+				botRoad.location = datamodel.RL_BOT_LEFT
+				roads = append(roads, botRoad)
 			}
 		}
 
@@ -46,10 +60,6 @@ func NewRoads() Roads {
 
 type Roads []*Road
 
-func (r *Roads) append(road *Road) {
-	*r = append(*r, road)
-}
-
 type RoadFilterFunc func(road *Road) bool
 
 func (r Roads) Filter(roadFilterFunc RoadFilterFunc) Roads {
@@ -57,7 +67,7 @@ func (r Roads) Filter(roadFilterFunc RoadFilterFunc) Roads {
 
 	for _, road := range r {
 		if roadFilterFunc(road) {
-			roads.append(road)
+			roads = append(roads, road)
 		}
 	}
 

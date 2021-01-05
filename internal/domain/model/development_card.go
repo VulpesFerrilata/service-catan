@@ -4,10 +4,10 @@ import "github.com/VulpesFerrilata/library/pkg/model"
 
 type DevelopmentCard struct {
 	model.Model
-	ID     int `gorm:"primaryKey"`
-	GameID int
-	Type   DevelopmentType
-	UserID *int
+	ID              int `gorm:"primaryKey"`
+	GameID          int
+	DevelopmentType DevelopmentType
+	PlayerID        *int
 }
 
 type DevelopmentType string

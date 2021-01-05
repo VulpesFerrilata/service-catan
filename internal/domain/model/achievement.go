@@ -6,10 +6,11 @@ import (
 
 type Achievement struct {
 	model.Model
-	GameID      int             `gorm:"primaryKey"`
-	Type        AchievementType `gorm:"primaryKey"`
-	PlayerID    *int
-	BonusPoints int
+	ID              int `gorm:"primaryKey"`
+	GameID          int
+	AchievementType AchievementType
+	PlayerID        *int
+	BonusPoints     int
 }
 
 type AchievementType string

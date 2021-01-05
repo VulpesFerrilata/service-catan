@@ -3,23 +3,48 @@ package datamodel
 import (
 	"math/rand"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/pkg/errors"
 )
 
+func NewDiceFromDiceModel(diceModel *model.Dice) *Dice {
+	dice := new(Dice)
+	dice.id = diceModel.ID
+	dice.number = diceModel.Number
+	dice.isModified = false
+	dice.isRemoved = false
+	return dice
+}
+
 type Dice struct {
-	datamodel.Dice
-	game *Game
+	base
+	id         int
+	number     int
+	game       *Game
+	isModified bool
 }
 
-func (d *Dice) SetGame(game *Game) {
-	if game != nil {
-		d.GameID = &game.id
+func (d *Dice) Roll() {
+	d.number = rand.Intn(6) + 1
+	d.isModified = true
+}
+
+func (d *Dice) Persist(f func(diceModel *model.Dice) error) error {
+	diceModel := new(model.Dice)
+	diceModel.ID = d.id
+	if d.game != nil {
+		diceModel.GameID = d.game.id
 	}
-	d.game = game
-}
+	diceModel.Number = d.number
 
-func (d *Dice) Roll() int {
-	d.Number = rand.Intn(6) + 1
-	d.IsRolled = true
-	return d.Number
+	if err := f(diceModel); err != nil {
+		return errors.Wrap(err, "datamodel.Dice.Persist")
+	}
+	d.isModified = false
+	d.isRemoved = false
+
+	d.id = diceModel.ID
+	d.number = diceModel.Number
+
+	return nil
 }

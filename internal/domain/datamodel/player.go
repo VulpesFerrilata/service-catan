@@ -2,6 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/pkg/errors"
 )
 
@@ -13,11 +14,18 @@ func NewPlayer() *Player {
 
 func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
 	player := new(Player)
+	player.id = playerModel.ID
+	player.color = playerModel.Color
+	player.turnOrder = playerModel.TurnOrder
+	player.isLeft = playerModel.IsLeft
 	player.isModified = false
 	player.isRemoved = false
+	return player
 }
 
 type Player struct {
+	base
+	id         int
 	color      string
 	turnOrder  int
 	isLeft     bool
@@ -35,7 +43,7 @@ func (p *Player) SetColor(color string) error {
 	if p.game.status != datamodel.Waiting {
 		//TODO: action is unavailable in this state error
 	}
-	isDuplicateColor := p.game.players.Any(func(player Player) bool {
+	isDuplicateColor := p.game.players.Any(func(player *Player) bool {
 		if player.id != p.id && player.color == color {
 			return true
 		}
@@ -54,7 +62,7 @@ func (p Player) GetTurnOrder() int {
 }
 
 func (p *Player) SetTurnOrder(turnOrder int) error {
-	isDuplicateTurnOrder := p.game.players.Any(func(player Player) bool {
+	isDuplicateTurnOrder := p.game.players.Any(func(player *Player) bool {
 		if player.id != p.id && player.turnOrder == turnOrder {
 			return true
 		}
@@ -87,7 +95,7 @@ func (p *Player) SetUser(user *User) {
 
 func (p Player) GetAchievements() Achievements {
 	return p.game.achievements.Filter(func(achievement *Achievement) bool {
-		playerId := achievement.PlayerID
+		playerId := achievement.playerID
 		if playerId == nil {
 			return false
 		}
@@ -97,7 +105,7 @@ func (p Player) GetAchievements() Achievements {
 
 func (p Player) GetDevelopmentCards() DevelopmentCards {
 	return p.game.developmentCards.Filter(func(developmentCard *DevelopmentCard) bool {
-		playerId := developmentCard.PlayerID
+		playerId := developmentCard.playerID
 		if playerId == nil {
 			return false
 		}
@@ -107,7 +115,7 @@ func (p Player) GetDevelopmentCards() DevelopmentCards {
 
 func (p Player) GetResourceCards() ResourceCards {
 	return p.game.resourceCards.Filter(func(resourceCard *ResourceCard) bool {
-		playerId := resourceCard.PlayerID
+		playerId := resourceCard.playerID
 		if playerId == nil {
 			return false
 		}
@@ -117,7 +125,7 @@ func (p Player) GetResourceCards() ResourceCards {
 
 func (p Player) GetRoads() Roads {
 	return p.game.roads.Filter(func(road *Road) bool {
-		playerId := road.PlayerID
+		playerId := road.playerID
 		if playerId == nil {
 			return false
 		}
@@ -127,7 +135,7 @@ func (p Player) GetRoads() Roads {
 
 func (p Player) GetConstructions() Constructions {
 	return p.game.constructions.Filter(func(construction *Construction) bool {
-		playerId := construction.PlayerID
+		playerId := construction.playerID
 		if playerId == nil {
 			return false
 		}
@@ -164,24 +172,26 @@ func (p *Player) Remove() {
 	}
 }
 
-func (p *Player) Persist(f func(player *datamodel.Player) error) error {
-	player := new(datamodel.Player)
-	player.ID = p.id
+func (p *Player) Persist(f func(playerModel *model.Player) error) error {
+	playerModel := new(model.Player)
+	playerModel.ID = p.id
 	if p.game != nil {
-		player.GameID = p.game.id
+		playerModel.GameID = p.game.id
 	}
 	if p.user != nil {
-		player.UserID = p.user.id
+		playerModel.UserID = p.user.id
 	}
-	player.Color = p.color
-	player.TurnOrder = p.turnOrder
+	playerModel.Color = p.color
+	playerModel.TurnOrder = p.turnOrder
 
-	if err := f(player); err != nil {
+	if err := f(playerModel); err != nil {
 		return errors.Wrap(err, "model.Player.Persist")
 	}
+	p.isModified = false
+	p.isRemoved = false
 
-	p.id = player.ID
-	p.color = player.Color
-	p.turnOrder = player.TurnOrder
+	p.id = playerModel.ID
+	p.color = playerModel.Color
+	p.turnOrder = playerModel.TurnOrder
 	return nil
 }

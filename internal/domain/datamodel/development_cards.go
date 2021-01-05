@@ -1,6 +1,20 @@
 package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+)
+
+func NewDevelopmentCardsFromDevelopmentCardModels(developmentCardModels []*model.DevelopmentCard) DevelopmentCards {
+	developmentCards := make(DevelopmentCards, 0)
+
+	for _, developmentCardModel := range developmentCardModels {
+		developmentCard := NewDevelopmentCardFromDevelopmentCardModel(developmentCardModel)
+		developmentCards = append(developmentCards, developmentCard)
+	}
+
+	return developmentCards
+}
 
 func NewDevelopmentCards() DevelopmentCards {
 	var developmentCards DevelopmentCards
@@ -16,7 +30,7 @@ func NewDevelopmentCards() DevelopmentCards {
 	for developmentType, quantity := range developmentTypes {
 		for i := 1; i <= quantity; i++ {
 			developmentCard := new(DevelopmentCard)
-			developmentCard.Type = developmentType
+			developmentCard.developmentType = developmentType
 			developmentCards.append(developmentCard)
 		}
 	}

@@ -1,60 +1,95 @@
 package datamodel
 
-import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+import (
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/pkg/errors"
+)
 
-type Road struct {
-	datamodel.Road
-	game       *Game
-	isModified bool
+func NewRoadFromRoadModel(roadModel *model.Road) *Road {
+	road := new(Road)
+	road.id = roadModel.ID
+	road.q = roadModel.Q
+	road.r = roadModel.R
+	road.location = roadModel.Location
+	road.playerID = road.playerID
+	road.isModified = false
+	road.isRemoved = false
+	return road
 }
 
-func (r *Road) SetGame(game *Game) {
-	if game != nil {
-		r.GameID = &game.id
-	}
-	r.game = game
+type Road struct {
+	base
+	id       int
+	q        int
+	r        int
+	location model.RoadLocation
+	playerID *int
+	game     *Game
 }
 
 func (r *Road) GetPlayer(game *Game) *Player {
-	if r.PlayerID == nil {
+	if r.playerID == nil {
 		return nil
 	}
 
-	return r.game.players.Filter(func(player Player) bool {
-		return player.id == *r.PlayerID
+	return r.game.players.Filter(func(player *Player) bool {
+		return player.id == *r.playerID
 	}).First()
 }
 
 func (r *Road) GetAdjacentConstructions() Constructions {
 	return r.game.constructions.Filter(func(construction *Construction) bool {
-		if r.Location == datamodel.RL_TOP_LEFT {
-			return (construction.Q == r.Q && construction.R == r.R && construction.Location == datamodel.CL_TOP) ||
-				(construction.Q == r.Q && construction.R == r.R-1 && construction.Location == datamodel.CL_BOT)
-		} else if r.Location == datamodel.RL_MID_LEFT {
-			return (construction.Q == r.Q && construction.R == r.R-1 && construction.Location == datamodel.CL_BOT) ||
-				(construction.Q == r.Q-1 && construction.R == r.R+1 && construction.Location == datamodel.CL_TOP)
+		if r.location == model.TopLeft {
+			return (construction.q == r.q && construction.r == r.r && construction.location == model.Top) ||
+				(construction.q == r.q && construction.r == r.r-1 && construction.location == model.Bottom)
+		} else if r.location == model.MiddleLeft {
+			return (construction.q == r.q && construction.r == r.r-1 && construction.location == model.Bottom) ||
+				(construction.q == r.q-1 && construction.r == r.r+1 && construction.location == model.Top)
 		}
-		return (construction.Q == r.Q && construction.R == r.R && construction.Location == datamodel.CL_BOT) ||
-			(construction.Q == r.Q-1 && construction.R == r.R+1 && construction.Location == datamodel.CL_TOP)
+		return (construction.q == r.q && construction.r == r.r && construction.location == model.Bottom) ||
+			(construction.q == r.q-1 && construction.r == r.r+1 && construction.location == model.Top)
 	})
 }
 
 func (r *Road) GetAdjacentRoads() Roads {
 	return r.game.roads.Filter(func(road *Road) bool {
-		if r.Location == datamodel.RL_TOP_LEFT {
-			return (road.Q == r.Q+1 && road.R == r.R-1 && road.Location == datamodel.RL_MID_LEFT) ||
-				(road.Q == r.Q+1 && road.R == r.R-1 && road.Location == datamodel.RL_BOT_LEFT) ||
-				(road.Q == r.Q && road.R == r.R-1 && road.Location == datamodel.RL_BOT_LEFT) ||
-				(road.Q == r.Q && road.R == r.R && road.Location == datamodel.RL_MID_LEFT)
-		} else if r.Location == datamodel.RL_MID_LEFT {
-			return (road.Q == r.Q && road.R == r.R && road.Location == datamodel.RL_TOP_LEFT) ||
-				(road.Q == r.Q && road.R == r.R && road.Location == datamodel.RL_BOT_LEFT) ||
-				(road.Q == r.Q && road.R == r.R-1 && road.Location == datamodel.RL_BOT_LEFT) ||
-				(road.Q == r.Q-1 && road.R == r.R+1 && road.Location == datamodel.RL_TOP_LEFT)
+		if r.location == model.TopLeft {
+			return (road.q == r.q+1 && road.r == r.r-1 && road.location == model.MiddleLeft) ||
+				(road.q == r.q+1 && road.r == r.r-1 && road.location == model.BottomLeft) ||
+				(road.q == r.q && road.r == r.r-1 && road.location == model.BottomLeft) ||
+				(road.q == r.q && road.r == r.r && road.location == model.MiddleLeft)
+		} else if r.location == model.MiddleLeft {
+			return (road.q == r.q && road.r == r.r && road.location == model.TopLeft) ||
+				(road.q == r.q && road.r == r.r && road.location == model.BottomLeft) ||
+				(road.q == r.q && road.r == r.r-1 && road.location == model.BottomLeft) ||
+				(road.q == r.q-1 && road.r == r.r+1 && road.location == model.TopLeft)
 		}
-		return (road.Q == r.Q && road.R == r.R && road.Location == datamodel.RL_MID_LEFT) ||
-			(road.Q == r.Q-1 && road.R == r.R+1 && road.Location == datamodel.RL_TOP_LEFT) ||
-			(road.Q == r.Q && road.R == r.R+1 && road.Location == datamodel.RL_TOP_LEFT) ||
-			(road.Q == r.Q && road.R == r.R+1 && road.Location == datamodel.RL_MID_LEFT)
+		return (road.q == r.q && road.r == r.r && road.location == model.MiddleLeft) ||
+			(road.q == r.q-1 && road.r == r.r+1 && road.location == model.TopLeft) ||
+			(road.q == r.q && road.r == r.r+1 && road.location == model.TopLeft) ||
+			(road.q == r.q && road.r == r.r+1 && road.location == model.MiddleLeft)
 	})
+}
+
+func (r *Road) Persist(f func(roadModel *model.Road) error) error {
+	roadModel := new(model.Road)
+	roadModel.ID = r.id
+	roadModel.Q = r.q
+	roadModel.R = r.r
+	roadModel.Location = r.location
+	roadModel.PlayerID = r.playerID
+
+	if err := f(roadModel); err != nil {
+		return errors.Wrap(err, "model.Road.Persist")
+	}
+	r.isModified = false
+	r.isRemoved = false
+
+	r.id = roadModel.ID
+	r.q = roadModel.Q
+	r.r = roadModel.R
+	r.location = roadModel.Location
+	r.playerID = roadModel.PlayerID
+
+	return nil
 }

@@ -4,8 +4,9 @@ import "github.com/VulpesFerrilata/library/pkg/model"
 
 type Player struct {
 	model.Model
-	GameID    int `gorm:"primaryKey"`
-	UserID    int `gorm:"primaryKey"`
+	ID        int `gorm:"primaryKey"`
+	GameID    int
+	UserID    int
 	Color     string
 	TurnOrder int
 	IsLeft    bool
