@@ -29,7 +29,8 @@ func (cs constructionService) GetConstructionRepository() repository.SafeConstru
 
 func (cs constructionService) Save(ctx context.Context, construction *datamodel.Construction) error {
 	if construction.IsRemoved() {
-		return nil
+		err := cs.constructionRepository.Delete(ctx, construction)
+		return errors.Wrap(err, "service.ConstructionService.Save")
 	}
 	if construction.IsModified() {
 		err := cs.constructionRepository.InsertOrUpdate(ctx, construction)

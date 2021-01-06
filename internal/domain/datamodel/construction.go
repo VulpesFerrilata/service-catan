@@ -11,7 +11,6 @@ func NewConstructionFromConstructionModel(constructionModel *model.Construction)
 	construction.q = constructionModel.Q
 	construction.r = constructionModel.R
 	construction.location = constructionModel.Location
-	construction.playerID = constructionModel.PlayerID
 	construction.constructionType = constructionModel.ConstructionType
 	construction.isModified = false
 	construction.isRemoved = false
@@ -24,19 +23,13 @@ type Construction struct {
 	q                int
 	r                int
 	location         model.ConstructionLocation
-	playerID         *int
 	constructionType model.ConstructionType
 	game             *Game
+	player           *Player
 }
 
 func (c Construction) GetPlayer() *Player {
-	if c.playerID == nil {
-		return nil
-	}
-
-	return c.game.players.Filter(func(player *Player) bool {
-		return player.id == *c.playerID
-	}).First()
+	return c.player
 }
 
 func (c *Construction) Persist(f func(constructionModel *model.Construction) error) error {
@@ -48,7 +41,9 @@ func (c *Construction) Persist(f func(constructionModel *model.Construction) err
 	constructionModel.Q = c.q
 	constructionModel.R = c.r
 	constructionModel.Location = c.location
-	constructionModel.PlayerID = c.playerID
+	if c.player != nil {
+		constructionModel.PlayerID = &c.player.id
+	}
 	constructionModel.ConstructionType = c.constructionType
 
 	if err := f(constructionModel); err != nil {
@@ -61,7 +56,6 @@ func (c *Construction) Persist(f func(constructionModel *model.Construction) err
 	c.q = constructionModel.Q
 	c.r = constructionModel.R
 	c.location = constructionModel.Location
-	c.playerID = constructionModel.PlayerID
 	c.constructionType = constructionModel.ConstructionType
 
 	return nil

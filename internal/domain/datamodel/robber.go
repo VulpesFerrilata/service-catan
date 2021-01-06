@@ -8,8 +8,6 @@ import (
 func NewRobberFromRobberModel(robberModel *model.Robber) *Robber {
 	robber := new(Robber)
 	robber.id = robberModel.ID
-	robber.terrainQ = robberModel.TerrainQ
-	robber.terrainR = robberModel.TerrainR
 	robber.status = robberModel.Status
 	robber.isModified = false
 	robber.isRemoved = false
@@ -26,27 +24,26 @@ func NewRobber(terrains Terrains) *Robber {
 		}
 		return false
 	}).First()
-	robber.terrainQ = desertTerrain.q
-	robber.terrainR = desertTerrain.r
+	robber.terrain = desertTerrain
 
 	return robber
 }
 
 type Robber struct {
 	base
-	id       int
-	terrainQ int
-	terrainR int
-	status   model.RobberStatus
-	game     *Game
+	id      int
+	status  model.RobberStatus
+	game    *Game
+	terrain *Terrain
 }
 
 func (r *Robber) Persist(f func(robberModel *model.Robber) error) error {
 	robberModel := new(model.Robber)
 	robberModel.ID = r.id
-	robberModel.TerrainQ = r.terrainQ
-	robberModel.TerrainR = r.terrainR
 	robberModel.Status = r.status
+	if r.terrain != nil {
+		robberModel.TerrainID = r.terrain.id
+	}
 
 	if err := f(robberModel); err != nil {
 		return errors.Wrap(err, "model.Robber.Persist")
@@ -55,8 +52,6 @@ func (r *Robber) Persist(f func(robberModel *model.Robber) error) error {
 	r.isRemoved = false
 
 	r.id = robberModel.ID
-	r.terrainQ = robberModel.TerrainQ
-	r.terrainR = robberModel.TerrainR
 	r.status = robberModel.Status
 
 	return nil

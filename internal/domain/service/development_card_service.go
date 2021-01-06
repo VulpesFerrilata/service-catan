@@ -29,7 +29,8 @@ func (dcs developmentCardService) GetDevelopmentCardRepository() repository.Safe
 
 func (dcs developmentCardService) Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
 	if developmentCard.IsRemoved() {
-		return nil
+		err := dcs.developmentCardRepository.Delete(ctx, developmentCard)
+		return errors.Wrap(err, "service.DevelopmentCardService.Save")
 	}
 	if developmentCard.IsModified() {
 		err := dcs.developmentCardRepository.InsertOrUpdate(ctx, developmentCard)

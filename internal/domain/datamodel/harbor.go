@@ -11,8 +11,6 @@ func NewHarborFromHarborModel(harborModel *model.Harbor) *Harbor {
 	harbor.id = harborModel.ID
 	harbor.q = harborModel.Q
 	harbor.r = harborModel.R
-	harbor.terrainQ = harborModel.TerrainQ
-	harbor.terrainR = harborModel.TerrainR
 	harbor.harborType = harborModel.HarborType
 	harbor.isModified = false
 	harbor.isRemoved = false
@@ -24,32 +22,19 @@ type Harbor struct {
 	id         int
 	q          int
 	r          int
-	terrainQ   int
-	terrainR   int
 	harborType model.HarborType
 	game       *Game
+	terrain    *Terrain
 }
 
-func (h Harbor) GetTerrain() *Terrain {
-	return h.game.terrains.Filter(func(terrain *Terrain) bool {
-		return terrain.q == h.terrainQ && terrain.r == h.terrainR
-	}).First()
-}
-
-func (h *Harbor) GetIntersectroad() *Road {
-	terrain := h.GetTerrain()
-
-	if terrain == nil {
-		return nil
-	}
-
+func (h *Harbor) GetIntersectRoad() *Road {
 	return h.game.roads.Filter(func(road *Road) bool {
-		if h.q == terrain.q {
-			return road.q == h.q && road.r == math.Max(h.r, terrain.r) && road.location == model.TopLeft
-		} else if h.r == terrain.r {
-			return road.q == math.Max(h.q, terrain.q) && road.r == h.r && road.location == model.MiddleLeft
+		if h.q == h.terrain.q {
+			return road.q == h.q && road.r == math.Max(h.r, h.terrain.r) && road.location == model.TopLeft
+		} else if h.r == h.terrain.r {
+			return road.q == math.Max(h.q, h.terrain.q) && road.r == h.r && road.location == model.MiddleLeft
 		}
-		return road.q == math.Max(h.q, terrain.q) && road.r == math.Min(h.r, terrain.r) && road.location == model.BottomLeft
+		return road.q == math.Max(h.q, h.terrain.q) && road.r == math.Min(h.r, h.terrain.r) && road.location == model.BottomLeft
 	}).First()
 }
 
@@ -58,8 +43,9 @@ func (h *Harbor) Persist(f func(harborModel *model.Harbor) error) error {
 	harborModel.ID = h.id
 	harborModel.Q = h.q
 	harborModel.R = h.r
-	harborModel.TerrainQ = h.terrainQ
-	harborModel.TerrainR = h.terrainR
+	if h.terrain != nil {
+		harborModel.TerrainID = h.terrain.id
+	}
 	harborModel.HarborType = h.harborType
 
 	if err := f(harborModel); err != nil {
@@ -71,8 +57,6 @@ func (h *Harbor) Persist(f func(harborModel *model.Harbor) error) error {
 	h.id = harborModel.ID
 	h.q = harborModel.Q
 	h.r = harborModel.R
-	h.terrainQ = harborModel.TerrainQ
-	h.terrainR = harborModel.TerrainR
 	h.harborType = harborModel.HarborType
 
 	return nil

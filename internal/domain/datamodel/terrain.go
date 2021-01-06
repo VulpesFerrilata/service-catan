@@ -26,10 +26,8 @@ type Terrain struct {
 	number      int
 	terrainType model.TerrainType
 	game        *Game
-}
-
-func (t Terrain) HasRobber() bool {
-	return t.game.robber.terrainQ == t.q && t.game.robber.terrainR == t.r
+	harbor      *Harbor
+	robber      *Robber
 }
 
 func (t Terrain) GetAdjacentConstructions() Constructions {

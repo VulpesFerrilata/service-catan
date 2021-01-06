@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type RobberService interface {
 	GetRobberRepository() repository.SafeRobberRepository
-	Save(ctx context.Context, robber *model.Robber) error
+	Save(ctx context.Context, robber *datamodel.Robber) error
 }
 
 func NewRobberService(robberRepository repository.RobberRepository) RobberService {
@@ -22,19 +23,18 @@ type robberService struct {
 	robberRepository repository.RobberRepository
 }
 
-func (rs *robberService) GetRobberRepository() repository.SafeRobberRepository {
+func (rs robberService) GetRobberRepository() repository.SafeRobberRepository {
 	return rs.robberRepository
 }
 
-func (rs *robberService) validate(ctx context.Context, robber *model.Robber) error {
-	//TODO: validate dice
-	return nil
-}
-
-func (rs *robberService) Save(ctx context.Context, robber *model.Robber) error {
-	if err := rs.validate(ctx, robber); err != nil {
-		return err
+func (rs robberService) Save(ctx context.Context, robber *datamodel.Robber) error {
+	if robber.IsRemoved() {
+		err := rs.robberRepository.Delete(ctx, robber)
+		return errors.Wrap(err, "service.RobberService.Save")
 	}
-
-	return rs.robberRepository.InsertOrUpdate(ctx, robber)
+	if robber.IsModified() {
+		err := rs.robberRepository.InsertOrUpdate(ctx, robber)
+		return errors.Wrap(err, "service.RobberService.Save")
+	}
+	return nil
 }

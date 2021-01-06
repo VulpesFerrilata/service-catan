@@ -10,6 +10,7 @@ import (
 
 type PlayerService interface {
 	GetPlayerRepository() repository.SafePlayerRepository
+	Save(ctx context.Context, player *datamodel.Player) error
 }
 
 func NewPlayerService(playerRepository repository.PlayerRepository) PlayerService {
@@ -22,13 +23,18 @@ type playerService struct {
 	playerRepository repository.PlayerRepository
 }
 
-func (ps *playerService) GetPlayerRepository() repository.SafePlayerRepository {
+func (ps playerService) GetPlayerRepository() repository.SafePlayerRepository {
 	return ps.playerRepository
 }
 
-func (ps playerService) FindByGameId(ctx context.Context, gameId int) (datamodel.Players, error) {
-	players, err := ps.playerRepository.FindByGameId(ctx, gameId)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.PlayerService.FindByGameId")
+func (ps playerService) Save(ctx context.Context, player *datamodel.Player) error {
+	if player.IsRemoved() {
+		err := ps.playerRepository.Delete(ctx, player)
+		return errors.Wrap(err, "service.PlayerService.Save")
 	}
+	if player.IsModified() {
+		err := ps.playerRepository.InsertOrUpdate(ctx, player)
+		return errors.Wrap(err, "service.PlayerService.Save")
+	}
+	return nil
 }

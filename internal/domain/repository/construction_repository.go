@@ -18,6 +18,7 @@ type SafeConstructionRepository interface {
 type ConstructionRepository interface {
 	SafeConstructionRepository
 	InsertOrUpdate(ctx context.Context, construction *datamodel.Construction) error
+	Delete(ctx context.Context, construction *datamodel.Construction) error
 }
 
 func NewConstructionRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -50,5 +51,12 @@ func (cr constructionRepository) InsertOrUpdate(ctx context.Context, constructio
 
 		err := cr.transactionMiddleware.Get(ctx).Save(constructionModel).Error
 		return errors.Wrap(err, "repository.ConstructionRepository.InsertOrUpdate")
+	})
+}
+
+func (cr constructionRepository) Delete(ctx context.Context, construction *datamodel.Construction) error {
+	return construction.Persist(func(constructionModel *model.Construction) error {
+		err := cr.transactionMiddleware.Get(ctx).Delete(constructionModel).Error
+		return errors.Wrap(err, "repository.ConstructionRepository.Delete")
 	})
 }

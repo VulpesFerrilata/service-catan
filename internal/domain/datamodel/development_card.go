@@ -9,7 +9,6 @@ func NewDevelopmentCardFromDevelopmentCardModel(developmentCardModel *model.Deve
 	developmentCard := new(DevelopmentCard)
 	developmentCard.id = developmentCardModel.ID
 	developmentCard.developmentType = developmentCardModel.DevelopmentType
-	developmentCard.playerID = developmentCard.playerID
 	developmentCard.isModified = false
 	developmentCard.isRemoved = false
 	return developmentCard
@@ -19,18 +18,8 @@ type DevelopmentCard struct {
 	base
 	id              int
 	developmentType model.DevelopmentType
-	playerID        *int
 	game            *Game
-}
-
-func (dc DevelopmentCard) GetPlayer() *Player {
-	if dc.playerID == nil {
-		return nil
-	}
-
-	return dc.game.players.Filter(func(player *Player) bool {
-		return player.id == *dc.playerID
-	}).First()
+	player          *Player
 }
 
 func (dc *DevelopmentCard) Persist(f func(developmentCardModel *model.DevelopmentCard) error) error {
@@ -40,7 +29,9 @@ func (dc *DevelopmentCard) Persist(f func(developmentCardModel *model.Developmen
 		developmentCardModel.GameID = dc.game.id
 	}
 	developmentCardModel.DevelopmentType = dc.developmentType
-	developmentCardModel.PlayerID = dc.playerID
+	if dc.player != nil {
+		developmentCardModel.PlayerID = &dc.player.id
+	}
 
 	if err := f(developmentCardModel); err != nil {
 		return errors.Wrap(err, "datamodel.DevelopmentCard.Persist")
@@ -50,7 +41,6 @@ func (dc *DevelopmentCard) Persist(f func(developmentCardModel *model.Developmen
 
 	dc.id = developmentCardModel.ID
 	dc.developmentType = developmentCardModel.DevelopmentType
-	dc.playerID = developmentCardModel.PlayerID
 
 	return nil
 }

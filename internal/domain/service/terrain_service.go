@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type TerrainService interface {
-	GetFieldRepository() repository.SafeTerrainRepository
-	Save(ctx context.Context, terrain *model.Terrain) error
+	GetTerrainRepository() repository.SafeTerrainRepository
+	Save(ctx context.Context, terrain *datamodel.Terrain) error
 }
 
 func NewTerrainService(terrainRepository repository.TerrainRepository) TerrainService {
@@ -22,19 +23,18 @@ type terrainService struct {
 	terrainRepository repository.TerrainRepository
 }
 
-func (ts *terrainService) GetFieldRepository() repository.SafeTerrainRepository {
+func (ts terrainService) GetTerrainRepository() repository.SafeTerrainRepository {
 	return ts.terrainRepository
 }
 
-func (ts *terrainService) validate(ctx context.Context, terrain *model.Terrain) error {
-	//TODO: validate terrain
-	return nil
-}
-
-func (ts *terrainService) Save(ctx context.Context, terrain *model.Terrain) error {
-	if err := ts.validate(ctx, terrain); err != nil {
-		return err
+func (ts terrainService) Save(ctx context.Context, terrain *datamodel.Terrain) error {
+	if terrain.IsRemoved() {
+		err := ts.terrainRepository.Delete(ctx, terrain)
+		return errors.Wrap(err, "service.TerrainService.Save")
 	}
-
-	return ts.terrainRepository.InsertOrUpdate(ctx, terrain)
+	if terrain.IsModified() {
+		err := ts.terrainRepository.InsertOrUpdate(ctx, terrain)
+		return errors.Wrap(err, "service.TerrainService.Save")
+	}
+	return nil
 }

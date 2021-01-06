@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type GameService interface {
-	GetById(ctx context.Context, id uint) (*model.Game, error)
-	Save(ctx context.Context, game *model.Game) error
+	GetGameRepository() repository.SafeGameRepository
+	Save(ctx context.Context, game *datamodel.Game) error
 }
 
 func NewGameService(gameRepository repository.GameRepository,
@@ -52,125 +53,72 @@ type gameService struct {
 	harborService          HarborService
 }
 
-func (gs *gameService) GetById(ctx context.Context, id uint) (*model.Game, error) {
-	game, err := gs.gameRepository.GetById(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	players, err := gs.playerAggregateService.FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddPlayers(players...)
-
-	dices, err := gs.diceService.GetDiceRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddDices(dices...)
-
-	achievements, err := gs.achievementService.GetAchievementRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddAchievements(achievements...)
-
-	resourceCards, err := gs.resourceCardService.GetResourceCardRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddResourceCards(resourceCards...)
-
-	developmentCards, err := gs.developmentCardService.GetDevelopmentCardRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddDevelopmentCards(developmentCards...)
-
-	terrains, err := gs.terrainService.GetFieldRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddTerrains(terrains...)
-
-	robber, err := gs.robberService.GetRobberRepository().GetByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.SetRobber(robber)
-
-	constructions, err := gs.constructionService.GetConstructionRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddConstructions(constructions...)
-
-	roads, err := gs.roadService.GetRoadRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddRoads(roads...)
-
-	harbors, err := gs.harborService.GetHarborRepository().FindByGameId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	game.AddHarbors(harbors...)
-
-	return game, nil
+func (gs gameService) GetGameRepository() repository.SafeGameRepository {
+	return gs.gameRepository
 }
 
-func (gs *gameService) Save(ctx context.Context, game *model.Game) error {
-	if err := gs.gameService.Save(ctx, game); err != nil {
-		return err
+func (gs gameService) save(ctx context.Context, game *datamodel.Game) error {
+	if game.IsRemoved() {
+		err := gs.gameRepository.Delete(ctx, game)
+		return errors.Wrap(err, "service.GameService.save")
+	}
+	if game.IsModified() {
+		err := gs.gameRepository.InsertOrUpdate(ctx, game)
+		return errors.Wrap(err, "service.GameService.save")
+	}
+	return nil
+}
+
+func (gs gameService) Save(ctx context.Context, game *datamodel.Game) error {
+	if err := gs.save(ctx, game); err != nil {
+		return errors.Wrap(err, "service.GameService.Save")
 	}
 
 	players := game.GetPlayers()
 	for _, player := range players {
-		if err := gs.playerAggregateService.Save(ctx, player); err != nil {
-			return err
+		if err := gs.playerService.Save(ctx, player); err != nil {
+			return errors.Wrap(err, "service.GameService.Save")
 		}
 	}
 
 	dices := game.GetDices()
 	for _, dice := range dices {
 		if err := gs.diceService.Save(ctx, dice); err != nil {
-			return err
+			return errors.Wrap(err, "service.GameService.Save")
 		}
 	}
 
 	achievements := game.GetAchievements()
 	for _, achievement := range achievements {
 		if err := gs.achievementService.Save(ctx, achievement); err != nil {
-			return err
+			return errors.Wrap(err, "service.GameService.Save")
 		}
 	}
 
 	resourceCards := game.GetResourceCards()
 	for _, resourceCard := range resourceCards {
 		if err := gs.resourceCardService.Save(ctx, resourceCard); err != nil {
-			return err
+			return errors.Wrap(err, "service.GameService.Save")
 		}
 	}
 
 	developmentCards := game.GetDevelopmentCards()
 	for _, developmentCard := range developmentCards {
 		if err := gs.developmentCardService.Save(ctx, developmentCard); err != nil {
-			return err
+			return errors.Wrap(err, "service.GameService.Save")
 		}
 	}
 
 	terrains := game.GetTerrains()
 	for _, terrain := range terrains {
 		if err := gs.terrainService.Save(ctx, terrain); err != nil {
-			return err
+			return errors.Wrap(err, "service.GameService.Save")
 		}
 	}
 
 	robber := game.GetRobber()
 	if err := gs.robberService.Save(ctx, robber); err != nil {
-		return err
+		return errors.Wrap(err, "service.GameService.Save")
 	}
 
 	constructions := game.GetConstructions()

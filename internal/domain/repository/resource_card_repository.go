@@ -18,6 +18,7 @@ type SafeResourceCardRepository interface {
 type ResourceCardRepository interface {
 	SafeResourceCardRepository
 	InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error
+	Delete(ctx context.Context, resourceCard *datamodel.ResourceCard) error
 }
 
 func NewResourceCardRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -33,13 +34,13 @@ type resourceCardRepository struct {
 	validate              *validator.Validate
 }
 
-func (rcr *resourceCardRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error) {
+func (rcr resourceCardRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error) {
 	resourceCardModels := make([]*model.ResourceCard, 0)
 	err := rcr.transactionMiddleware.Get(ctx).Find(&resourceCardModels, "game_id = ?", gameId).Error
 	return datamodel.NewResourceCardsFromResourceCardModels(resourceCardModels), errors.Wrap(err, "repository.ResourceCardRepository.FindByGameId")
 }
 
-func (rcr *resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
+func (rcr resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
 	return resourceCard.Persist(func(resourceCardModel *model.ResourceCard) error {
 		if err := rcr.validate.StructCtx(ctx, resourceCardModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -49,5 +50,12 @@ func (rcr *resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceC
 		}
 		err := rcr.transactionMiddleware.Get(ctx).Save(resourceCardModel).Error
 		return errors.Wrap(err, "repository.ResourceCardRepository.InsertOrUpdate")
+	})
+}
+
+func (rcr resourceCardRepository) Delete(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
+	return resourceCard.Persist(func(resourceCardModel *model.ResourceCard) error {
+		err := rcr.transactionMiddleware.Get(ctx).Delete(resourceCardModel).Error
+		return errors.Wrap(err, "repository.ResourceCardRepository.Delete")
 	})
 }

@@ -25,14 +25,17 @@ func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
 
 type Player struct {
 	base
-	id         int
-	color      string
-	turnOrder  int
-	isLeft     bool
-	game       *Game
-	user       *User
-	isModified bool
-	isRemoved  bool
+	id               int
+	color            string
+	turnOrder        int
+	isLeft           bool
+	game             *Game
+	user             *User
+	achievements     Achievements
+	constructions    Constructions
+	developmentCards DevelopmentCards
+	resourceCards    ResourceCards
+	roads            Roads
 }
 
 func (p Player) GetColor() string {

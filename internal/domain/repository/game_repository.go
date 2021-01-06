@@ -60,33 +60,6 @@ func (gr gameRepository) GetById(ctx context.Context, gameId uint) (*datamodel.G
 	return game, nil
 }
 
-func (gr gameRepository) Save(ctx context.Context, game *datamodel.Game) error {
-	err := gr.save(ctx, game)
-	if err != nil {
-		return errors.Wrap(err, "repository.GameRepository.Save")
-	}
-
-	for _, player := range game.GetPlayers() {
-		err := gr.playerRepository.Save(ctx, player)
-		if err != nil {
-			return errors.Wrap(err, "repository.GameRepository.Save")
-		}
-	}
-	return nil
-}
-
-func (gr gameRepository) save(ctx context.Context, game *datamodel.Game) error {
-	if game.IsRemoved() {
-		err := gr.Delete(ctx, game)
-		return errors.Wrap(err, "repository.GameRepository.save")
-	}
-	if game.IsModified() {
-		err := gr.InsertOrUpdate(ctx, game)
-		return errors.Wrap(err, "repository.GameRepository.save")
-	}
-	return nil
-}
-
 func (gr *gameRepository) InsertOrUpdate(ctx context.Context, game *datamodel.Game) error {
 	return game.Persist(func(gameModel *model.Game) error {
 		if err := gr.validate.StructCtx(ctx, gameModel); err != nil {
@@ -101,7 +74,7 @@ func (gr *gameRepository) InsertOrUpdate(ctx context.Context, game *datamodel.Ga
 	})
 }
 
-func (gr *gameRepository) Delete(ctx context.Context, game *datamodel.Game) error {
+func (gr gameRepository) Delete(ctx context.Context, game *datamodel.Game) error {
 	return game.Persist(func(gameModel *model.Game) error {
 		err := gr.transactionMiddleware.Get(ctx).Delete(gameModel).Error
 		return errors.Wrap(err, "repository.GameRepository.Delete")

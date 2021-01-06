@@ -18,6 +18,7 @@ type SafeDevelopmentCardRepository interface {
 type DevelopmentCardRepository interface {
 	SafeDevelopmentCardRepository
 	InsertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
+	Delete(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
 }
 
 func NewDevelopmentCardRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -50,5 +51,12 @@ func (dcr developmentCardRepository) InsertOrUpdate(ctx context.Context, develop
 
 		err := dcr.transactionMiddleware.Get(ctx).Save(developmentCardModel).Error
 		return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
+	})
+}
+
+func (dcr developmentCardRepository) Delete(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
+	return developmentCard.Persist(func(developmentCardModel *model.DevelopmentCard) error {
+		err := dcr.transactionMiddleware.Get(ctx).Delete(developmentCardModel).Error
+		return errors.Wrap(err, "repository.ConstructionRepository.Delete")
 	})
 }

@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type RoadService interface {
 	GetRoadRepository() repository.SafeRoadRepository
-	Save(ctx context.Context, road *model.Road) error
+	Save(ctx context.Context, road *datamodel.Road) error
 }
 
 func NewRoadService(roadRepository repository.RoadRepository) RoadService {
@@ -22,19 +23,18 @@ type roadService struct {
 	roadRepository repository.RoadRepository
 }
 
-func (rs *roadService) GetRoadRepository() repository.SafeRoadRepository {
+func (rs roadService) GetRoadRepository() repository.SafeRoadRepository {
 	return rs.roadRepository
 }
 
-func (rs *roadService) validate(ctx context.Context, road *model.Road) error {
-	//TODO: validate road
-	return nil
-}
-
-func (rs *roadService) Save(ctx context.Context, road *model.Road) error {
-	if err := rs.validate(ctx, road); err != nil {
-		return err
+func (rs roadService) Save(ctx context.Context, road *datamodel.Road) error {
+	if road.IsRemoved() {
+		err := rs.roadRepository.Delete(ctx, road)
+		return errors.Wrap(err, "service.RoadService.Save")
 	}
-
-	return rs.roadRepository.InsertOrUpdate(ctx, road)
+	if road.IsModified() {
+		err := rs.roadRepository.InsertOrUpdate(ctx, road)
+		return errors.Wrap(err, "service.RoadService.Save")
+	}
+	return nil
 }

@@ -10,9 +10,8 @@ type Harbor struct {
 	GameID     int
 	Q          int
 	R          int
-	TerrainQ   int
-	TerrainR   int
 	HarborType HarborType
+	TerrainID  int
 }
 
 type HarborType string

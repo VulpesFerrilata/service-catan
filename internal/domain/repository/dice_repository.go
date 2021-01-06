@@ -18,6 +18,7 @@ type SafeDiceRepository interface {
 type DiceRepository interface {
 	SafeDiceRepository
 	InsertOrUpdate(ctx context.Context, dice *datamodel.Dice) error
+	Delete(ctx context.Context, dice *datamodel.Dice) error
 }
 
 func NewDiceRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -50,5 +51,12 @@ func (dr diceRepository) InsertOrUpdate(ctx context.Context, dice *datamodel.Dic
 
 		err := dr.transactionMiddleware.Get(ctx).Save(diceModel).Error
 		return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
+	})
+}
+
+func (dr diceRepository) Delete(ctx context.Context, dice *datamodel.Dice) error {
+	return dice.Persist(func(diceModel *model.Dice) error {
+		err := dr.transactionMiddleware.Get(ctx).Delete(diceModel).Error
+		return errors.Wrap(err, "repository.DiceRepository.Delete")
 	})
 }

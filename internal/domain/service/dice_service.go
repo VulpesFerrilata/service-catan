@@ -29,7 +29,8 @@ func (ds diceService) GetDiceRepository() repository.SafeDiceRepository {
 
 func (ds diceService) Save(ctx context.Context, dice *datamodel.Dice) error {
 	if dice.IsRemoved() {
-		return nil
+		err := ds.diceRepository.Delete(ctx, dice)
+		return errors.Wrap(err, "service.DiceService.Save")
 	}
 	if dice.IsModified() {
 		err := ds.diceRepository.InsertOrUpdate(ctx, dice)

@@ -18,6 +18,7 @@ type SafeRoadRepository interface {
 type RoadRepository interface {
 	SafeRoadRepository
 	InsertOrUpdate(ctx context.Context, road *datamodel.Road) error
+	Delete(ctx context.Context, road *datamodel.Road) error
 }
 
 func NewRoadRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -33,13 +34,13 @@ type roadRepository struct {
 	validate              *validator.Validate
 }
 
-func (rr *roadRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Roads, error) {
+func (rr roadRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Roads, error) {
 	roadModels := make([]*model.Road, 0)
 	err := rr.transactionMiddleware.Get(ctx).Find(&roadModels, "game_id = ?", gameId).Error
 	return datamodel.NewRoadsFromRoadModels(roadModels), errors.Wrap(err, "repository.RoadRepository.FindByGameId")
 }
 
-func (rr *roadRepository) InsertOrUpdate(ctx context.Context, road *datamodel.Road) error {
+func (rr roadRepository) InsertOrUpdate(ctx context.Context, road *datamodel.Road) error {
 	return road.Persist(func(roadModel *model.Road) error {
 		if err := rr.validate.StructCtx(ctx, roadModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -49,5 +50,12 @@ func (rr *roadRepository) InsertOrUpdate(ctx context.Context, road *datamodel.Ro
 		}
 		err := rr.transactionMiddleware.Get(ctx).Save(roadModel).Error
 		return errors.Wrap(err, "repository.RoadRepository.InsertOrUpdate")
+	})
+}
+
+func (rr roadRepository) Delete(ctx context.Context, road *datamodel.Road) error {
+	return road.Persist(func(roadModel *model.Road) error {
+		err := rr.transactionMiddleware.Get(ctx).Delete(roadModel).Error
+		return errors.Wrap(err, "repository.RoadRepository.Delete")
 	})
 }

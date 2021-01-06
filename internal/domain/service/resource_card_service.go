@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type ResourceCardService interface {
 	GetResourceCardRepository() repository.SafeResourceCardRepository
-	Save(ctx context.Context, resourceCard *model.ResourceCard) error
+	Save(ctx context.Context, resourceCard *datamodel.ResourceCard) error
 }
 
 func NewResourceCardService(resourceCardRepository repository.ResourceCardRepository) ResourceCardService {
@@ -22,19 +23,18 @@ type resourceCardService struct {
 	resourceCardRepository repository.ResourceCardRepository
 }
 
-func (rcs *resourceCardService) GetResourceCardRepository() repository.SafeResourceCardRepository {
+func (rcs resourceCardService) GetResourceCardRepository() repository.SafeResourceCardRepository {
 	return rcs.resourceCardRepository
 }
 
-func (rcs *resourceCardService) validate(ctx context.Context, resourceCard *model.ResourceCard) error {
-	//TODO: validate resource card
-	return nil
-}
-
-func (rcs *resourceCardService) Save(ctx context.Context, resourceCard *model.ResourceCard) error {
-	if err := rcs.validate(ctx, resourceCard); err != nil {
-		return err
+func (rcs resourceCardService) Save(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
+	if resourceCard.IsRemoved() {
+		err := rcs.resourceCardRepository.Delete(ctx, resourceCard)
+		return errors.Wrap(err, "service.ResourceCardService.Save")
 	}
-
-	return rcs.resourceCardRepository.InsertOrUpdate(ctx, resourceCard)
+	if resourceCard.IsModified() {
+		err := rcs.resourceCardRepository.InsertOrUpdate(ctx, resourceCard)
+		return errors.Wrap(err, "service.ResourceCardService.Save")
+	}
+	return nil
 }
