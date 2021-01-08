@@ -40,7 +40,6 @@ func NewContainer() *dig.Container {
 	container.Provide(service.NewDevelopmentCardService)
 	container.Provide(service.NewDiceService)
 	container.Provide(service.NewGameService)
-	container.Provide(service.NewGameAggregateService)
 	container.Provide(service.NewHarborService)
 	container.Provide(service.NewPlayerService)
 	container.Provide(service.NewResourceCardService)

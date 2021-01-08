@@ -17,8 +17,7 @@ type SafeResourceCardRepository interface {
 
 type ResourceCardRepository interface {
 	SafeResourceCardRepository
-	InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error
-	Delete(ctx context.Context, resourceCard *datamodel.ResourceCard) error
+	Save(ctx context.Context, resourceCard *datamodel.ResourceCard) error
 }
 
 func NewResourceCardRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -40,7 +39,7 @@ func (rcr resourceCardRepository) FindByGameId(ctx context.Context, gameId uint)
 	return datamodel.NewResourceCardsFromResourceCardModels(resourceCardModels), errors.Wrap(err, "repository.ResourceCardRepository.FindByGameId")
 }
 
-func (rcr resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
+func (rcr resourceCardRepository) insertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
 	return resourceCard.Persist(func(resourceCardModel *model.ResourceCard) error {
 		if err := rcr.validate.StructCtx(ctx, resourceCardModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -53,9 +52,21 @@ func (rcr resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceCa
 	})
 }
 
-func (rcr resourceCardRepository) Delete(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
+func (rcr resourceCardRepository) delete(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
 	return resourceCard.Persist(func(resourceCardModel *model.ResourceCard) error {
 		err := rcr.transactionMiddleware.Get(ctx).Delete(resourceCardModel).Error
 		return errors.Wrap(err, "repository.ResourceCardRepository.Delete")
 	})
+}
+
+func (rcr resourceCardRepository) Save(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
+	if resourceCard.IsRemoved() {
+		err := rcr.delete(ctx, resourceCard)
+		return errors.Wrap(err, "service.ResourceCardRepository.Save")
+	}
+	if resourceCard.IsModified() {
+		err := rcr.insertOrUpdate(ctx, resourceCard)
+		return errors.Wrap(err, "service.ResourceCardRepository.Save")
+	}
+	return nil
 }

@@ -17,7 +17,7 @@ type SafeAchievementRepository interface {
 
 type AchievementRepository interface {
 	SafeAchievementRepository
-	InsertOrUpdate(ctx context.Context, achievement *datamodel.Achievement) error
+	Save(ctx context.Context, achievement *datamodel.Achievement) error
 }
 
 func NewAchievementRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -39,7 +39,7 @@ func (ar achievementRepository) FindByGameId(ctx context.Context, gameId uint) (
 	return datamodel.NewAchievementsFromAchievementModels(achievementModels), errors.Wrap(err, "repository.AchievementRepository.FindByGameId")
 }
 
-func (ar achievementRepository) InsertOrUpdate(ctx context.Context, achievement *datamodel.Achievement) error {
+func (ar achievementRepository) insertOrUpdate(ctx context.Context, achievement *datamodel.Achievement) error {
 	return achievement.Persist(func(achievementModel *model.Achievement) error {
 		if err := ar.validate.StructCtx(ctx, achievementModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -51,5 +51,23 @@ func (ar achievementRepository) InsertOrUpdate(ctx context.Context, achievement 
 		err := ar.transactionMiddleware.Get(ctx).Save(achievementModel).Error
 		return errors.Wrap(err, "repository.AchievementRepository.InsertOrUpdate")
 	})
+}
 
+func (ar achievementRepository) delete(ctx context.Context, achievement *datamodel.Achievement) error {
+	return achievement.Persist(func(achievementModel *model.Achievement) error {
+		err := ar.transactionMiddleware.Get(ctx).Delete(achievementModel).Error
+		return errors.Wrap(err, "repository.AchievementRepository.Delete")
+	})
+}
+
+func (ar achievementRepository) Save(ctx context.Context, achievement *datamodel.Achievement) error {
+	if achievement.IsRemoved() {
+		err := ar.delete(ctx, achievement)
+		return errors.Wrap(err, "service.AchievementService.Save")
+	}
+	if achievement.IsModified() {
+		err := ar.insertOrUpdate(ctx, achievement)
+		return errors.Wrap(err, "service.AchievementService.Save")
+	}
+	return nil
 }

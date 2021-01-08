@@ -17,8 +17,7 @@ type SafeRoadRepository interface {
 
 type RoadRepository interface {
 	SafeRoadRepository
-	InsertOrUpdate(ctx context.Context, road *datamodel.Road) error
-	Delete(ctx context.Context, road *datamodel.Road) error
+	Save(ctx context.Context, road *datamodel.Road) error
 }
 
 func NewRoadRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -40,7 +39,7 @@ func (rr roadRepository) FindByGameId(ctx context.Context, gameId uint) (datamod
 	return datamodel.NewRoadsFromRoadModels(roadModels), errors.Wrap(err, "repository.RoadRepository.FindByGameId")
 }
 
-func (rr roadRepository) InsertOrUpdate(ctx context.Context, road *datamodel.Road) error {
+func (rr roadRepository) insertOrUpdate(ctx context.Context, road *datamodel.Road) error {
 	return road.Persist(func(roadModel *model.Road) error {
 		if err := rr.validate.StructCtx(ctx, roadModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -53,9 +52,21 @@ func (rr roadRepository) InsertOrUpdate(ctx context.Context, road *datamodel.Roa
 	})
 }
 
-func (rr roadRepository) Delete(ctx context.Context, road *datamodel.Road) error {
+func (rr roadRepository) delete(ctx context.Context, road *datamodel.Road) error {
 	return road.Persist(func(roadModel *model.Road) error {
 		err := rr.transactionMiddleware.Get(ctx).Delete(roadModel).Error
 		return errors.Wrap(err, "repository.RoadRepository.Delete")
 	})
+}
+
+func (rr roadRepository) Save(ctx context.Context, road *datamodel.Road) error {
+	if road.IsRemoved() {
+		err := rr.delete(ctx, road)
+		return errors.Wrap(err, "service.RoadRepository.Save")
+	}
+	if road.IsModified() {
+		err := rr.insertOrUpdate(ctx, road)
+		return errors.Wrap(err, "service.RoadRepository.Save")
+	}
+	return nil
 }

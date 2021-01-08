@@ -26,14 +26,3 @@ type achievementService struct {
 func (as achievementService) GetAchievementRepository() repository.SafeAchievementRepository {
 	return as.achievementRepository
 }
-
-func (as achievementService) Save(ctx context.Context, achievement *datamodel.Achievement) error {
-	if achievement.IsRemoved() {
-		return nil
-	}
-	if achievement.IsModified() {
-		err := as.achievementRepository.InsertOrUpdate(ctx, achievement)
-		return errors.Wrap(err, "service.AchievementService.Save")
-	}
-	return nil
-}

@@ -17,8 +17,7 @@ type SafeConstructionRepository interface {
 
 type ConstructionRepository interface {
 	SafeConstructionRepository
-	InsertOrUpdate(ctx context.Context, construction *datamodel.Construction) error
-	Delete(ctx context.Context, construction *datamodel.Construction) error
+	Save(ctx context.Context, construction *datamodel.Construction) error
 }
 
 func NewConstructionRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -40,7 +39,7 @@ func (cr constructionRepository) FindByGameId(ctx context.Context, gameId uint) 
 	return datamodel.NewConstructionsFromConstructionModels(constructionModels), errors.Wrap(err, "repository.ConstructionRepository.FindByGameId")
 }
 
-func (cr constructionRepository) InsertOrUpdate(ctx context.Context, construction *datamodel.Construction) error {
+func (cr constructionRepository) insertOrUpdate(ctx context.Context, construction *datamodel.Construction) error {
 	return construction.Persist(func(constructionModel *model.Construction) error {
 		if err := cr.validate.StructCtx(ctx, constructionModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -54,9 +53,21 @@ func (cr constructionRepository) InsertOrUpdate(ctx context.Context, constructio
 	})
 }
 
-func (cr constructionRepository) Delete(ctx context.Context, construction *datamodel.Construction) error {
+func (cr constructionRepository) delete(ctx context.Context, construction *datamodel.Construction) error {
 	return construction.Persist(func(constructionModel *model.Construction) error {
 		err := cr.transactionMiddleware.Get(ctx).Delete(constructionModel).Error
 		return errors.Wrap(err, "repository.ConstructionRepository.Delete")
 	})
+}
+
+func (cr constructionRepository) Save(ctx context.Context, construction *datamodel.Construction) error {
+	if construction.IsRemoved() {
+		err := cr.delete(ctx, construction)
+		return errors.Wrap(err, "service.ConstructionRepository.Save")
+	}
+	if construction.IsModified() {
+		err := cr.insertOrUpdate(ctx, construction)
+		return errors.Wrap(err, "service.ConstructionRepository.Save")
+	}
+	return nil
 }

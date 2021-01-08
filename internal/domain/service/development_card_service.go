@@ -5,7 +5,6 @@ import (
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
-	"github.com/pkg/errors"
 )
 
 type DevelopmentCardService interface {
@@ -25,16 +24,4 @@ type developmentCardService struct {
 
 func (dcs developmentCardService) GetDevelopmentCardRepository() repository.SafeDevelopmentCardRepository {
 	return dcs.developmentCardRepository
-}
-
-func (dcs developmentCardService) Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
-	if developmentCard.IsRemoved() {
-		err := dcs.developmentCardRepository.Delete(ctx, developmentCard)
-		return errors.Wrap(err, "service.DevelopmentCardService.Save")
-	}
-	if developmentCard.IsModified() {
-		err := dcs.developmentCardRepository.InsertOrUpdate(ctx, developmentCard)
-		return errors.Wrap(err, "service.DevelopmentCardService.Save")
-	}
-	return nil
 }

@@ -7,8 +7,8 @@ go 1.14
 replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 
 require (
-	github.com/VulpesFerrilata/grpc v0.0.0-20210104100554-e35ac2bc17dd
-	github.com/VulpesFerrilata/library v0.0.0-20210104100350-c1a4a867d38c
+	github.com/VulpesFerrilata/grpc v0.0.0-20210108084505-964ee54318c0
+	github.com/VulpesFerrilata/library v0.0.0-20210108114535-906b7f5cafa7
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/micro/go-micro/v2 v2.9.1

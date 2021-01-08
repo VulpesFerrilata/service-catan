@@ -18,8 +18,7 @@ type SafePlayerRepository interface {
 
 type PlayerRepository interface {
 	SafePlayerRepository
-	InsertOrUpdate(ctx context.Context, player *datamodel.Player) error
-	Delete(ctx context.Context, player *datamodel.Player) error
+	Save(ctx context.Context, player *datamodel.Player) error
 }
 
 func NewPlayerRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -64,7 +63,7 @@ func (pr playerRepository) FindByGameId(ctx context.Context, gameId int) (datamo
 	return datamodel.NewPlayersFromPlayerModels(playerModels), errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 }
 
-func (pr playerRepository) InsertOrUpdate(ctx context.Context, player *datamodel.Player) error {
+func (pr playerRepository) insertOrUpdate(ctx context.Context, player *datamodel.Player) error {
 	return player.Persist(func(playerModel *model.Player) error {
 		if err := pr.validate.StructCtx(ctx, playerModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -77,9 +76,21 @@ func (pr playerRepository) InsertOrUpdate(ctx context.Context, player *datamodel
 	})
 }
 
-func (pr playerRepository) Delete(ctx context.Context, player *datamodel.Player) error {
+func (pr playerRepository) delete(ctx context.Context, player *datamodel.Player) error {
 	return player.Persist(func(playerModel *model.Player) error {
 		err := pr.transactionMiddleware.Get(ctx).Delete(playerModel).Error
 		return errors.Wrap(err, "repository.PlayerRepository.Delete")
 	})
+}
+
+func (pr playerRepository) Save(ctx context.Context, player *datamodel.Player) error {
+	if player.IsRemoved() {
+		err := pr.delete(ctx, player)
+		return errors.Wrap(err, "service.PlayerRepository.Save")
+	}
+	if player.IsModified() {
+		err := pr.insertOrUpdate(ctx, player)
+		return errors.Wrap(err, "service.PlayerRepository.Save")
+	}
+	return nil
 }

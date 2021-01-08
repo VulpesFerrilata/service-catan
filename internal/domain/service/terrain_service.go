@@ -26,15 +26,3 @@ type terrainService struct {
 func (ts terrainService) GetTerrainRepository() repository.SafeTerrainRepository {
 	return ts.terrainRepository
 }
-
-func (ts terrainService) Save(ctx context.Context, terrain *datamodel.Terrain) error {
-	if terrain.IsRemoved() {
-		err := ts.terrainRepository.Delete(ctx, terrain)
-		return errors.Wrap(err, "service.TerrainService.Save")
-	}
-	if terrain.IsModified() {
-		err := ts.terrainRepository.InsertOrUpdate(ctx, terrain)
-		return errors.Wrap(err, "service.TerrainService.Save")
-	}
-	return nil
-}

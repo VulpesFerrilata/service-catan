@@ -17,8 +17,7 @@ type SafeHarborRepository interface {
 
 type HarborRepository interface {
 	SafeHarborRepository
-	InsertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error
-	Delete(ctx context.Context, harbor *datamodel.Harbor) error
+	Save(ctx context.Context, harbor *datamodel.Harbor) error
 }
 
 func NewHarborRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -40,7 +39,7 @@ func (hr harborRepository) FindByGameId(ctx context.Context, gameId uint) (datam
 	return datamodel.NewHarborsFromHarborModels(harborModels), errors.Wrap(err, "repository.HarborRepository.FindByGameId")
 }
 
-func (hr harborRepository) InsertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error {
+func (hr harborRepository) insertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error {
 	return harbor.Persist(func(harborModel *model.Harbor) error {
 		if err := hr.validate.StructCtx(ctx, harborModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -54,9 +53,21 @@ func (hr harborRepository) InsertOrUpdate(ctx context.Context, harbor *datamodel
 	})
 }
 
-func (hr harborRepository) Delete(ctx context.Context, harbor *datamodel.Harbor) error {
+func (hr harborRepository) delete(ctx context.Context, harbor *datamodel.Harbor) error {
 	return harbor.Persist(func(harborModel *model.Harbor) error {
 		err := hr.transactionMiddleware.Get(ctx).Delete(harborModel).Error
 		return errors.Wrap(err, "repository.HarborRepository.Delete")
 	})
+}
+
+func (hr harborRepository) Save(ctx context.Context, harbor *datamodel.Harbor) error {
+	if harbor.IsRemoved() {
+		err := hr.delete(ctx, harbor)
+		return errors.Wrap(err, "service.HarborRepository.Save")
+	}
+	if harbor.IsModified() {
+		err := hr.insertOrUpdate(ctx, harbor)
+		return errors.Wrap(err, "service.HarborRepository.Save")
+	}
+	return nil
 }

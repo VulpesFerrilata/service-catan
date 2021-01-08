@@ -19,8 +19,7 @@ type SafeRobberRepository interface {
 
 type RobberRepository interface {
 	SafeRobberRepository
-	InsertOrUpdate(ctx context.Context, robber *datamodel.Robber) error
-	Delete(ctx context.Context, robber *datamodel.Robber) error
+	Save(ctx context.Context, robber *datamodel.Robber) error
 }
 
 func NewRobberRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -45,7 +44,7 @@ func (rr robberRepository) GetByGameId(ctx context.Context, gameId uint) (*datam
 	return datamodel.NewRobberFromRobberModel(robberModel), errors.Wrap(err, "repository.RobberRepository.GetByGameId")
 }
 
-func (rr robberRepository) InsertOrUpdate(ctx context.Context, robber *datamodel.Robber) error {
+func (rr robberRepository) insertOrUpdate(ctx context.Context, robber *datamodel.Robber) error {
 	return robber.Persist(func(robberModel *model.Robber) error {
 		if err := rr.validate.StructCtx(ctx, robberModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -58,9 +57,21 @@ func (rr robberRepository) InsertOrUpdate(ctx context.Context, robber *datamodel
 	})
 }
 
-func (rr robberRepository) Delete(ctx context.Context, robber *datamodel.Robber) error {
+func (rr robberRepository) delete(ctx context.Context, robber *datamodel.Robber) error {
 	return robber.Persist(func(robberModel *model.Robber) error {
 		err := rr.transactionMiddleware.Get(ctx).Delete(robberModel).Error
 		return errors.Wrap(err, "repository.RobberRepository.Delete")
 	})
+}
+
+func (rr robberRepository) Save(ctx context.Context, robber *datamodel.Robber) error {
+	if robber.IsRemoved() {
+		err := rr.delete(ctx, robber)
+		return errors.Wrap(err, "service.RobberRepository.Save")
+	}
+	if robber.IsModified() {
+		err := rr.insertOrUpdate(ctx, robber)
+		return errors.Wrap(err, "service.RobberRepository.Save")
+	}
+	return nil
 }

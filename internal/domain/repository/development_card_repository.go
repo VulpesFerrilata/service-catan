@@ -17,8 +17,7 @@ type SafeDevelopmentCardRepository interface {
 
 type DevelopmentCardRepository interface {
 	SafeDevelopmentCardRepository
-	InsertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
-	Delete(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
+	Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
 }
 
 func NewDevelopmentCardRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -40,7 +39,7 @@ func (dcr developmentCardRepository) FindByGameId(ctx context.Context, gameId ui
 	return datamodel.NewDevelopmentCardsFromDevelopmentCardModels(developmentCardModels), errors.Wrap(err, "repository.DevelopmentCardRepository.FindByGameId")
 }
 
-func (dcr developmentCardRepository) InsertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
+func (dcr developmentCardRepository) insertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
 	return developmentCard.Persist(func(developmentCardModel *model.DevelopmentCard) error {
 		if err := dcr.validate.StructCtx(ctx, developmentCardModel); err != nil {
 			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
@@ -54,9 +53,21 @@ func (dcr developmentCardRepository) InsertOrUpdate(ctx context.Context, develop
 	})
 }
 
-func (dcr developmentCardRepository) Delete(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
+func (dcr developmentCardRepository) delete(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
 	return developmentCard.Persist(func(developmentCardModel *model.DevelopmentCard) error {
 		err := dcr.transactionMiddleware.Get(ctx).Delete(developmentCardModel).Error
-		return errors.Wrap(err, "repository.ConstructionRepository.Delete")
+		return errors.Wrap(err, "repository.DevelopmentCardRepository.Delete")
 	})
+}
+
+func (dcr developmentCardRepository) Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
+	if developmentCard.IsRemoved() {
+		err := dcr.delete(ctx, developmentCard)
+		return errors.Wrap(err, "service.DevelopmentCardRepository.Save")
+	}
+	if developmentCard.IsModified() {
+		err := dcr.insertOrUpdate(ctx, developmentCard)
+		return errors.Wrap(err, "service.DevelopmentCardRepository.Save")
+	}
+	return nil
 }
