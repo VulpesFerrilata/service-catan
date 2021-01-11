@@ -6,18 +6,13 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/grpc/protoc/user"
-	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
-type SafePlayerRepository interface {
-	FindByGameId(ctx context.Context, gameId int) (datamodel.Players, error)
-}
-
 type PlayerRepository interface {
-	SafePlayerRepository
+	FindByGameId(ctx context.Context, gameId int) (datamodel.Players, error)
 	Save(ctx context.Context, player *datamodel.Player) error
 }
 
@@ -66,9 +61,6 @@ func (pr playerRepository) FindByGameId(ctx context.Context, gameId int) (datamo
 func (pr playerRepository) insertOrUpdate(ctx context.Context, player *datamodel.Player) error {
 	return player.Persist(func(playerModel *model.Player) error {
 		if err := pr.validate.StructCtx(ctx, playerModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(playerModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
 		}
 		err := pr.transactionMiddleware.Get(ctx).Save(playerModel).Error

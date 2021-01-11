@@ -1,15 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 
 type HarborService interface {
-	GetHarborRepository() repository.SafeHarborRepository
-	Save(ctx context.Context, harbor *datamodel.Harbor) error
+	GetHarborRepository() repository.HarborRepository
 }
 
 func NewHarborService(harborRepository repository.HarborRepository) HarborService {
@@ -22,6 +18,6 @@ type harborService struct {
 	harborRepository repository.HarborRepository
 }
 
-func (hs harborService) GetHarborRepository() repository.SafeHarborRepository {
+func (hs harborService) GetHarborRepository() repository.HarborRepository {
 	return hs.harborRepository
 }

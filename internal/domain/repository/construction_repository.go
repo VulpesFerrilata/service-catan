@@ -5,18 +5,13 @@ import (
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
-type SafeConstructionRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.Constructions, error)
-}
-
 type ConstructionRepository interface {
-	SafeConstructionRepository
+	FindByGameId(ctx context.Context, gameId uint) (datamodel.Constructions, error)
 	Save(ctx context.Context, construction *datamodel.Construction) error
 }
 
@@ -42,9 +37,6 @@ func (cr constructionRepository) FindByGameId(ctx context.Context, gameId uint) 
 func (cr constructionRepository) insertOrUpdate(ctx context.Context, construction *datamodel.Construction) error {
 	return construction.Persist(func(constructionModel *model.Construction) error {
 		if err := cr.validate.StructCtx(ctx, constructionModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(constructionModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.ConstructionRepository.InsertOrUpdate")
 		}
 

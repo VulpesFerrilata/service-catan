@@ -1,15 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 
 type ConstructionService interface {
-	GetConstructionRepository() repository.SafeConstructionRepository
-	Save(ctx context.Context, construction *datamodel.Construction) error
+	GetConstructionRepository() repository.ConstructionRepository
 }
 
 func NewConstructionService(constructionRepository repository.ConstructionRepository) ConstructionService {
@@ -22,6 +18,6 @@ type constructionService struct {
 	constructionRepository repository.ConstructionRepository
 }
 
-func (cs constructionService) GetConstructionRepository() repository.SafeConstructionRepository {
+func (cs constructionService) GetConstructionRepository() repository.ConstructionRepository {
 	return cs.constructionRepository
 }

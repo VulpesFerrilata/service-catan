@@ -1,16 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
-	"github.com/pkg/errors"
 )
 
 type TerrainService interface {
-	GetTerrainRepository() repository.SafeTerrainRepository
-	Save(ctx context.Context, terrain *datamodel.Terrain) error
+	GetTerrainRepository() repository.TerrainRepository
 }
 
 func NewTerrainService(terrainRepository repository.TerrainRepository) TerrainService {
@@ -23,6 +18,6 @@ type terrainService struct {
 	terrainRepository repository.TerrainRepository
 }
 
-func (ts terrainService) GetTerrainRepository() repository.SafeTerrainRepository {
+func (ts terrainService) GetTerrainRepository() repository.TerrainRepository {
 	return ts.terrainRepository
 }

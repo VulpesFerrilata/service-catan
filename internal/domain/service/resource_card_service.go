@@ -1,16 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
-	"github.com/pkg/errors"
 )
 
 type ResourceCardService interface {
-	GetResourceCardRepository() repository.SafeResourceCardRepository
-	Save(ctx context.Context, resourceCard *datamodel.ResourceCard) error
+	GetResourceCardRepository() repository.ResourceCardRepository
 }
 
 func NewResourceCardService(resourceCardRepository repository.ResourceCardRepository) ResourceCardService {
@@ -23,6 +18,6 @@ type resourceCardService struct {
 	resourceCardRepository repository.ResourceCardRepository
 }
 
-func (rcs resourceCardService) GetResourceCardRepository() repository.SafeResourceCardRepository {
+func (rcs resourceCardService) GetResourceCardRepository() repository.ResourceCardRepository {
 	return rcs.resourceCardRepository
 }

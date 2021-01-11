@@ -1,15 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 
 type RobberService interface {
-	GetRobberRepository() repository.SafeRobberRepository
-	Save(ctx context.Context, robber *datamodel.Robber) error
+	GetRobberRepository() repository.RobberRepository
 }
 
 func NewRobberService(robberRepository repository.RobberRepository) RobberService {
@@ -22,6 +18,6 @@ type robberService struct {
 	robberRepository repository.RobberRepository
 }
 
-func (rs robberService) GetRobberRepository() repository.SafeRobberRepository {
+func (rs robberService) GetRobberRepository() repository.RobberRepository {
 	return rs.robberRepository
 }

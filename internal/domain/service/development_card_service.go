@@ -1,15 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 
 type DevelopmentCardService interface {
-	GetDevelopmentCardRepository() repository.SafeDevelopmentCardRepository
-	Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
+	GetDevelopmentCardRepository() repository.DevelopmentCardRepository
 }
 
 func NewDevelopmentCardService(developmentCardRepository repository.DevelopmentCardRepository) DevelopmentCardService {
@@ -22,6 +18,6 @@ type developmentCardService struct {
 	developmentCardRepository repository.DevelopmentCardRepository
 }
 
-func (dcs developmentCardService) GetDevelopmentCardRepository() repository.SafeDevelopmentCardRepository {
+func (dcs developmentCardService) GetDevelopmentCardRepository() repository.DevelopmentCardRepository {
 	return dcs.developmentCardRepository
 }

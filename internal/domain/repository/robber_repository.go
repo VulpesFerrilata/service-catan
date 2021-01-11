@@ -13,12 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
-type SafeRobberRepository interface {
-	GetByGameId(ctx context.Context, gameId uint) (*datamodel.Robber, error)
-}
-
 type RobberRepository interface {
-	SafeRobberRepository
+	GetByGameId(ctx context.Context, gameId uint) (*datamodel.Robber, error)
 	Save(ctx context.Context, robber *datamodel.Robber) error
 }
 
@@ -47,9 +43,6 @@ func (rr robberRepository) GetByGameId(ctx context.Context, gameId uint) (*datam
 func (rr robberRepository) insertOrUpdate(ctx context.Context, robber *datamodel.Robber) error {
 	return robber.Persist(func(robberModel *model.Robber) error {
 		if err := rr.validate.StructCtx(ctx, robberModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(robberModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.RobberRepository.InsertOrUpdate")
 		}
 		err := rr.transactionMiddleware.Get(ctx).Save(robberModel).Error

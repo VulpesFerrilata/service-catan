@@ -1,15 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 
 type GameService interface {
-	GetGameRepository() repository.SafeGameRepository
-	Save(ctx context.Context, game *datamodel.Game) error
+	GetGameRepository() repository.GameRepository
 }
 
 func NewGameService(gameRepository repository.GameRepository,
@@ -52,6 +48,6 @@ type gameService struct {
 	harborService          HarborService
 }
 
-func (gs gameService) GetGameRepository() repository.SafeGameRepository {
+func (gs gameService) GetGameRepository() repository.GameRepository {
 	return gs.gameRepository
 }

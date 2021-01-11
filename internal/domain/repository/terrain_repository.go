@@ -5,18 +5,13 @@ import (
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
-type SafeTerrainRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error)
-}
-
 type TerrainRepository interface {
-	SafeTerrainRepository
+	FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error)
 	Save(ctx context.Context, terrain *datamodel.Terrain) error
 }
 
@@ -42,9 +37,6 @@ func (tr terrainRepository) FindByGameId(ctx context.Context, gameId uint) (data
 func (tr terrainRepository) insertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error {
 	return terrain.Persist(func(terrainModel *model.Terrain) error {
 		if err := tr.validate.StructCtx(ctx, terrainModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(terrainModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
 		}
 		err := tr.transactionMiddleware.Get(ctx).Save(terrainModel).Error

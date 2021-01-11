@@ -5,18 +5,13 @@ import (
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
-type SafeDiceRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.Dices, error)
-}
-
 type DiceRepository interface {
-	SafeDiceRepository
+	FindByGameId(ctx context.Context, gameId uint) (datamodel.Dices, error)
 	Save(ctx context.Context, dice *datamodel.Dice) error
 }
 
@@ -42,9 +37,6 @@ func (dr diceRepository) FindByGameId(ctx context.Context, gameId uint) (datamod
 func (dr diceRepository) insertOrUpdate(ctx context.Context, dice *datamodel.Dice) error {
 	return dice.Persist(func(diceModel *model.Dice) error {
 		if err := dr.validate.StructCtx(ctx, diceModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(diceModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
 		}
 

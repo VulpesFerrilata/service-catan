@@ -1,15 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 
 type DiceService interface {
-	GetDiceRepository() repository.SafeDiceRepository
-	Save(ctx context.Context, dice *datamodel.Dice) error
+	GetDiceRepository() repository.DiceRepository
 }
 
 func NewDiceService(diceRepository repository.DiceRepository) DiceService {
@@ -22,6 +18,6 @@ type diceService struct {
 	diceRepository repository.DiceRepository
 }
 
-func (ds diceService) GetDiceRepository() repository.SafeDiceRepository {
+func (ds diceService) GetDiceRepository() repository.DiceRepository {
 	return ds.diceRepository
 }

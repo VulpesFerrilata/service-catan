@@ -13,12 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
-type SafeGameRepository interface {
-	GetById(ctx context.Context, id uint) (*datamodel.Game, error)
-}
-
 type GameRepository interface {
-	SafeGameRepository
+	GetById(ctx context.Context, id uint) (*datamodel.Game, error)
 	Save(ctx context.Context, game *datamodel.Game) error
 }
 
@@ -89,9 +85,6 @@ func (gr gameRepository) GetById(ctx context.Context, gameId uint) (*datamodel.G
 func (gr gameRepository) insertOrUpdate(ctx context.Context, game *datamodel.Game) error {
 	return game.Persist(func(gameModel *model.Game) error {
 		if err := gr.validate.StructCtx(ctx, gameModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(gameModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.GameRepository.InsertOrUpdate")
 		}
 

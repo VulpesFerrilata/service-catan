@@ -5,18 +5,13 @@ import (
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
-type SafeDevelopmentCardRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.DevelopmentCards, error)
-}
-
 type DevelopmentCardRepository interface {
-	SafeDevelopmentCardRepository
+	FindByGameId(ctx context.Context, gameId uint) (datamodel.DevelopmentCards, error)
 	Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
 }
 
@@ -42,9 +37,6 @@ func (dcr developmentCardRepository) FindByGameId(ctx context.Context, gameId ui
 func (dcr developmentCardRepository) insertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
 	return developmentCard.Persist(func(developmentCardModel *model.DevelopmentCard) error {
 		if err := dcr.validate.StructCtx(ctx, developmentCardModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(developmentCardModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
 		}
 

@@ -1,15 +1,11 @@
 package service
 
 import (
-	"context"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 )
 
 type RoadService interface {
-	GetRoadRepository() repository.SafeRoadRepository
-	Save(ctx context.Context, road *datamodel.Road) error
+	GetRoadRepository() repository.RoadRepository
 }
 
 func NewRoadService(roadRepository repository.RoadRepository) RoadService {
@@ -22,6 +18,6 @@ type roadService struct {
 	roadRepository repository.RoadRepository
 }
 
-func (rs roadService) GetRoadRepository() repository.SafeRoadRepository {
+func (rs roadService) GetRoadRepository() repository.RoadRepository {
 	return rs.roadRepository
 }

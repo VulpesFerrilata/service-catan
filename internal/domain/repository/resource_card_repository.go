@@ -5,18 +5,13 @@ import (
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
-type SafeResourceCardRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error)
-}
-
 type ResourceCardRepository interface {
-	SafeResourceCardRepository
+	FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error)
 	Save(ctx context.Context, resourceCard *datamodel.ResourceCard) error
 }
 
@@ -42,9 +37,6 @@ func (rcr resourceCardRepository) FindByGameId(ctx context.Context, gameId uint)
 func (rcr resourceCardRepository) insertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
 	return resourceCard.Persist(func(resourceCardModel *model.ResourceCard) error {
 		if err := rcr.validate.StructCtx(ctx, resourceCardModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(resourceCardModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.ResourceCardRepository.InsertOrUpdate")
 		}
 		err := rcr.transactionMiddleware.Get(ctx).Save(resourceCardModel).Error

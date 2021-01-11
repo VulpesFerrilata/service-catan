@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/pkg/errors"
+	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
@@ -12,32 +13,31 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/usecase/request"
 	"github.com/VulpesFerrilata/catan/internal/usecase/response"
 	"github.com/VulpesFerrilata/grpc/protoc/user"
-	"github.com/VulpesFerrilata/library/pkg/validator"
 )
 
 type GameInteractor interface {
 }
 
-func NewGameInteractor(validate validator.Validate,
-	gameAggregateService service.GameAggregateService,
+func NewGameInteractor(validate *validator.Validate,
+	gameService service.GameService,
 	userService user.UserService) GameInteractor {
 	return &gameInteractor{
-		validate:             validate,
-		gameAggregateService: gameAggregateService,
-		userService:          userService,
+		validate:    validate,
+		gameService: gameService,
+		userService: userService,
 	}
 }
 
 type gameInteractor struct {
-	validate             validator.Validate
-	gameAggregateService service.GameAggregateService
-	userService          user.UserService
+	validate    *validator.Validate
+	gameService service.GameService
+	userService user.UserService
 }
 
 func (gi *gameInteractor) CreateGame(ctx context.Context) (*response.GameResponse, error) {
 	game := model.NewGame()
 
-	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
 		return nil, err
 	}
 
@@ -47,7 +47,7 @@ func (gi *gameInteractor) CreateGame(ctx context.Context) (*response.GameRespons
 func (gi *gameInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	userId := 0 //todo: userid from context
 
-	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (gi *gameInteractor) JoinGame(ctx context.Context, gameRequest *request.Gam
 		player.SetUser(user)
 		game.AddPlayers(player)
 
-		if err := gi.gameAggregateService.Save(ctx, game); err != nil {
+		if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
 			return nil, err
 		}
 	}
@@ -100,7 +100,7 @@ func (gi *gameInteractor) UpdateGame(ctx context.Context, gameRequest *request.G
 }
 
 func (gi *gameInteractor) StartGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (gi *gameInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 		}
 	}
 
-	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
 		return nil, err
 	}
 
@@ -181,7 +181,7 @@ func (gi *gameInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 }
 
 func (gi *gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (gi *gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.Ga
 			player.IsLeft = true
 		}
 
-		if err := gi.gameAggregateService.Save(ctx, game); err != nil {
+		if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
 			return nil, err
 		}
 	}
@@ -212,7 +212,7 @@ func (gi *gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.Ga
 func (gi *gameInteractor) RollDices(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	userId := 0
 
-	game, err := gi.gameAggregateService.GetById(ctx, uint(gameRequest.ID))
+	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +294,7 @@ func (gi *gameInteractor) RollDices(ctx context.Context, gameRequest *request.Ga
 		}
 	}
 
-	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
 		return nil, err
 	}
 
@@ -304,7 +304,7 @@ func (gi *gameInteractor) RollDices(ctx context.Context, gameRequest *request.Ga
 func (gi *gameInteractor) BuildRoad(ctx context.Context, roadRequest *request.RoadRequest) (*response.GameResponse, error) {
 	userId := 0
 
-	game, err := gi.gameAggregateService.GetById(ctx, uint(roadRequest.GameID))
+	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(roadRequest.GameID))
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +375,7 @@ func (gi *gameInteractor) BuildRoad(ctx context.Context, roadRequest *request.Ro
 	}
 	road.PlayerID = &player.ID
 
-	if err := gi.gameAggregateService.Save(ctx, game); err != nil {
+	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
 		return nil, err
 	}
 
