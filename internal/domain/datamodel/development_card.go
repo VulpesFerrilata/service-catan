@@ -2,7 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func NewDevelopmentCardFromDevelopmentCardModel(developmentCardModel *model.DevelopmentCard) *DevelopmentCard {
@@ -16,31 +16,19 @@ func NewDevelopmentCardFromDevelopmentCardModel(developmentCardModel *model.Deve
 
 type DevelopmentCard struct {
 	base
-	id              int
+	id              uuid.UUID
 	developmentType model.DevelopmentType
 	game            *Game
-	player          *Player
+	playerID        *uuid.UUID
 }
 
-func (dc *DevelopmentCard) Persist(f func(developmentCardModel *model.DevelopmentCard) error) error {
+func (dc DevelopmentCard) ToModel() *model.DevelopmentCard {
 	developmentCardModel := new(model.DevelopmentCard)
 	developmentCardModel.ID = dc.id
 	if dc.game != nil {
 		developmentCardModel.GameID = dc.game.id
 	}
 	developmentCardModel.DevelopmentType = dc.developmentType
-	if dc.player != nil {
-		developmentCardModel.PlayerID = &dc.player.id
-	}
-
-	if err := f(developmentCardModel); err != nil {
-		return errors.Wrap(err, "datamodel.DevelopmentCard.Persist")
-	}
-	dc.isModified = false
-	dc.isRemoved = false
-
-	dc.id = developmentCardModel.ID
-	dc.developmentType = developmentCardModel.DevelopmentType
-
-	return nil
+	developmentCardModel.PlayerID = dc.playerID
+	return developmentCardModel
 }

@@ -4,7 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func NewDiceFromDiceModel(diceModel *model.Dice) *Dice {
@@ -18,7 +18,7 @@ func NewDiceFromDiceModel(diceModel *model.Dice) *Dice {
 
 type Dice struct {
 	base
-	id         int
+	id         uuid.UUID
 	number     int
 	game       *Game
 	isModified bool
@@ -29,22 +29,12 @@ func (d *Dice) Roll() {
 	d.isModified = true
 }
 
-func (d *Dice) Persist(f func(diceModel *model.Dice) error) error {
+func (d Dice) ToModel() *model.Dice {
 	diceModel := new(model.Dice)
 	diceModel.ID = d.id
 	if d.game != nil {
 		diceModel.GameID = d.game.id
 	}
 	diceModel.Number = d.number
-
-	if err := f(diceModel); err != nil {
-		return errors.Wrap(err, "datamodel.Dice.Persist")
-	}
-	d.isModified = false
-	d.isRemoved = false
-
-	d.id = diceModel.ID
-	d.number = diceModel.Number
-
-	return nil
+	return diceModel
 }

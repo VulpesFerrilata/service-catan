@@ -35,21 +35,20 @@ func (dcr developmentCardRepository) FindByGameId(ctx context.Context, gameId ui
 }
 
 func (dcr developmentCardRepository) insertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
-	return developmentCard.Persist(func(developmentCardModel *model.DevelopmentCard) error {
-		if err := dcr.validate.StructCtx(ctx, developmentCardModel); err != nil {
-			return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
-		}
+	developmentCardModel := developmentCard.ToModel()
 
-		err := dcr.transactionMiddleware.Get(ctx).Save(developmentCardModel).Error
-		return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
-	})
+	if err := dcr.validate.StructCtx(ctx, developmentCardModel); err != nil {
+		return errors.Wrap(err, "repository.DevelopmentCardRepository.insertOrUpdate")
+	}
+
+	err := dcr.transactionMiddleware.Get(ctx).Save(developmentCardModel).Error
+	return errors.Wrap(err, "repository.DevelopmentCardRepository.insertOrUpdate")
 }
 
 func (dcr developmentCardRepository) delete(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
-	return developmentCard.Persist(func(developmentCardModel *model.DevelopmentCard) error {
-		err := dcr.transactionMiddleware.Get(ctx).Delete(developmentCardModel).Error
-		return errors.Wrap(err, "repository.DevelopmentCardRepository.Delete")
-	})
+	developmentCardModel := developmentCard.ToModel()
+	err := dcr.transactionMiddleware.Get(ctx).Delete(developmentCardModel).Error
+	return errors.Wrap(err, "repository.DevelopmentCardRepository.delete")
 }
 
 func (dcr developmentCardRepository) Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {

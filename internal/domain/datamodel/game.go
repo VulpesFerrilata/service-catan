@@ -2,6 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -14,8 +15,8 @@ func NewGame() *Game {
 func NewGameFromGameModel(gameModel *model.Game) *Game {
 	game := new(Game)
 	game.id = gameModel.ID
-	game.playerInTurn = gameModel.PlayerInTurn
-	game.turn = gameModel.Turn
+	game.currentTurnOrder = gameModel.CurrentTurnOrder
+	game.currentTurn = gameModel.CurrentTurn
 	game.status = gameModel.Status
 	game.isModified = false
 	game.isRemoved = false
@@ -24,8 +25,8 @@ func NewGameFromGameModel(gameModel *model.Game) *Game {
 
 type Game struct {
 	base
-	id               int
-	playerInTurn     int
+	id               uuid.UUID
+	playerInTurn     *uuid.UUID
 	turn             int
 	status           model.GameStatus
 	players          Players
@@ -40,7 +41,7 @@ type Game struct {
 	harbors          Harbors
 }
 
-func (g Game) GetId() int {
+func (g Game) GetId() uuid.UUID {
 	return g.id
 }
 
@@ -58,14 +59,15 @@ func (g *Game) NextPlayerInTurn() {
 	})
 
 	for idx, player := range players {
-		if player.id == g.playerInTurn {
+		if g.playerInTurn == nil || player.id == *g.playerInTurn {
 			for {
 				idx++
 				if idx >= len(players) {
+					g.turn++
 					idx = 0
 				}
 				if !players[idx].isLeft {
-					g.playerInTurn = players[idx].id
+					*g.playerInTurn = players[idx].id
 					g.isModified = true
 					return
 				}
@@ -76,11 +78,6 @@ func (g *Game) NextPlayerInTurn() {
 
 func (g Game) GetTurn() int {
 	return g.turn
-}
-
-func (g *Game) NextTurn() {
-	g.turn++
-	g.isModified = true
 }
 
 func (g Game) GetPlayers() Players {

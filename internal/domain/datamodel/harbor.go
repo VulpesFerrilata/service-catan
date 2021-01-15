@@ -3,6 +3,7 @@ package datamodel
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/pkg/math"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +20,7 @@ func NewHarborFromHarborModel(harborModel *model.Harbor) *Harbor {
 
 type Harbor struct {
 	base
-	id         int
+	id         uuid.UUID
 	q          int
 	r          int
 	harborType model.HarborType

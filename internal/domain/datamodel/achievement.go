@@ -2,7 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func NewAchievementFromAchievementModel(achievementModel *model.Achievement) *Achievement {
@@ -17,34 +17,21 @@ func NewAchievementFromAchievementModel(achievementModel *model.Achievement) *Ac
 
 type Achievement struct {
 	base
-	id              int
+	id              uuid.UUID
 	achievementType model.AchievementType
 	bonusPoints     int
 	game            *Game
-	player          *Player
+	playerID        *uuid.UUID
 }
 
-func (a *Achievement) Persist(f func(achievementModel *model.Achievement) error) error {
+func (a Achievement) ToModel() *model.Achievement {
 	achievementModel := new(model.Achievement)
 	achievementModel.ID = a.id
 	if a.game != nil {
 		achievementModel.GameID = a.game.id
 	}
 	achievementModel.AchievementType = a.achievementType
-	if a.player != nil {
-		achievementModel.PlayerID = &a.player.id
-	}
 	achievementModel.BonusPoints = a.bonusPoints
-
-	if err := f(achievementModel); err != nil {
-		return errors.Wrap(err, "datamodel.Achievement.Persist")
-	}
-	a.isModified = false
-	a.isRemoved = false
-
-	a.id = achievementModel.ID
-	a.achievementType = achievementModel.AchievementType
-	a.bonusPoints = achievementModel.BonusPoints
-
-	return nil
+	achievementModel.PlayerID = a.playerID
+	return achievementModel
 }

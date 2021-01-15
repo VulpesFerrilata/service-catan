@@ -2,7 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func NewConstructionFromConstructionModel(constructionModel *model.Construction) *Construction {
@@ -19,20 +19,16 @@ func NewConstructionFromConstructionModel(constructionModel *model.Construction)
 
 type Construction struct {
 	base
-	id               int
+	id               uuid.UUID
 	q                int
 	r                int
 	location         model.ConstructionLocation
 	constructionType model.ConstructionType
 	game             *Game
-	player           *Player
+	playerID         *uuid.UUID
 }
 
-func (c Construction) GetPlayer() *Player {
-	return c.player
-}
-
-func (c *Construction) Persist(f func(constructionModel *model.Construction) error) error {
+func (c Construction) ToModel() *model.Construction {
 	constructionModel := new(model.Construction)
 	constructionModel.ID = c.id
 	if c.game != nil {
@@ -41,22 +37,7 @@ func (c *Construction) Persist(f func(constructionModel *model.Construction) err
 	constructionModel.Q = c.q
 	constructionModel.R = c.r
 	constructionModel.Location = c.location
-	if c.player != nil {
-		constructionModel.PlayerID = &c.player.id
-	}
+	constructionModel.PlayerID = c.playerID
 	constructionModel.ConstructionType = c.constructionType
-
-	if err := f(constructionModel); err != nil {
-		return errors.Wrap(err, "datamodel.Construction.Persist")
-	}
-	c.isModified = false
-	c.isRemoved = false
-
-	c.id = constructionModel.ID
-	c.q = constructionModel.Q
-	c.r = constructionModel.R
-	c.location = constructionModel.Location
-	c.constructionType = constructionModel.ConstructionType
-
-	return nil
+	return constructionModel
 }

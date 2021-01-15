@@ -35,21 +35,20 @@ func (dr diceRepository) FindByGameId(ctx context.Context, gameId uint) (datamod
 }
 
 func (dr diceRepository) insertOrUpdate(ctx context.Context, dice *datamodel.Dice) error {
-	return dice.Persist(func(diceModel *model.Dice) error {
-		if err := dr.validate.StructCtx(ctx, diceModel); err != nil {
-			return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
-		}
+	diceModel := dice.ToModel()
 
-		err := dr.transactionMiddleware.Get(ctx).Save(diceModel).Error
-		return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
-	})
+	if err := dr.validate.StructCtx(ctx, diceModel); err != nil {
+		return errors.Wrap(err, "repository.DiceRepository.insertOrUpdate")
+	}
+
+	err := dr.transactionMiddleware.Get(ctx).Save(diceModel).Error
+	return errors.Wrap(err, "repository.DiceRepository.insertOrUpdate")
 }
 
 func (dr diceRepository) delete(ctx context.Context, dice *datamodel.Dice) error {
-	return dice.Persist(func(diceModel *model.Dice) error {
-		err := dr.transactionMiddleware.Get(ctx).Delete(diceModel).Error
-		return errors.Wrap(err, "repository.DiceRepository.Delete")
-	})
+	diceModel := dice.ToModel()
+	err := dr.transactionMiddleware.Get(ctx).Delete(diceModel).Error
+	return errors.Wrap(err, "repository.DiceRepository.delete")
 }
 
 func (dr diceRepository) Save(ctx context.Context, dice *datamodel.Dice) error {

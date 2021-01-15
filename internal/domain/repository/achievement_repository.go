@@ -35,21 +35,20 @@ func (ar achievementRepository) FindByGameId(ctx context.Context, gameId uint) (
 }
 
 func (ar achievementRepository) insertOrUpdate(ctx context.Context, achievement *datamodel.Achievement) error {
-	return achievement.Persist(func(achievementModel *model.Achievement) error {
-		if err := ar.validate.StructCtx(ctx, achievementModel); err != nil {
-			return errors.Wrap(err, "repository.AchievementRepository.InsertOrUpdate")
-		}
+	achievementModel := achievement.ToModel()
 
-		err := ar.transactionMiddleware.Get(ctx).Save(achievementModel).Error
-		return errors.Wrap(err, "repository.AchievementRepository.InsertOrUpdate")
-	})
+	if err := ar.validate.StructCtx(ctx, achievementModel); err != nil {
+		return errors.Wrap(err, "repository.AchievementRepository.insertOrUpdate")
+	}
+
+	err := ar.transactionMiddleware.Get(ctx).Save(achievementModel).Error
+	return errors.Wrap(err, "repository.AchievementRepository.insertOrUpdate")
 }
 
 func (ar achievementRepository) delete(ctx context.Context, achievement *datamodel.Achievement) error {
-	return achievement.Persist(func(achievementModel *model.Achievement) error {
-		err := ar.transactionMiddleware.Get(ctx).Delete(achievementModel).Error
-		return errors.Wrap(err, "repository.AchievementRepository.Delete")
-	})
+	achievementModel := achievement.ToModel()
+	err := ar.transactionMiddleware.Get(ctx).Delete(achievementModel).Error
+	return errors.Wrap(err, "repository.AchievementRepository.delete")
 }
 
 func (ar achievementRepository) Save(ctx context.Context, achievement *datamodel.Achievement) error {

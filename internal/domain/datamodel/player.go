@@ -3,6 +3,7 @@ package datamodel
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -25,7 +26,7 @@ func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
 
 type Player struct {
 	base
-	id               int
+	id               uuid.UUID
 	color            string
 	turnOrder        int
 	isLeft           bool

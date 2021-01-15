@@ -1,13 +1,16 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Robber struct {
 	gorm.Model
-	ID        int `gorm:"primaryKey"`
-	GameID    int
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	GameID    uuid.UUID `gorm:"type:uuid"`
 	Status    RobberStatus
-	TerrainID int
+	TerrainID uuid.UUID `gorm:"type:uuid"`
 }
 
 type RobberStatus string

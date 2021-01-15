@@ -23,8 +23,8 @@ type Road struct {
 	q        int
 	r        int
 	location model.RoadLocation
-	playerID *int
 	game     *Game
+	player   *Player
 }
 
 func (r *Road) GetPlayer(game *Game) *Player {

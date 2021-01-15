@@ -1,15 +1,18 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Road struct {
 	gorm.Model
-	ID       int `gorm:"primaryKey"`
-	GameID   int
+	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
+	GameID   uuid.UUID `gorm:"type:uuid"`
 	Q        int
 	R        int
 	Location RoadLocation
-	PlayerID *int
+	PlayerID *uuid.UUID `gorm:"type:uuid"`
 }
 
 type RoadLocation string

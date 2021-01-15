@@ -2,6 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -17,10 +18,10 @@ func NewResourceCardFromResourceCardModel(resourceCardModel *model.ResourceCard)
 
 type ResourceCard struct {
 	base
-	id           int
-	playerID     *int
+	id           uuid.UUID
 	resourceType model.ResourceType
 	game         *Game
+	player       *Player
 }
 
 func (rc ResourceCard) GetPlayer() *Player {

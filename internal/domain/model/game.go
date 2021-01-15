@@ -1,12 +1,15 @@
 package model
 
-import "github.com/VulpesFerrilata/library/pkg/model"
+import (
+	"github.com/VulpesFerrilata/library/pkg/model"
+	"github.com/google/uuid"
+)
 
 type Game struct {
 	model.Model
-	ID            int `gorm:"primaryKey"`
-	PlayerInTurn  int
-	Turn          int
+	ID            uuid.UUID  `gorm:"type:uuid;primaryKey"`
+	playerInTurn  *uuid.UUID `gorm:"type:uuid"`
+	CurrentTurn   int
 	Status        GameStatus
 	IsRolledDices bool
 }

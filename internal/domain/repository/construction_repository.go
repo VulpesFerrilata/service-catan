@@ -35,21 +35,20 @@ func (cr constructionRepository) FindByGameId(ctx context.Context, gameId uint) 
 }
 
 func (cr constructionRepository) insertOrUpdate(ctx context.Context, construction *datamodel.Construction) error {
-	return construction.Persist(func(constructionModel *model.Construction) error {
-		if err := cr.validate.StructCtx(ctx, constructionModel); err != nil {
-			return errors.Wrap(err, "repository.ConstructionRepository.InsertOrUpdate")
-		}
+	constructionModel := construction.ToModel()
 
-		err := cr.transactionMiddleware.Get(ctx).Save(constructionModel).Error
-		return errors.Wrap(err, "repository.ConstructionRepository.InsertOrUpdate")
-	})
+	if err := cr.validate.StructCtx(ctx, constructionModel); err != nil {
+		return errors.Wrap(err, "repository.ConstructionRepository.insertOrUpdate")
+	}
+
+	err := cr.transactionMiddleware.Get(ctx).Save(constructionModel).Error
+	return errors.Wrap(err, "repository.ConstructionRepository.insertOrUpdate")
 }
 
 func (cr constructionRepository) delete(ctx context.Context, construction *datamodel.Construction) error {
-	return construction.Persist(func(constructionModel *model.Construction) error {
-		err := cr.transactionMiddleware.Get(ctx).Delete(constructionModel).Error
-		return errors.Wrap(err, "repository.ConstructionRepository.Delete")
-	})
+	constructionModel := construction.ToModel()
+	err := cr.transactionMiddleware.Get(ctx).Delete(constructionModel).Error
+	return errors.Wrap(err, "repository.ConstructionRepository.delete")
 }
 
 func (cr constructionRepository) Save(ctx context.Context, construction *datamodel.Construction) error {
