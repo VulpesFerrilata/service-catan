@@ -35,21 +35,20 @@ func (hr harborRepository) FindByGameId(ctx context.Context, gameId uint) (datam
 }
 
 func (hr harborRepository) insertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error {
-	return harbor.Persist(func(harborModel *model.Harbor) error {
-		if err := hr.validate.StructCtx(ctx, harborModel); err != nil {
-			return errors.Wrap(err, "repository.HarborRepository.InsertOrUpdate")
-		}
+	harborModel := harbor.ToModel()
 
-		err := hr.transactionMiddleware.Get(ctx).Save(harborModel).Error
+	if err := hr.validate.StructCtx(ctx, harborModel); err != nil {
 		return errors.Wrap(err, "repository.HarborRepository.InsertOrUpdate")
-	})
+	}
+
+	err := hr.transactionMiddleware.Get(ctx).Save(harborModel).Error
+	return errors.Wrap(err, "repository.HarborRepository.InsertOrUpdate")
 }
 
 func (hr harborRepository) delete(ctx context.Context, harbor *datamodel.Harbor) error {
-	return harbor.Persist(func(harborModel *model.Harbor) error {
-		err := hr.transactionMiddleware.Get(ctx).Delete(harborModel).Error
-		return errors.Wrap(err, "repository.HarborRepository.Delete")
-	})
+	harborModel := harbor.ToModel()
+	err := hr.transactionMiddleware.Get(ctx).Delete(harborModel).Error
+	return errors.Wrap(err, "repository.HarborRepository.Delete")
 }
 
 func (hr harborRepository) Save(ctx context.Context, harbor *datamodel.Harbor) error {

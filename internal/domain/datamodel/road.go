@@ -2,7 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func NewRoadFromRoadModel(roadModel *model.Road) *Road {
@@ -19,12 +19,12 @@ func NewRoadFromRoadModel(roadModel *model.Road) *Road {
 
 type Road struct {
 	base
-	id       int
+	id       uuid.UUID
 	q        int
 	r        int
 	location model.RoadLocation
+	playerID *uuid.UUID
 	game     *Game
-	player   *Player
 }
 
 func (r *Road) GetPlayer(game *Game) *Player {
@@ -71,25 +71,12 @@ func (r *Road) GetAdjacentRoads() Roads {
 	})
 }
 
-func (r *Road) Persist(f func(roadModel *model.Road) error) error {
+func (r Road) ToModel() *model.Road {
 	roadModel := new(model.Road)
 	roadModel.ID = r.id
 	roadModel.Q = r.q
 	roadModel.R = r.r
 	roadModel.Location = r.location
 	roadModel.PlayerID = r.playerID
-
-	if err := f(roadModel); err != nil {
-		return errors.Wrap(err, "model.Road.Persist")
-	}
-	r.isModified = false
-	r.isRemoved = false
-
-	r.id = roadModel.ID
-	r.q = roadModel.Q
-	r.r = roadModel.R
-	r.location = roadModel.Location
-	r.playerID = roadModel.PlayerID
-
-	return nil
+	return roadModel
 }

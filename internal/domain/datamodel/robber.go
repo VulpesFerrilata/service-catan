@@ -2,7 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func NewRobberFromRobberModel(robberModel *model.Robber) *Robber {
@@ -24,35 +24,23 @@ func NewRobber(terrains Terrains) *Robber {
 		}
 		return false
 	}).First()
-	robber.terrain = desertTerrain
+	robber.terrainID = desertTerrain.id
 
 	return robber
 }
 
 type Robber struct {
 	base
-	id      int
-	status  model.RobberStatus
-	game    *Game
-	terrain *Terrain
+	id        uuid.UUID
+	status    model.RobberStatus
+	terrainID uuid.UUID
+	game      *Game
 }
 
-func (r *Robber) Persist(f func(robberModel *model.Robber) error) error {
+func (r Robber) ToModel() *model.Robber {
 	robberModel := new(model.Robber)
 	robberModel.ID = r.id
 	robberModel.Status = r.status
-	if r.terrain != nil {
-		robberModel.TerrainID = r.terrain.id
-	}
-
-	if err := f(robberModel); err != nil {
-		return errors.Wrap(err, "model.Robber.Persist")
-	}
-	r.isModified = false
-	r.isRemoved = false
-
-	r.id = robberModel.ID
-	r.status = robberModel.Status
-
-	return nil
+	robberModel.TerrainID = r.terrainID
+	return robberModel
 }

@@ -35,20 +35,20 @@ func (rcr resourceCardRepository) FindByGameId(ctx context.Context, gameId uint)
 }
 
 func (rcr resourceCardRepository) insertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
-	return resourceCard.Persist(func(resourceCardModel *model.ResourceCard) error {
-		if err := rcr.validate.StructCtx(ctx, resourceCardModel); err != nil {
-			return errors.Wrap(err, "repository.ResourceCardRepository.InsertOrUpdate")
-		}
-		err := rcr.transactionMiddleware.Get(ctx).Save(resourceCardModel).Error
-		return errors.Wrap(err, "repository.ResourceCardRepository.InsertOrUpdate")
-	})
+	resourceCardModel := resourceCard.ToModel()
+
+	if err := rcr.validate.StructCtx(ctx, resourceCardModel); err != nil {
+		return errors.Wrap(err, "repository.ResourceCardRepository.insertOrUpdate")
+	}
+
+	err := rcr.transactionMiddleware.Get(ctx).Save(resourceCardModel).Error
+	return errors.Wrap(err, "repository.ResourceCardRepository.insertOrUpdate")
 }
 
 func (rcr resourceCardRepository) delete(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
-	return resourceCard.Persist(func(resourceCardModel *model.ResourceCard) error {
-		err := rcr.transactionMiddleware.Get(ctx).Delete(resourceCardModel).Error
-		return errors.Wrap(err, "repository.ResourceCardRepository.Delete")
-	})
+	resourceCardModel := resourceCard.ToModel()
+	err := rcr.transactionMiddleware.Get(ctx).Delete(resourceCardModel).Error
+	return errors.Wrap(err, "repository.ResourceCardRepository.delete")
 }
 
 func (rcr resourceCardRepository) Save(ctx context.Context, resourceCard *datamodel.ResourceCard) error {

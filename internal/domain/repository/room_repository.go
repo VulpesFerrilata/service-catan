@@ -5,9 +5,30 @@ import (
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/VulpesFerrilata/library/pkg/middleware"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type RoomRepository interface {
-	GetRoomByGameId(ctx context.Context, gameId int) (*datamodel.Room, error)
-	FindRoomByGameStatus(ctx context.Context, status model.GameStatus) ([]*datamodel.Room, error)
+	GetRoomByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Room, error)
+}
+
+func NewRoomRepository(transactionMiddleware *middleware.TransactionMiddleware,
+	playerRepository PlayerRepository) RoomRepository {
+	return &roomRepository{
+		transactionMiddleware: transactionMiddleware,
+		playerRepository:      playerRepository,
+	}
+}
+
+type roomRepository struct {
+	transactionMiddleware *middleware.TransactionMiddleware
+	playerRepository      PlayerRepository
+}
+
+func (rr roomRepository) GetRoomByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Room, error) {
+	gameModel := new(model.Game)
+	err := rr.transactionMiddleware.Get(ctx).First(gameModel, gameId).Error
+	return datamodel.NewRoomFromGameModel(gameModel), errors.Wrap(err, "repository.RoomRepository.GetRoomByGameId")
 }

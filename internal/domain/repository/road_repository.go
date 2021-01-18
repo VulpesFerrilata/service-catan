@@ -35,20 +35,20 @@ func (rr roadRepository) FindByGameId(ctx context.Context, gameId uint) (datamod
 }
 
 func (rr roadRepository) insertOrUpdate(ctx context.Context, road *datamodel.Road) error {
-	return road.Persist(func(roadModel *model.Road) error {
-		if err := rr.validate.StructCtx(ctx, roadModel); err != nil {
-			return errors.Wrap(err, "repository.RoadRepository.InsertOrUpdate")
-		}
-		err := rr.transactionMiddleware.Get(ctx).Save(roadModel).Error
-		return errors.Wrap(err, "repository.RoadRepository.InsertOrUpdate")
-	})
+	roadModel := road.ToModel()
+
+	if err := rr.validate.StructCtx(ctx, roadModel); err != nil {
+		return errors.Wrap(err, "repository.RoadRepository.insertOrUpdate")
+	}
+
+	err := rr.transactionMiddleware.Get(ctx).Save(roadModel).Error
+	return errors.Wrap(err, "repository.RoadRepository.insertOrUpdate")
 }
 
 func (rr roadRepository) delete(ctx context.Context, road *datamodel.Road) error {
-	return road.Persist(func(roadModel *model.Road) error {
-		err := rr.transactionMiddleware.Get(ctx).Delete(roadModel).Error
-		return errors.Wrap(err, "repository.RoadRepository.Delete")
-	})
+	roadModel := road.ToModel()
+	err := rr.transactionMiddleware.Get(ctx).Delete(roadModel).Error
+	return errors.Wrap(err, "repository.RoadRepository.delete")
 }
 
 func (rr roadRepository) Save(ctx context.Context, road *datamodel.Road) error {

@@ -8,8 +8,8 @@ import (
 type Game struct {
 	model.Model
 	ID            uuid.UUID  `gorm:"type:uuid;primaryKey"`
-	playerInTurn  *uuid.UUID `gorm:"type:uuid"`
-	CurrentTurn   int
+	PlayerInTurn  *uuid.UUID `gorm:"type:uuid"`
+	Turn          int
 	Status        GameStatus
 	IsRolledDices bool
 }

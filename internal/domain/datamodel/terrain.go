@@ -3,7 +3,7 @@ package datamodel
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func NewTerrainFromTerrainModel(terrainModel *model.Terrain) *Terrain {
@@ -20,7 +20,7 @@ func NewTerrainFromTerrainModel(terrainModel *model.Terrain) *Terrain {
 
 type Terrain struct {
 	base
-	id          int
+	id          uuid.UUID
 	q           int
 	r           int
 	number      int
@@ -41,25 +41,12 @@ func (t Terrain) GetAdjacentConstructions() Constructions {
 	})
 }
 
-func (t *Terrain) Persist(f func(terrainModel *model.Terrain) error) error {
+func (t Terrain) ToModel() *model.Terrain {
 	terrainModel := new(model.Terrain)
 	terrainModel.ID = t.id
 	terrainModel.Q = t.q
 	terrainModel.R = t.r
 	terrainModel.Number = t.number
 	terrainModel.TerrainType = t.terrainType
-
-	if err := f(terrainModel); err != nil {
-		return errors.Wrap(err, "model.Terrain.Persist")
-	}
-	t.isModified = false
-	t.isRemoved = false
-
-	t.id = terrainModel.ID
-	t.q = terrainModel.Q
-	t.r = terrainModel.R
-	t.number = terrainModel.Number
-	t.terrainType = terrainModel.TerrainType
-
-	return nil
+	return terrainModel
 }

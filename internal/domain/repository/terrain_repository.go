@@ -35,20 +35,20 @@ func (tr terrainRepository) FindByGameId(ctx context.Context, gameId uint) (data
 }
 
 func (tr terrainRepository) insertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error {
-	return terrain.Persist(func(terrainModel *model.Terrain) error {
-		if err := tr.validate.StructCtx(ctx, terrainModel); err != nil {
-			return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
-		}
-		err := tr.transactionMiddleware.Get(ctx).Save(terrainModel).Error
-		return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
-	})
+	terrainModel := terrain.ToModel()
+
+	if err := tr.validate.StructCtx(ctx, terrainModel); err != nil {
+		return errors.Wrap(err, "repository.TerrainRepository.insertOrUpdate")
+	}
+
+	err := tr.transactionMiddleware.Get(ctx).Save(terrainModel).Error
+	return errors.Wrap(err, "repository.TerrainRepository.insertOrUpdate")
 }
 
 func (tr terrainRepository) delete(ctx context.Context, terrain *datamodel.Terrain) error {
-	return terrain.Persist(func(terrainModel *model.Terrain) error {
-		err := tr.transactionMiddleware.Get(ctx).Delete(terrainModel).Error
-		return errors.Wrap(err, "repository.TerrainRepository.Delete")
-	})
+	terrainModel := terrain.ToModel()
+	err := tr.transactionMiddleware.Get(ctx).Delete(terrainModel).Error
+	return errors.Wrap(err, "repository.TerrainRepository.delete")
 }
 
 func (tr terrainRepository) Save(ctx context.Context, terrain *datamodel.Terrain) error {

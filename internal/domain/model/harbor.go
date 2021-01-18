@@ -12,7 +12,7 @@ type Harbor struct {
 	Q          int
 	R          int
 	HarborType HarborType
-	TerrainID  int
+	TerrainID  uuid.UUID `gorm:"type:uuid"`
 }
 
 type HarborType string

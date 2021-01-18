@@ -4,7 +4,6 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/pkg/math"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 func NewHarborFromHarborModel(harborModel *model.Harbor) *Harbor {
@@ -24,8 +23,8 @@ type Harbor struct {
 	q          int
 	r          int
 	harborType model.HarborType
+	terrainID  uuid.UUID
 	game       *Game
-	terrain    *Terrain
 }
 
 func (h *Harbor) GetIntersectRoad() *Road {
@@ -39,26 +38,12 @@ func (h *Harbor) GetIntersectRoad() *Road {
 	}).First()
 }
 
-func (h *Harbor) Persist(f func(harborModel *model.Harbor) error) error {
+func (h Harbor) ToModel() *model.Harbor {
 	harborModel := new(model.Harbor)
 	harborModel.ID = h.id
 	harborModel.Q = h.q
 	harborModel.R = h.r
-	if h.terrain != nil {
-		harborModel.TerrainID = h.terrain.id
-	}
+	harborModel.TerrainID = h.terrainID
 	harborModel.HarborType = h.harborType
-
-	if err := f(harborModel); err != nil {
-		return errors.Wrap(err, "datamodel.Harbor.Persist")
-	}
-	h.isModified = false
-	h.isRemoved = false
-
-	h.id = harborModel.ID
-	h.q = harborModel.Q
-	h.r = harborModel.R
-	h.harborType = harborModel.HarborType
-
-	return nil
+	return harborModel
 }

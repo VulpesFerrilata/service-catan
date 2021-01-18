@@ -6,17 +6,22 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewGame() *Game {
+func NewGame() (*Game, error) {
 	game := new(Game)
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewGame")
+	}
+	game.id = id
 	game.status = model.Waiting
-	return game
+	return game, nil
 }
 
 func NewGameFromGameModel(gameModel *model.Game) *Game {
 	game := new(Game)
 	game.id = gameModel.ID
-	game.currentTurnOrder = gameModel.CurrentTurnOrder
-	game.currentTurn = gameModel.CurrentTurn
+	game.playerInTurn = gameModel.PlayerInTurn
+	game.turn = gameModel.Turn
 	game.status = gameModel.Status
 	game.isModified = false
 	game.isRemoved = false
@@ -46,8 +51,11 @@ func (g Game) GetId() uuid.UUID {
 }
 
 func (g Game) GetPlayerInTurn() *Player {
+	if g.playerInTurn == nil {
+		return nil
+	}
 	return g.players.Filter(func(player *Player) bool {
-		return player.id == g.playerInTurn
+		return player.id == *g.playerInTurn
 	}).First()
 }
 
@@ -196,23 +204,13 @@ func (g Game) IsRemoved() bool {
 	return g.isRemoved
 }
 
-func (g *Game) Persist(f func(gameModel *model.Game) error) error {
+func (g *Game) ToModel() *model.Game {
 	gameModel := new(model.Game)
 	gameModel.ID = g.id
 	gameModel.PlayerInTurn = g.playerInTurn
 	gameModel.Turn = g.turn
 	gameModel.Status = g.status
-
-	if err := f(gameModel); err != nil {
-		return errors.Wrap(err, "datamodel.Game.Persist")
-	}
 	g.isModified = false
 	g.isRemoved = false
-
-	g.id = gameModel.ID
-	g.playerInTurn = gameModel.PlayerInTurn
-	g.turn = gameModel.Turn
-	g.status = gameModel.Status
-
-	return nil
+	return gameModel
 }

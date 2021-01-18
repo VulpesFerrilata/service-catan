@@ -7,10 +7,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewPlayer() *Player {
+func NewPlayer() (*Player, error) {
 	player := new(Player)
-
-	return player
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewPlayer")
+	}
+	player.id = id
+	return player, nil
 }
 
 func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
@@ -158,7 +162,10 @@ func (p Player) IsHost() bool {
 }
 
 func (p *Player) IsInTurn() bool {
-	return p.game.playerInTurn == p.id
+	if p.game.playerInTurn == nil {
+		return false
+	}
+	return *p.game.playerInTurn == p.id
 }
 
 func (p Player) IsModified() bool {
@@ -176,7 +183,7 @@ func (p *Player) Remove() {
 	}
 }
 
-func (p *Player) Persist(f func(playerModel *model.Player) error) error {
+func (p Player) ToModel() *model.Player {
 	playerModel := new(model.Player)
 	playerModel.ID = p.id
 	if p.game != nil {
@@ -187,15 +194,5 @@ func (p *Player) Persist(f func(playerModel *model.Player) error) error {
 	}
 	playerModel.Color = p.color
 	playerModel.TurnOrder = p.turnOrder
-
-	if err := f(playerModel); err != nil {
-		return errors.Wrap(err, "model.Player.Persist")
-	}
-	p.isModified = false
-	p.isRemoved = false
-
-	p.id = playerModel.ID
-	p.color = playerModel.Color
-	p.turnOrder = playerModel.TurnOrder
-	return nil
+	return playerModel
 }

@@ -41,20 +41,20 @@ func (rr robberRepository) GetByGameId(ctx context.Context, gameId uint) (*datam
 }
 
 func (rr robberRepository) insertOrUpdate(ctx context.Context, robber *datamodel.Robber) error {
-	return robber.Persist(func(robberModel *model.Robber) error {
-		if err := rr.validate.StructCtx(ctx, robberModel); err != nil {
-			return errors.Wrap(err, "repository.RobberRepository.InsertOrUpdate")
-		}
-		err := rr.transactionMiddleware.Get(ctx).Save(robberModel).Error
-		return errors.Wrap(err, "repository.RobberRepository.InsertOrUpdate")
-	})
+	robberModel := robber.ToModel()
+
+	if err := rr.validate.StructCtx(ctx, robberModel); err != nil {
+		return errors.Wrap(err, "repository.RobberRepository.insertOrUpdate")
+	}
+
+	err := rr.transactionMiddleware.Get(ctx).Save(robberModel).Error
+	return errors.Wrap(err, "repository.RobberRepository.insertOrUpdate")
 }
 
 func (rr robberRepository) delete(ctx context.Context, robber *datamodel.Robber) error {
-	return robber.Persist(func(robberModel *model.Robber) error {
-		err := rr.transactionMiddleware.Get(ctx).Delete(robberModel).Error
-		return errors.Wrap(err, "repository.RobberRepository.Delete")
-	})
+	robberModel := robber.ToModel()
+	err := rr.transactionMiddleware.Get(ctx).Delete(robberModel).Error
+	return errors.Wrap(err, "repository.RobberRepository.delete")
 }
 
 func (rr robberRepository) Save(ctx context.Context, robber *datamodel.Robber) error {

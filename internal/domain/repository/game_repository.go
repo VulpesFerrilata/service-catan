@@ -83,21 +83,20 @@ func (gr gameRepository) GetById(ctx context.Context, gameId uint) (*datamodel.G
 }
 
 func (gr gameRepository) insertOrUpdate(ctx context.Context, game *datamodel.Game) error {
-	return game.Persist(func(gameModel *model.Game) error {
-		if err := gr.validate.StructCtx(ctx, gameModel); err != nil {
-			return errors.Wrap(err, "repository.GameRepository.InsertOrUpdate")
-		}
+	gameModel := game.ToModel()
 
-		err := gr.transactionMiddleware.Get(ctx).Save(gameModel).Error
+	if err := gr.validate.StructCtx(ctx, gameModel); err != nil {
 		return errors.Wrap(err, "repository.GameRepository.InsertOrUpdate")
-	})
+	}
+
+	err := gr.transactionMiddleware.Get(ctx).Save(gameModel).Error
+	return errors.Wrap(err, "repository.GameRepository.InsertOrUpdate")
 }
 
 func (gr gameRepository) delete(ctx context.Context, game *datamodel.Game) error {
-	return game.Persist(func(gameModel *model.Game) error {
-		err := gr.transactionMiddleware.Get(ctx).Delete(gameModel).Error
-		return errors.Wrap(err, "repository.GameRepository.Delete")
-	})
+	gameModel := game.ToModel()
+	err := gr.transactionMiddleware.Get(ctx).Delete(gameModel).Error
+	return errors.Wrap(err, "repository.GameRepository.Delete")
 }
 
 func (gr gameRepository) save(ctx context.Context, game *datamodel.Game) error {

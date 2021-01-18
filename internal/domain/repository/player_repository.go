@@ -7,12 +7,13 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/grpc/protoc/user"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
 type PlayerRepository interface {
-	FindByGameId(ctx context.Context, gameId int) (datamodel.Players, error)
+	FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Players, error)
 	Save(ctx context.Context, player *datamodel.Player) error
 }
 
@@ -32,7 +33,7 @@ type playerRepository struct {
 	userService           user.UserService
 }
 
-func (pr playerRepository) FindByGameId(ctx context.Context, gameId int) (datamodel.Players, error) {
+func (pr playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Players, error) {
 	playerModels := make([]*model.Player, 0)
 	err := pr.transactionMiddleware.Get(ctx).Find(&playerModels, "game_id = ?", gameId).Error
 	if err != nil {
@@ -44,12 +45,16 @@ func (pr playerRepository) FindByGameId(ctx context.Context, gameId int) (datamo
 		player := datamodel.NewPlayerFromPlayerModel(playerModel)
 
 		userRequestPb := new(user.UserRequest)
-		userRequestPb.ID = int64(playerModel.UserID)
+		userRequestPb.ID = playerModel.UserID.String()
 		userResponsePb, err := pr.userService.GetUserById(ctx, userRequestPb)
 		if err != nil {
 			return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 		}
-		user := datamodel.NewUserFromUserPb(userResponsePb)
+
+		user, err := datamodel.NewUserFromUserPb(userResponsePb)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
+		}
 		player.SetUser(user)
 
 		players = append(players, player)
@@ -59,20 +64,20 @@ func (pr playerRepository) FindByGameId(ctx context.Context, gameId int) (datamo
 }
 
 func (pr playerRepository) insertOrUpdate(ctx context.Context, player *datamodel.Player) error {
-	return player.Persist(func(playerModel *model.Player) error {
-		if err := pr.validate.StructCtx(ctx, playerModel); err != nil {
-			return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
-		}
-		err := pr.transactionMiddleware.Get(ctx).Save(playerModel).Error
-		return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
-	})
+	playerModel := player.ToModel()
+
+	if err := pr.validate.StructCtx(ctx, playerModel); err != nil {
+		return errors.Wrap(err, "repository.PlayerRepository.insertOrUpdate")
+	}
+
+	err := pr.transactionMiddleware.Get(ctx).Save(playerModel).Error
+	return errors.Wrap(err, "repository.PlayerRepository.insertOrUpdate")
 }
 
 func (pr playerRepository) delete(ctx context.Context, player *datamodel.Player) error {
-	return player.Persist(func(playerModel *model.Player) error {
-		err := pr.transactionMiddleware.Get(ctx).Delete(playerModel).Error
-		return errors.Wrap(err, "repository.PlayerRepository.Delete")
-	})
+	playerModel := player.ToModel()
+	err := pr.transactionMiddleware.Get(ctx).Delete(playerModel).Error
+	return errors.Wrap(err, "repository.PlayerRepository.delete")
 }
 
 func (pr playerRepository) Save(ctx context.Context, player *datamodel.Player) error {

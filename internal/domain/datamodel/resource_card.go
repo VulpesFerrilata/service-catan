@@ -3,7 +3,6 @@ package datamodel
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 func NewResourceCardFromResourceCardModel(resourceCardModel *model.ResourceCard) *ResourceCard {
@@ -20,8 +19,8 @@ type ResourceCard struct {
 	base
 	id           uuid.UUID
 	resourceType model.ResourceType
+	playerID     *uuid.UUID
 	game         *Game
-	player       *Player
 }
 
 func (rc ResourceCard) GetPlayer() *Player {
@@ -34,21 +33,10 @@ func (rc ResourceCard) GetPlayer() *Player {
 	}).First()
 }
 
-func (rc *ResourceCard) Persist(f func(resourceCardModel *model.ResourceCard) error) error {
+func (rc ResourceCard) ToModel() *model.ResourceCard {
 	resourceCardModel := new(model.ResourceCard)
 	resourceCardModel.ID = rc.id
 	resourceCardModel.PlayerID = rc.playerID
 	resourceCardModel.ResourceType = rc.resourceType
-
-	if err := f(resourceCardModel); err != nil {
-		return errors.Wrap(err, "model.ResourceCard.Persist")
-	}
-	rc.isModified = false
-	rc.isRemoved = false
-
-	rc.id = resourceCardModel.ID
-	rc.playerID = resourceCardModel.PlayerID
-	rc.resourceType = resourceCardModel.ResourceType
-
-	return nil
+	return resourceCardModel
 }
