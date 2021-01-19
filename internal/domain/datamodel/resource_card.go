@@ -3,15 +3,32 @@ package datamodel
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
+
+func NewResourceCard(resourceType model.ResourceType) (*ResourceCard, error) {
+	resourceCard := new(ResourceCard)
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewResourceCard")
+	}
+	resourceCard.id = id
+	resourceCard.resourceType = resourceType
+	resourceCard.playerID = nil
+
+	resourceCard.SetModelState(Added)
+
+	return resourceCard, nil
+}
 
 func NewResourceCardFromResourceCardModel(resourceCardModel *model.ResourceCard) *ResourceCard {
 	resourceCard := new(ResourceCard)
 	resourceCard.id = resourceCardModel.ID
 	resourceCard.playerID = resourceCardModel.PlayerID
 	resourceCard.resourceType = resourceCardModel.ResourceType
-	resourceCard.isModified = false
-	resourceCard.isRemoved = false
+
+	resourceCard.SetModelState(Unchanged)
+
 	return resourceCard
 }
 
@@ -33,7 +50,9 @@ func (rc ResourceCard) GetPlayer() *Player {
 	}).First()
 }
 
-func (rc ResourceCard) ToModel() *model.ResourceCard {
+func (rc *ResourceCard) ToModel() *model.ResourceCard {
+	rc.SetModelState(Unchanged)
+
 	resourceCardModel := new(model.ResourceCard)
 	resourceCardModel.ID = rc.id
 	resourceCardModel.PlayerID = rc.playerID

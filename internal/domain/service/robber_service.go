@@ -1,7 +1,10 @@
 package service
 
 import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type RobberService interface {
@@ -20,4 +23,12 @@ type robberService struct {
 
 func (rs robberService) GetRobberRepository() repository.RobberRepository {
 	return rs.robberRepository
+}
+
+func (rs robberService) InitRobber(terrains datamodel.Terrains) (*datamodel.Robber, error) {
+	terrain := terrains.Filter(func(terrain *datamodel.Terrain) bool {
+		return terrain.GetTerrainType() == model.DesertTerrain
+	}).First()
+	robber, err := datamodel.NewRobber(terrain)
+	return robber, errors.Wrap(err, "service.RobberService.InitRobber")
 }

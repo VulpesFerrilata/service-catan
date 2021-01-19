@@ -13,17 +13,6 @@ func NewDicesFromDiceModels(diceModels []*model.Dice) Dices {
 	return dices
 }
 
-func NewDices() Dices {
-	var dices Dices
-
-	for i := 1; i <= 2; i++ {
-		dice := new(Dice)
-		dice.Roll()
-	}
-
-	return dices
-}
-
 type Dices []*Dice
 
 func (d Dices) Roll() {

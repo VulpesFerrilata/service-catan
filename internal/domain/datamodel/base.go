@@ -1,14 +1,28 @@
 package datamodel
 
 type base struct {
-	isModified bool
-	isRemoved  bool
+	modelState ModelState
 }
 
-func (b base) IsModified() bool {
-	return b.isModified
+func (b *base) SetModelState(state ModelState) {
+	if b.modelState == Added {
+		return
+	}
+	if b.modelState == Deleted {
+		return
+	}
+	b.modelState = state
 }
 
-func (b base) IsRemoved() bool {
-	return b.isRemoved
+func (b base) GetModelState() ModelState {
+	return b.modelState
 }
+
+type ModelState int
+
+const (
+	Unchanged ModelState = iota
+	Added
+	Modified
+	Deleted
+)

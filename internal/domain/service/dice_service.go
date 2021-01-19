@@ -1,7 +1,9 @@
 package service
 
 import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type DiceService interface {
@@ -20,4 +22,18 @@ type diceService struct {
 
 func (ds diceService) GetDiceRepository() repository.DiceRepository {
 	return ds.diceRepository
+}
+
+func (ds diceService) InitDices() (datamodel.Dices, error) {
+	dices := make(datamodel.Dices, 0)
+
+	for i := 1; i <= 2; i++ {
+		dice, err := datamodel.NewDice(6)
+		if err != nil {
+			return nil, errors.Wrap(err, "service.DiceService.InitDices")
+		}
+		dices = append(dices, dice)
+	}
+
+	return dices, nil
 }

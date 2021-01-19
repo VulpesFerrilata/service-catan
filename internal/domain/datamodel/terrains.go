@@ -4,7 +4,6 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
@@ -14,86 +13,6 @@ func NewTerrainsFromTerrainModels(terrainModels []*model.Terrain) Terrains {
 	for _, terrainModel := range terrainModels {
 		terrain := NewTerrainFromTerrainModel(terrainModel)
 		terrains = append(terrains, terrain)
-	}
-
-	return terrains
-}
-
-func NewTerrains() Terrains {
-	var terrains Terrains
-
-	minQ := 1
-	maxQ := 3
-	for r := 1; r <= 5; r++ {
-		for q := minQ; q <= maxQ; q++ {
-			terrain := new(Terrain)
-			terrain.Q = q
-			terrain.R = r
-			terrains.append(terrain)
-		}
-
-		if r < 3 {
-			minQ--
-		} else {
-			maxQ--
-		}
-	}
-
-	normalTerrains, specialTerrains, desertTerrain := terrains.splitRandomly()
-
-	desertTerrain.Type = datamodel.TT_DESERT
-	desertTerrain.Number = 7
-
-	specialNumbers := map[int]int{
-		6: 2,
-		8: 2,
-	}
-	rand.Shuffle(len(specialTerrains), func(i, j int) { specialTerrains[i], specialTerrains[j] = specialTerrains[j], specialTerrains[i] })
-	specialTerrainIdx := 0
-	for specialNumber, quantity := range specialNumbers {
-		for i := 1; i <= quantity; i++ {
-			specialTerrains[specialTerrainIdx].Number = specialNumber
-			specialTerrainIdx++
-		}
-	}
-
-	numbers := map[int]int{
-		2:  1,
-		3:  2,
-		4:  2,
-		5:  2,
-		9:  2,
-		10: 2,
-		11: 2,
-		12: 1,
-	}
-	rand.Shuffle(len(normalTerrains), func(i, j int) { normalTerrains[i], normalTerrains[j] = normalTerrains[j], normalTerrains[i] })
-	normalTerrainIdx := 0
-	for numbers, quantity := range numbers {
-		for i := 1; i <= quantity; i++ {
-			normalTerrains[normalTerrainIdx].Number = numbers
-			normalTerrainIdx++
-		}
-	}
-
-	terrainTypes := map[datamodel.TerrainType]int{
-		datamodel.TT_FOREST:   4,
-		datamodel.TT_HILL:     3,
-		datamodel.TT_PASTURE:  4,
-		datamodel.TT_FIELD:    4,
-		datamodel.TT_MOUNTAIN: 3,
-	}
-
-	rand.Shuffle(len(terrains), func(i, j int) { terrains[i], terrains[j] = terrains[j], terrains[i] })
-	terrainIdx := 0
-	for terrainType, quantity := range terrainTypes {
-		for i := 1; i <= quantity; i++ {
-			if terrains[terrainIdx].Type == datamodel.TT_DESERT {
-				terrainIdx++
-			}
-			terrains[terrainIdx].Type = terrainType
-			terrainIdx++
-		}
 	}
 
 	return terrains
@@ -146,10 +65,10 @@ func (t *Terrains) splitRandomly() (Terrains, Terrains, *Terrain) {
 
 type TerrainFilterFunc func(terrain *Terrain) bool
 
-func (t Terrains) Filter(terrainFilterFunc TerrainFilterFunc) Terrains {
+func (t Terrains) Filter(f TerrainFilterFunc) Terrains {
 	var terrains Terrains
 	for _, terrain := range t {
-		if terrainFilterFunc(terrain) {
+		if f(terrain) {
 			terrains = append(terrains, terrain)
 		}
 	}
@@ -161,4 +80,54 @@ func (t Terrains) First() *Terrain {
 		return (t)[0]
 	}
 	return nil
+}
+
+func (t Terrains) Any(f TerrainFilterFunc) bool {
+	for _, terrain := range t {
+		if f(terrain) {
+			return true
+		}
+	}
+	return false
+}
+
+func (t Terrains) Shuffle() {
+	rand.Shuffle(len(t), func(i, j int) {
+		t[i].terrainType, t[j].terrainType = t[j].terrainType, t[i].terrainType
+		t[i].number, t[j].number = t[j].number, t[i].number
+	})
+
+	rand.Shuffle(len(t), func(i, j int) {
+		if t[i].number == 7 || t[j].number == 7 {
+			return
+		}
+
+		if t[i].number == 6 || t[i].number == 8 {
+			if t[j].number == 6 || t[j].number == 8 {
+				return
+			}
+
+			isExist := t[j].GetAdjacentTerrains().Any(func(terrain *Terrain) bool {
+				return terrain.number == 6 || terrain.number == 8
+			})
+			if isExist {
+				return
+			}
+		}
+
+		if t[j].number == 6 || t[j].number == 8 {
+			if t[i].number == 6 || t[i].number == 8 {
+				return
+			}
+
+			isExist := t[i].GetAdjacentTerrains().Any(func(terrain *Terrain) bool {
+				return terrain.number == 6 || terrain.number == 8
+			})
+			if isExist {
+				return
+			}
+		}
+
+		t[i].number, t[j].number = t[j].number, t[i].number
+	})
 }

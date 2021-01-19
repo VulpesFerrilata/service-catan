@@ -14,6 +14,9 @@ func NewGame() (*Game, error) {
 	}
 	game.id = id
 	game.status = model.Waiting
+
+	game.SetModelState(Added)
+
 	return game, nil
 }
 
@@ -23,8 +26,9 @@ func NewGameFromGameModel(gameModel *model.Game) *Game {
 	game.playerInTurn = gameModel.PlayerInTurn
 	game.turn = gameModel.Turn
 	game.status = gameModel.Status
-	game.isModified = false
-	game.isRemoved = false
+
+	game.SetModelState(Unchanged)
+
 	return game
 }
 
@@ -76,7 +80,7 @@ func (g *Game) NextPlayerInTurn() {
 				}
 				if !players[idx].isLeft {
 					*g.playerInTurn = players[idx].id
-					g.isModified = true
+					g.SetModelState(Modified)
 					return
 				}
 			}
@@ -96,6 +100,14 @@ func (g *Game) AddPlayers(players ...*Player) {
 	for _, player := range players {
 		g.players = append(g.players, player)
 		player.game = g
+	}
+}
+
+func (g *Game) RemovePlayer(player *Player) {
+	for idx := range g.players {
+		if g.players[idx] == player {
+			g.players = append(g.players[:idx], g.players[idx+1:]...)
+		}
 	}
 }
 
@@ -196,21 +208,20 @@ func (g *Game) AddHarbors(harbors ...*Harbor) {
 	}
 }
 
-func (g Game) IsModified() bool {
-	return g.isModified
-}
-
-func (g Game) IsRemoved() bool {
-	return g.isRemoved
+func (g *Game) Delete() {
+	if g.GetModelState() != Deleted {
+		g.SetModelState(Deleted)
+		g.players.Delete()
+	}
 }
 
 func (g *Game) ToModel() *model.Game {
+	g.SetModelState(Unchanged)
+
 	gameModel := new(model.Game)
 	gameModel.ID = g.id
 	gameModel.PlayerInTurn = g.playerInTurn
 	gameModel.Turn = g.turn
 	gameModel.Status = g.status
-	g.isModified = false
-	g.isRemoved = false
 	return gameModel
 }

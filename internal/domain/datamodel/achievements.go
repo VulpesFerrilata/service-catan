@@ -1,7 +1,6 @@
 package datamodel
 
 import (
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
@@ -12,22 +11,6 @@ func NewAchievementsFromAchievementModels(achievementModels []*model.Achievement
 		achievement := NewAchievementFromAchievementModel(achievementModel)
 		achievements = append(achievements, achievement)
 	}
-
-	return achievements
-}
-
-func NewAchievements() Achievements {
-	var achievements Achievements
-
-	longestRoadAchievement := new(Achievement)
-	longestRoadAchievement.Type = datamodel.AT_LONGEST_ROAD
-	longestRoadAchievement.BonusPoints = 2
-	achievements.append(longestRoadAchievement)
-
-	largestArmyAchievement := new(Achievement)
-	largestArmyAchievement.Type = datamodel.AT_LARGEST_ARMY
-	largestArmyAchievement.BonusPoints = 2
-	achievements.append(largestArmyAchievement)
 
 	return achievements
 }

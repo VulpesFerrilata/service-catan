@@ -7,7 +7,8 @@ import (
 
 type Dice struct {
 	model.Model
-	ID     uuid.UUID `gorm:"type:uuid;primaryKey"`
-	GameID uuid.UUID `gorm:"type:uuid"`
-	Number int
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	GameID    uuid.UUID `gorm:"type:uuid"`
+	Number    int
+	MaxNumber int
 }

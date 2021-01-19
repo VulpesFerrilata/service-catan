@@ -1,8 +1,9 @@
 package datamodel
 
 import (
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"sort"
+
+	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
 func NewPlayersFromPlayerModels(playerModels []*model.Player) Players {
@@ -44,6 +45,12 @@ func (p Players) Any(f PlayerFilterFunc) bool {
 		}
 	}
 	return false
+}
+
+func (p Players) Delete() {
+	for _, player := range p {
+		player.Delete()
+	}
 }
 
 type playerSorter struct {

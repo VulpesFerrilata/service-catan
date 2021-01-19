@@ -3,7 +3,25 @@ package datamodel
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
+
+func NewRoad(q int, r int, roadLocation model.RoadLocation) (*Road, error) {
+	road := new(Road)
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewRoad")
+	}
+	road.id = id
+	road.q = q
+	road.r = r
+	road.location = roadLocation
+	road.playerID = nil
+
+	road.SetModelState(Added)
+
+	return road, nil
+}
 
 func NewRoadFromRoadModel(roadModel *model.Road) *Road {
 	road := new(Road)
@@ -12,8 +30,9 @@ func NewRoadFromRoadModel(roadModel *model.Road) *Road {
 	road.r = roadModel.R
 	road.location = roadModel.Location
 	road.playerID = road.playerID
-	road.isModified = false
-	road.isRemoved = false
+
+	road.SetModelState(Unchanged)
+
 	return road
 }
 
@@ -71,7 +90,9 @@ func (r *Road) GetAdjacentRoads() Roads {
 	})
 }
 
-func (r Road) ToModel() *model.Road {
+func (r *Road) ToModel() *model.Road {
+	r.SetModelState(Unchanged)
+
 	roadModel := new(model.Road)
 	roadModel.ID = r.id
 	roadModel.Q = r.q

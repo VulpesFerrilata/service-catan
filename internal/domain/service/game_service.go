@@ -1,7 +1,9 @@
 package service
 
 import (
+	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
+	"github.com/pkg/errors"
 )
 
 type GameService interface {
@@ -50,4 +52,9 @@ type gameService struct {
 
 func (gs gameService) GetGameRepository() repository.GameRepository {
 	return gs.gameRepository
+}
+
+func (gs gameService) NewGame() (*datamodel.Game, error) {
+	game, err := datamodel.NewGame()
+	return game, errors.Wrap(err, "service.GameService.NewGame")
 }

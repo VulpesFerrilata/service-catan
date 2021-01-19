@@ -1,7 +1,6 @@
 package datamodel
 
 import (
-	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -14,6 +13,9 @@ func NewPlayer() (*Player, error) {
 		return nil, errors.Wrap(err, "datamodel.NewPlayer")
 	}
 	player.id = id
+
+	player.SetModelState(Added)
+
 	return player, nil
 }
 
@@ -23,8 +25,9 @@ func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
 	player.color = playerModel.Color
 	player.turnOrder = playerModel.TurnOrder
 	player.isLeft = playerModel.IsLeft
-	player.isModified = false
-	player.isRemoved = false
+
+	player.SetModelState(Unchanged)
+
 	return player
 }
 
@@ -48,7 +51,7 @@ func (p Player) GetColor() string {
 }
 
 func (p *Player) SetColor(color string) error {
-	if p.game.status != datamodel.Waiting {
+	if p.game.status != model.Waiting {
 		//TODO: action is unavailable in this state error
 	}
 	isDuplicateColor := p.game.players.Any(func(player *Player) bool {
@@ -61,7 +64,7 @@ func (p *Player) SetColor(color string) error {
 		//TODO: duplicate color error
 	}
 	p.color = color
-	p.isModified = true
+	p.SetModelState(Modified)
 	return nil
 }
 
@@ -80,7 +83,7 @@ func (p *Player) SetTurnOrder(turnOrder int) error {
 		//TODO: duplicate turn order error
 	}
 	p.turnOrder = turnOrder
-	p.isModified = true
+	p.SetModelState(Modified)
 	return nil
 }
 
@@ -90,7 +93,7 @@ func (p Player) IsLeft() bool {
 
 func (p Player) Leave() {
 	p.isLeft = true
-	p.isModified = true
+	p.SetModelState(Modified)
 }
 
 func (p Player) GetUser() *User {
@@ -151,16 +154,6 @@ func (p Player) GetConstructions() Constructions {
 	})
 }
 
-func (p Player) IsHost() bool {
-	minPlayerId := p.id
-	for _, player := range p.game.players {
-		if player.id < minPlayerId {
-			minPlayerId = player.id
-		}
-	}
-	return p.id == minPlayerId
-}
-
 func (p *Player) IsInTurn() bool {
 	if p.game.playerInTurn == nil {
 		return false
@@ -168,22 +161,21 @@ func (p *Player) IsInTurn() bool {
 	return *p.game.playerInTurn == p.id
 }
 
-func (p Player) IsModified() bool {
-	return p.isModified
-}
-
-func (p Player) IsRemoved() bool {
-	return p.isRemoved
-}
-
-func (p *Player) Remove() {
-	p.isRemoved = true
-	if len(p.game.players) == 0 {
-		p.game.isRemoved = true
+func (p *Player) Delete() {
+	if p.GetModelState() != Deleted {
+		players := p.game.players.Filter(func(player *Player) bool {
+			return player.GetModelState() != Deleted
+		})
+		if len(players) == 0 {
+			p.game.Delete()
+		}
 	}
+
 }
 
-func (p Player) ToModel() *model.Player {
+func (p *Player) ToModel() *model.Player {
+	p.SetModelState(Unchanged)
+
 	playerModel := new(model.Player)
 	playerModel.ID = p.id
 	if p.game != nil {
