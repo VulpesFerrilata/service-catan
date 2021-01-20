@@ -1,6 +1,8 @@
 package service
 
 import (
+	"math/rand"
+
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
@@ -27,6 +29,33 @@ func (ts terrainService) GetTerrainRepository() repository.TerrainRepository {
 
 func (ts terrainService) InitTerrains() (datamodel.Terrains, error) {
 	terrains := make(datamodel.Terrains, 0)
+	//circle directions
+	directions := [][]int{
+		{0, -1}, //top left
+		{1, -1}, //top right
+		{1, 0},  //middle right
+		{0, 1},  //bottom right
+		{-1, 1}, //bottom left
+		{-1, 0}, //middle left
+	}
+	if rand.Intn(2) == 0 {
+		//reverse direction
+		for i, j := 0, len(directions)-1; i < j; i, j = i+1, j-1 {
+			directions[i], directions[j] = directions[j], directions[i]
+		}
+	}
+	//random corner in circle directions
+	randIdx := rand.Intn(len(directions))
+	rootDirection := directions[randIdx]
+	randIdx += 2
+	if randIdx > len(directions) - 1 {
+		randIdx -= len(directions)
+	}
+	directions = append(directions[randIdx:], directions[:randIdx]...)
+
+	spiralCoords := make([][]int, 0)
+	centerCoord := []int{0, 0}
+	coord := 
 
 	numbers := []int{2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12}
 	terrainTypes := []model.TerrainType{

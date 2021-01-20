@@ -52,6 +52,11 @@ func (ar achievementRepository) delete(ctx context.Context, achievement *datamod
 }
 
 func (ar achievementRepository) Save(ctx context.Context, achievement *datamodel.Achievement) error {
+	switch achievement.GetModelState() {
+	case datamodel.Added:
+	case datamodel.Modified:
+	case datamodel.Deleted:
+	}
 	if achievement.IsRemoved() {
 		err := ar.delete(ctx, achievement)
 		return errors.Wrap(err, "service.AchievementService.Save")
