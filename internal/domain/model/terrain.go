@@ -12,16 +12,5 @@ type Terrain struct {
 	Q           int
 	R           int
 	Number      int
-	TerrainType TerrainType
+	TerrainType string
 }
-
-type TerrainType string
-
-const (
-	HillTerrain     TerrainType = "Hill"
-	FieldTerrain    TerrainType = "Field"
-	PastureTerrain  TerrainType = "Pasture"
-	MountainTerrain TerrainType = "Mountain"
-	ForestTerrain   TerrainType = "Forest"
-	DesertTerrain   TerrainType = "Desert"
-)

@@ -8,15 +8,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewTerrain(q int, r int, number int, terrainType model.TerrainType) (*Terrain, error) {
+func NewTerrain(hex hex, number int, terrainType model.TerrainType) (*Terrain, error) {
 	terrain := new(Terrain)
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewTerrain")
 	}
 	terrain.id = id
-	terrain.q = q
-	terrain.r = r
+
+	terrain.hex = hex
 	terrain.number = number
 	terrain.terrainType = terrainType
 
@@ -40,11 +41,10 @@ func NewTerrainFromTerrainModel(terrainModel *model.Terrain) *Terrain {
 
 type Terrain struct {
 	base
-	id          uuid.UUID
-	q           int
-	r           int
+	id uuid.UUID
+	hex
 	number      int
-	terrainType model.TerrainType
+	terrainType terrainType
 	game        *Game
 	harbor      *Harbor
 	robber      *Robber
@@ -67,10 +67,10 @@ func (t Terrain) GetAdjacentTerrains() Terrains {
 		if terrain.q == t.q && terrain.r == t.r {
 			return false
 		}
-		if math.Abs(float64(terrain.q - t.q)) <= 1 && math.Abs(float64(terrain.r - t.r)) <= 1 {
+		if math.Abs(float64(terrain.q-t.q)) <= 1 && math.Abs(float64(terrain.r-t.r)) <= 1 {
 			return true
 		}
-		return return false
+		return false
 	})
 }
 

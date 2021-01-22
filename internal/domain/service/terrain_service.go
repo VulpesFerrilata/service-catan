@@ -9,6 +9,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Hex struct {
+	Q int
+	R int
+}
+
+func (h Hex) GetNeightbor(hex Hex) *Hex {
+	neightborHex := new(Hex)
+	neightborHex.Q = h.Q + hex.Q
+	neightborHex.R = h.R + hex.R
+	return neightborHex
+}
+
 type TerrainService interface {
 	GetTerrainRepository() repository.TerrainRepository
 }
@@ -55,7 +67,9 @@ func (ts terrainService) InitTerrains() (datamodel.Terrains, error) {
 
 	spiralCoords := make([][]int, 0)
 	centerCoord := []int{0, 0}
-	coord := 
+	for radius := 2, radius >= 0, radius-- {
+		coord := []int {rootDirection[0] 
+	}
 
 	numbers := []int{2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12}
 	terrainTypes := []model.TerrainType{

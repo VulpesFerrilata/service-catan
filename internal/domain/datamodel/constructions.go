@@ -2,17 +2,21 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/pkg/errors"
 )
 
-func NewConstructionsFromConstructionModels(constructionModels []*model.Construction) Constructions {
+func NewConstructionsFromConstructionModels(constructionModels []*model.Construction) (Constructions, error) {
 	constructions := make(Constructions, 0)
 
 	for _, constructionModel := range constructionModels {
-		construction := NewConstructionFromConstructionModel(constructionModel)
+		construction, err := NewConstructionFromConstructionModel(constructionModel)
+		if err != nil {
+			return nil, errors.Wrap(err, "datamodel.NewConstructionsFromConstructionModels")
+		}
 		constructions = append(constructions, construction)
 	}
 
-	return constructions
+	return constructions, nil
 }
 
 type Constructions []*Construction
