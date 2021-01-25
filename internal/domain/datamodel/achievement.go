@@ -8,17 +8,16 @@ import (
 
 func NewAchievement(achievementType model.AchievementType, bonusPoint int) (*Achievement, error) {
 	achievement := new(Achievement)
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewAchievement")
 	}
 	achievement.id = id
+
 	achievement.achievementType = achievementType
 	achievement.bonusPoints = bonusPoint
 	achievement.playerID = nil
-
-	achievement.SetModelState(Added)
-
 	return achievement, nil
 }
 
@@ -28,14 +27,10 @@ func NewAchievementFromAchievementModel(achievementModel *model.Achievement) *Ac
 	achievement.achievementType = achievementModel.AchievementType
 	achievement.bonusPoints = achievementModel.BonusPoints
 	achievement.playerID = achievementModel.PlayerID
-
-	achievement.SetModelState(Unchanged)
-
 	return achievement
 }
 
 type Achievement struct {
-	base
 	id              uuid.UUID
 	achievementType model.AchievementType
 	bonusPoints     int
@@ -43,9 +38,7 @@ type Achievement struct {
 	game            *Game
 }
 
-func (a *Achievement) ToModel() *model.Achievement {
-	a.SetModelState(Unchanged)
-
+func (a Achievement) ToModel() *model.Achievement {
 	achievementModel := new(model.Achievement)
 	achievementModel.ID = a.id
 	if a.game != nil {

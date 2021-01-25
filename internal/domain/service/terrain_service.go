@@ -4,22 +4,9 @@ import (
 	"math/rand"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 	"github.com/pkg/errors"
 )
-
-type Hex struct {
-	Q int
-	R int
-}
-
-func (h Hex) GetNeightbor(hex Hex) *Hex {
-	neightborHex := new(Hex)
-	neightborHex.Q = h.Q + hex.Q
-	neightborHex.R = h.R + hex.R
-	return neightborHex
-}
 
 type TerrainService interface {
 	GetTerrainRepository() repository.TerrainRepository
@@ -40,84 +27,113 @@ func (ts terrainService) GetTerrainRepository() repository.TerrainRepository {
 }
 
 func (ts terrainService) InitTerrains() (datamodel.Terrains, error) {
-	terrains := make(datamodel.Terrains, 0)
 	//circle directions
-	directions := [][]int{
-		{0, -1}, //top left
-		{1, -1}, //top right
-		{1, 0},  //middle right
-		{0, 1},  //bottom right
-		{-1, 1}, //bottom left
-		{-1, 0}, //middle left
+	hexVectors := []*datamodel.Hex{
+		datamodel.NewHex(0, -1), //top left
+		datamodel.NewHex(1, -1), //top right
+		datamodel.NewHex(1, 0),  //middle right
+		datamodel.NewHex(0, 1),  //bottom right
+		datamodel.NewHex(-1, 1), //bottom left
+		datamodel.NewHex(-1, 0), //middle left
 	}
 	if rand.Intn(2) == 0 {
 		//reverse direction
-		for i, j := 0, len(directions)-1; i < j; i, j = i+1, j-1 {
-			directions[i], directions[j] = directions[j], directions[i]
+		for i, j := 0, len(hexVectors)-1; i < j; i, j = i+1, j-1 {
+			hexVectors[i], hexVectors[j] = hexVectors[j], hexVectors[i]
 		}
 	}
 	//random corner in circle directions
-	randIdx := rand.Intn(len(directions))
-	rootDirection := directions[randIdx]
+	randIdx := rand.Intn(len(hexVectors))
+	rootVector := hexVectors[randIdx]
+	//direction will start moving at next 2 index confront root direction
+	//example: top left corner hex will start moving from middle right or bottom left
 	randIdx += 2
-	if randIdx > len(directions) - 1 {
-		randIdx -= len(directions)
+	if randIdx > len(hexVectors)-1 {
+		randIdx -= len(hexVectors)
 	}
-	directions = append(directions[randIdx:], directions[:randIdx]...)
+	hexVectors = append(hexVectors[randIdx:], hexVectors[:randIdx]...)
+	//spiral hexes start at specified root direction's hex - corner - and end at center
+	spiralHexes := make([]*datamodel.Hex, 0)
+	centerHex := datamodel.NewHex(0, 0)
+	for radius := 2; radius >= 1; radius-- {
+		//corner hex
+		hex := datamodel.NewHex(centerHex.GetQ()+rootVector.GetQ()*radius, centerHex.GetR()+rootVector.GetR()*radius)
+		spiralHexes = append(spiralHexes, hex)
 
-	spiralCoords := make([][]int, 0)
-	centerCoord := []int{0, 0}
-	for radius := 2, radius >= 0, radius-- {
-		coord := []int {rootDirection[0] 
-	}
-
-	numbers := []int{2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12}
-	terrainTypes := []model.TerrainType{
-		model.DesertTerrain,
-		model.FieldTerrain,
-		model.FieldTerrain,
-		model.FieldTerrain,
-		model.FieldTerrain,
-		model.ForestTerrain,
-		model.ForestTerrain,
-		model.ForestTerrain,
-		model.ForestTerrain,
-		model.PastureTerrain,
-		model.PastureTerrain,
-		model.PastureTerrain,
-		model.PastureTerrain,
-		model.MountainTerrain,
-		model.MountainTerrain,
-		model.MountainTerrain,
-		model.HillTerrain,
-		model.HillTerrain,
-		model.HillTerrain,
-	}
-
-	minQ := 1
-	maxQ := 3
-	for r := 1; r <= 5; r++ {
-		for q := minQ; q <= maxQ; q++ {
-			var terrainType model.TerrainType
-			var number int
-			terrainType, terrainTypes = terrainTypes[0], terrainTypes[1:]
-			if terrainType == model.DesertTerrain {
-				number = 7
-			} else {
-				number, numbers = numbers[0], numbers[1:]
+		//circle hexes
+		for _, hexVector := range hexVectors {
+			for i := 1; i <= radius; i++ {
+				hex = datamodel.NewHex(hex.GetQ()+hexVector.GetQ(), hex.GetR()+hexVector.GetR())
+				spiralHexes = append(spiralHexes, hex)
 			}
-			terrain, err := datamodel.NewTerrain(q, r, number, terrainType)
-			if err != nil {
-				return nil, errors.Wrap(err, "service.TerrainService.InitTerrains")
-			}
-			terrains = append(terrains, terrain)
 		}
+	}
+	spiralHexes = append(spiralHexes, centerHex)
 
-		if r < 3 {
-			minQ--
+	numbers := []int{
+		5,  //A:****
+		2,  //B:*
+		6,  //C:*****
+		3,  //D:**
+		8,  //E:*****
+		10, //F:***
+		9,  //G:****
+		12, //H:*
+		11, //I:**
+		4,  //J:***
+		8,  //K:*****
+		10, //L:***
+		9,  //M:****
+		4,  //N:***
+		5,  //O:****
+		6,  //P:*****
+		3,  //Q:**
+		11, //R:**
+	}
+
+	terrainTypes := []datamodel.TerrainType{
+		datamodel.DesertTerrain, //1 x desert terrain
+		datamodel.FieldTerrain,  //4 x field terrain
+		datamodel.FieldTerrain,
+		datamodel.FieldTerrain,
+		datamodel.FieldTerrain,
+		datamodel.ForestTerrain, //4 x forest terrain
+		datamodel.ForestTerrain,
+		datamodel.ForestTerrain,
+		datamodel.ForestTerrain,
+		datamodel.PastureTerrain, //4 x pasture terrain
+		datamodel.PastureTerrain,
+		datamodel.PastureTerrain,
+		datamodel.PastureTerrain,
+		datamodel.MountainTerrain, //3 x mountain terrain
+		datamodel.MountainTerrain,
+		datamodel.MountainTerrain,
+		datamodel.HillTerrain, //3 x hill terrain
+		datamodel.HillTerrain,
+		datamodel.HillTerrain,
+	}
+	rand.Shuffle(len(terrainTypes), func(i, j int) {
+		terrainTypes[i], terrainTypes[j] = terrainTypes[j], terrainTypes[i]
+	})
+
+	terrains := make(datamodel.Terrains, 0)
+	for idx, hex := range spiralHexes {
+		terrainType := terrainTypes[idx]
+
+		var number int
+		if terrainType == datamodel.DesertTerrain {
+			number = 7
 		} else {
-			maxQ--
+			number = numbers[0]
+			numbers = numbers[1:]
 		}
+
+		terrain, err := datamodel.NewTerrain(hex, number, terrainType)
+		if err != nil {
+			return nil, errors.Wrap(err, "service.TerrainService.InitTerrains")
+		}
+
+		terrains = append(terrains, terrain)
 	}
 
 	return terrains, nil

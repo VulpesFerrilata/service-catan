@@ -12,7 +12,7 @@ import (
 
 type DevelopmentCardRepository interface {
 	FindByGameId(ctx context.Context, gameId uint) (datamodel.DevelopmentCards, error)
-	Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
+	InsertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error
 }
 
 func NewDevelopmentCardRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -34,31 +34,13 @@ func (dcr developmentCardRepository) FindByGameId(ctx context.Context, gameId ui
 	return datamodel.NewDevelopmentCardsFromDevelopmentCardModels(developmentCardModels), errors.Wrap(err, "repository.DevelopmentCardRepository.FindByGameId")
 }
 
-func (dcr developmentCardRepository) insertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
+func (dcr developmentCardRepository) InsertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
 	developmentCardModel := developmentCard.ToModel()
 
 	if err := dcr.validate.StructCtx(ctx, developmentCardModel); err != nil {
-		return errors.Wrap(err, "repository.DevelopmentCardRepository.insertOrUpdate")
+		return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
 	}
 
 	err := dcr.transactionMiddleware.Get(ctx).Save(developmentCardModel).Error
-	return errors.Wrap(err, "repository.DevelopmentCardRepository.insertOrUpdate")
-}
-
-func (dcr developmentCardRepository) delete(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
-	developmentCardModel := developmentCard.ToModel()
-	err := dcr.transactionMiddleware.Get(ctx).Delete(developmentCardModel).Error
-	return errors.Wrap(err, "repository.DevelopmentCardRepository.delete")
-}
-
-func (dcr developmentCardRepository) Save(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
-	if developmentCard.IsRemoved() {
-		err := dcr.delete(ctx, developmentCard)
-		return errors.Wrap(err, "service.DevelopmentCardRepository.Save")
-	}
-	if developmentCard.IsModified() {
-		err := dcr.insertOrUpdate(ctx, developmentCard)
-		return errors.Wrap(err, "service.DevelopmentCardRepository.Save")
-	}
-	return nil
+	return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
 }

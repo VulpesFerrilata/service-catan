@@ -11,14 +11,6 @@ type Road struct {
 	GameID   uuid.UUID `gorm:"type:uuid"`
 	Q        int
 	R        int
-	Location RoadLocation
+	Location string
 	PlayerID *uuid.UUID `gorm:"type:uuid"`
 }
-
-type RoadLocation string
-
-const (
-	TopLeft    RoadLocation = "TopLeft"
-	MiddleLeft RoadLocation = "MiddleLeft"
-	BottomLeft RoadLocation = "BottomLeft"
-)

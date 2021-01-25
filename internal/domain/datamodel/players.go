@@ -47,12 +47,6 @@ func (p Players) Any(f PlayerFilterFunc) bool {
 	return false
 }
 
-func (p Players) Delete() {
-	for _, player := range p {
-		player.Delete()
-	}
-}
-
 type playerSorter struct {
 	players Players
 	by      PlayerCompareFunc

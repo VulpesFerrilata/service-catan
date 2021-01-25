@@ -2,30 +2,30 @@ package datamodel
 
 import "fmt"
 
-func NewTerrainType(value string) (terrainType, error) {
-	terrainType := terrainType(value)
-	if _, ok := terrainTypes[terrainType]; ok {
-		return terrainType, nil
+func NewTerrainType(value string) (TerrainType, error) {
+	TerrainType := TerrainType(value)
+	if _, ok := terrainTypes[TerrainType]; ok {
+		return TerrainType, nil
 	}
-	return terrainType, fmt.Errorf("terrain type is invalid: %s", value)
+	return TerrainType, fmt.Errorf("terrain type is invalid: %s", value)
 }
 
-type terrainType string
+type TerrainType string
 
-func (t terrainType) String() string {
+func (t TerrainType) String() string {
 	return string(t)
 }
 
 const (
-	HillTerrain     terrainType = "Hill"
-	FieldTerrain    terrainType = "Field"
-	PastureTerrain  terrainType = "Pasture"
-	MountainTerrain terrainType = "Mountain"
-	ForestTerrain   terrainType = "Forest"
-	DesertTerrain   terrainType = "Desert"
+	HillTerrain     TerrainType = "Hill"
+	FieldTerrain    TerrainType = "Field"
+	PastureTerrain  TerrainType = "Pasture"
+	MountainTerrain TerrainType = "Mountain"
+	ForestTerrain   TerrainType = "Forest"
+	DesertTerrain   TerrainType = "Desert"
 )
 
-var terrainTypes = map[terrainType]struct{}{
+var terrainTypes = map[TerrainType]struct{}{
 	HillTerrain:     struct{}{},
 	FieldTerrain:    struct{}{},
 	PastureTerrain:  struct{}{},

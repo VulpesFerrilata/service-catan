@@ -12,7 +12,7 @@ import (
 
 type HarborRepository interface {
 	FindByGameId(ctx context.Context, gameId uint) (datamodel.Harbors, error)
-	Save(ctx context.Context, harbor *datamodel.Harbor) error
+	InsertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error
 }
 
 func NewHarborRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -34,7 +34,7 @@ func (hr harborRepository) FindByGameId(ctx context.Context, gameId uint) (datam
 	return datamodel.NewHarborsFromHarborModels(harborModels), errors.Wrap(err, "repository.HarborRepository.FindByGameId")
 }
 
-func (hr harborRepository) insertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error {
+func (hr harborRepository) InsertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error {
 	harborModel := harbor.ToModel()
 
 	if err := hr.validate.StructCtx(ctx, harborModel); err != nil {
@@ -43,22 +43,4 @@ func (hr harborRepository) insertOrUpdate(ctx context.Context, harbor *datamodel
 
 	err := hr.transactionMiddleware.Get(ctx).Save(harborModel).Error
 	return errors.Wrap(err, "repository.HarborRepository.InsertOrUpdate")
-}
-
-func (hr harborRepository) delete(ctx context.Context, harbor *datamodel.Harbor) error {
-	harborModel := harbor.ToModel()
-	err := hr.transactionMiddleware.Get(ctx).Delete(harborModel).Error
-	return errors.Wrap(err, "repository.HarborRepository.Delete")
-}
-
-func (hr harborRepository) Save(ctx context.Context, harbor *datamodel.Harbor) error {
-	if harbor.IsRemoved() {
-		err := hr.delete(ctx, harbor)
-		return errors.Wrap(err, "service.HarborRepository.Save")
-	}
-	if harbor.IsModified() {
-		err := hr.insertOrUpdate(ctx, harbor)
-		return errors.Wrap(err, "service.HarborRepository.Save")
-	}
-	return nil
 }

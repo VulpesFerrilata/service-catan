@@ -6,47 +6,48 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewRoad(q int, r int, roadLocation model.RoadLocation) (*Road, error) {
+func NewRoad(hexEdge *HexEdge) (*Road, error) {
 	road := new(Road)
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewRoad")
 	}
 	road.id = id
-	road.q = q
-	road.r = r
-	road.location = roadLocation
+
+	road.hexEdge = hexEdge
 	road.playerID = nil
-
-	road.SetModelState(Added)
-
 	return road, nil
 }
 
-func NewRoadFromRoadModel(roadModel *model.Road) *Road {
+func NewRoadFromRoadModel(roadModel *model.Road) (*Road, error) {
 	road := new(Road)
 	road.id = roadModel.ID
-	road.q = roadModel.Q
-	road.r = roadModel.R
-	road.location = roadModel.Location
-	road.playerID = road.playerID
 
-	road.SetModelState(Unchanged)
+	hex := NewHex(roadModel.Q, roadModel.R)
+	location, err := NewHexEdgeLocation(roadModel.Location)
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewRoadFromRoadModel")
+	}
+	hexEdge := NewHexEdge(hex, location)
+	road.hexEdge = hexEdge
 
-	return road
+	road.playerID = roadModel.PlayerID
+	return road, nil
 }
 
 type Road struct {
-	base
 	id       uuid.UUID
-	q        int
-	r        int
-	location model.RoadLocation
+	hexEdge  *HexEdge
 	playerID *uuid.UUID
 	game     *Game
 }
 
-func (r *Road) GetPlayer(game *Game) *Player {
+func (r Road) GetHexEdge() *HexEdge {
+	return r.hexEdge
+}
+
+func (r Road) GetPlayer(game *Game) *Player {
 	if r.playerID == nil {
 		return nil
 	}
@@ -56,48 +57,36 @@ func (r *Road) GetPlayer(game *Game) *Player {
 	}).First()
 }
 
-func (r *Road) GetAdjacentConstructions() Constructions {
+func (r Road) GetAdjacentConstructions() Constructions {
+	possibleAdjacentHexCorners := r.GetHexEdge().GetPossibleAdjacentHexCorners()
 	return r.game.constructions.Filter(func(construction *Construction) bool {
-		if r.location == model.TopLeft {
-			return (construction.q == r.q && construction.r == r.r && construction.location == model.Top) ||
-				(construction.q == r.q && construction.r == r.r-1 && construction.location == model.Bottom)
-		} else if r.location == model.MiddleLeft {
-			return (construction.q == r.q && construction.r == r.r-1 && construction.location == model.Bottom) ||
-				(construction.q == r.q-1 && construction.r == r.r+1 && construction.location == model.Top)
+		for _, possibleAdjacentHexCorner := range possibleAdjacentHexCorners {
+			if construction.GetHexCorner().Equals(possibleAdjacentHexCorner) {
+				return true
+			}
 		}
-		return (construction.q == r.q && construction.r == r.r && construction.location == model.Bottom) ||
-			(construction.q == r.q-1 && construction.r == r.r+1 && construction.location == model.Top)
+		return false
 	})
 }
 
-func (r *Road) GetAdjacentRoads() Roads {
+func (r Road) GetAdjacentRoads() Roads {
+	possibleAdjacentHexEdges := r.GetHexEdge().GetPossibleAdjacentHexEdges()
 	return r.game.roads.Filter(func(road *Road) bool {
-		if r.location == model.TopLeft {
-			return (road.q == r.q+1 && road.r == r.r-1 && road.location == model.MiddleLeft) ||
-				(road.q == r.q+1 && road.r == r.r-1 && road.location == model.BottomLeft) ||
-				(road.q == r.q && road.r == r.r-1 && road.location == model.BottomLeft) ||
-				(road.q == r.q && road.r == r.r && road.location == model.MiddleLeft)
-		} else if r.location == model.MiddleLeft {
-			return (road.q == r.q && road.r == r.r && road.location == model.TopLeft) ||
-				(road.q == r.q && road.r == r.r && road.location == model.BottomLeft) ||
-				(road.q == r.q && road.r == r.r-1 && road.location == model.BottomLeft) ||
-				(road.q == r.q-1 && road.r == r.r+1 && road.location == model.TopLeft)
+		for _, possibleAdjacentHexEdge := range possibleAdjacentHexEdges {
+			if road.GetHexEdge().Equals(possibleAdjacentHexEdge) {
+				return true
+			}
 		}
-		return (road.q == r.q && road.r == r.r && road.location == model.MiddleLeft) ||
-			(road.q == r.q-1 && road.r == r.r+1 && road.location == model.TopLeft) ||
-			(road.q == r.q && road.r == r.r+1 && road.location == model.TopLeft) ||
-			(road.q == r.q && road.r == r.r+1 && road.location == model.MiddleLeft)
+		return false
 	})
 }
 
-func (r *Road) ToModel() *model.Road {
-	r.SetModelState(Unchanged)
-
+func (r Road) ToModel() *model.Road {
 	roadModel := new(model.Road)
 	roadModel.ID = r.id
-	roadModel.Q = r.q
-	roadModel.R = r.r
-	roadModel.Location = r.location
+	roadModel.Q = r.GetHexEdge().GetHex().GetQ()
+	roadModel.R = r.GetHexEdge().GetHex().GetR()
+	roadModel.Location = r.GetHexEdge().GetLocation().String()
 	roadModel.PlayerID = r.playerID
 	return roadModel
 }

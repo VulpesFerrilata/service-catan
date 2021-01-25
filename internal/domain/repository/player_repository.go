@@ -14,7 +14,7 @@ import (
 
 type PlayerRepository interface {
 	FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Players, error)
-	Save(ctx context.Context, player *datamodel.Player) error
+	InsertOrUpdate(ctx context.Context, player *datamodel.Player) error
 }
 
 func NewPlayerRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -63,31 +63,13 @@ func (pr playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (
 	return datamodel.NewPlayersFromPlayerModels(playerModels), errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 }
 
-func (pr playerRepository) insertOrUpdate(ctx context.Context, player *datamodel.Player) error {
+func (pr playerRepository) InsertOrUpdate(ctx context.Context, player *datamodel.Player) error {
 	playerModel := player.ToModel()
 
 	if err := pr.validate.StructCtx(ctx, playerModel); err != nil {
-		return errors.Wrap(err, "repository.PlayerRepository.insertOrUpdate")
+		return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
 	}
 
 	err := pr.transactionMiddleware.Get(ctx).Save(playerModel).Error
-	return errors.Wrap(err, "repository.PlayerRepository.insertOrUpdate")
-}
-
-func (pr playerRepository) delete(ctx context.Context, player *datamodel.Player) error {
-	playerModel := player.ToModel()
-	err := pr.transactionMiddleware.Get(ctx).Delete(playerModel).Error
-	return errors.Wrap(err, "repository.PlayerRepository.delete")
-}
-
-func (pr playerRepository) Save(ctx context.Context, player *datamodel.Player) error {
-	if player.IsRemoved() {
-		err := pr.delete(ctx, player)
-		return errors.Wrap(err, "service.PlayerRepository.Save")
-	}
-	if player.IsModified() {
-		err := pr.insertOrUpdate(ctx, player)
-		return errors.Wrap(err, "service.PlayerRepository.Save")
-	}
-	return nil
+	return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
 }

@@ -8,15 +8,14 @@ import (
 
 func NewGame() (*Game, error) {
 	game := new(Game)
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewGame")
 	}
 	game.id = id
+
 	game.status = model.Waiting
-
-	game.SetModelState(Added)
-
 	return game, nil
 }
 
@@ -26,14 +25,10 @@ func NewGameFromGameModel(gameModel *model.Game) *Game {
 	game.playerInTurn = gameModel.PlayerInTurn
 	game.turn = gameModel.Turn
 	game.status = gameModel.Status
-
-	game.SetModelState(Unchanged)
-
 	return game
 }
 
 type Game struct {
-	base
 	id               uuid.UUID
 	playerInTurn     *uuid.UUID
 	turn             int
@@ -80,7 +75,6 @@ func (g *Game) NextPlayerInTurn() {
 				}
 				if !players[idx].isLeft {
 					*g.playerInTurn = players[idx].id
-					g.SetModelState(Modified)
 					return
 				}
 			}
@@ -208,16 +202,7 @@ func (g *Game) AddHarbors(harbors ...*Harbor) {
 	}
 }
 
-func (g *Game) Delete() {
-	if g.GetModelState() != Deleted {
-		g.SetModelState(Deleted)
-		g.players.Delete()
-	}
-}
-
-func (g *Game) ToModel() *model.Game {
-	g.SetModelState(Unchanged)
-
+func (g Game) ToModel() *model.Game {
 	gameModel := new(model.Game)
 	gameModel.ID = g.id
 	gameModel.PlayerInTurn = g.playerInTurn

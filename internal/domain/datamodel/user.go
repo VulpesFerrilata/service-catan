@@ -14,6 +14,7 @@ func NewUserFromUserPb(userPb *user.UserResponse) (*User, error) {
 		return nil, errors.Wrap(err, "datamodel.NewUserFromUserPb")
 	}
 	user.id = id
+
 	user.username = userPb.GetUsername()
 	user.displayName = userPb.GetDisplayName()
 	user.email = userPb.GetEmail()

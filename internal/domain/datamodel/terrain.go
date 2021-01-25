@@ -1,14 +1,12 @@
 package datamodel
 
 import (
-	"math"
-
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
-func NewTerrain(hex hex, number int, terrainType model.TerrainType) (*Terrain, error) {
+func NewTerrain(hex *Hex, number int, terrainType TerrainType) (*Terrain, error) {
 	terrain := new(Terrain)
 
 	id, err := uuid.NewRandom()
@@ -21,76 +19,75 @@ func NewTerrain(hex hex, number int, terrainType model.TerrainType) (*Terrain, e
 	terrain.number = number
 	terrain.terrainType = terrainType
 
-	terrain.SetModelState(Added)
+	return terrain, nil
+}
+
+func NewTerrainFromTerrainModel(terrainModel *model.Terrain) (*Terrain, error) {
+	terrain := new(Terrain)
+	terrain.id = terrainModel.ID
+
+	hex := NewHex(terrainModel.Q, terrainModel.R)
+	terrain.hex = hex
+
+	terrain.number = terrainModel.Number
+
+	terrainType, err := NewTerrainType(terrainModel.TerrainType)
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewTerrainFromTerrainModel")
+	}
+	terrain.terrainType = terrainType
 
 	return terrain, nil
 }
 
-func NewTerrainFromTerrainModel(terrainModel *model.Terrain) *Terrain {
-	terrain := new(Terrain)
-	terrain.id = terrainModel.ID
-	terrain.q = terrainModel.Q
-	terrain.r = terrainModel.R
-	terrain.number = terrainModel.Number
-	terrain.terrainType = terrainModel.TerrainType
-
-	terrain.SetModelState(Unchanged)
-
-	return terrain
-}
-
 type Terrain struct {
-	base
-	id uuid.UUID
-	hex
+	id          uuid.UUID
+	hex         *Hex
 	number      int
-	terrainType terrainType
+	terrainType TerrainType
 	game        *Game
 	harbor      *Harbor
 	robber      *Robber
 }
 
-func (t Terrain) GetQ() int {
-	return t.q
+func (t Terrain) GetHex() *Hex {
+	return t.hex
 }
 
-func (t Terrain) GetR() int {
-	return t.r
-}
-
-func (t Terrain) GetTerrainType() model.TerrainType {
+func (t Terrain) GetTerrainType() TerrainType {
 	return t.terrainType
 }
 
 func (t Terrain) GetAdjacentTerrains() Terrains {
+	possibleAdjacentHexes := t.GetHex().GetPossibleAdjacentHexes()
 	return t.game.terrains.Filter(func(terrain *Terrain) bool {
-		if terrain.q == t.q && terrain.r == t.r {
-			return false
-		}
-		if math.Abs(float64(terrain.q-t.q)) <= 1 && math.Abs(float64(terrain.r-t.r)) <= 1 {
-			return true
+		for _, possibleAdjacentHex := range possibleAdjacentHexes {
+			if terrain.GetHex().Equals(possibleAdjacentHex) {
+				return true
+			}
 		}
 		return false
 	})
 }
 
 func (t Terrain) GetAdjacentConstructions() Constructions {
+	possibleAdjacentHexCorners := t.GetHex().GetPossibleAdjacentHexCorners()
 	return t.game.constructions.Filter(func(construction *Construction) bool {
-		return (construction.q == t.q+1 && construction.r == t.r-1 && construction.location == model.Bottom) ||
-			(construction.q == t.q && construction.r == t.r-1 && construction.location == model.Bottom) ||
-			(construction.q == t.q && construction.r == t.r && construction.location == model.Top) ||
-			(construction.q == t.q && construction.r == t.r && construction.location == model.Bottom) ||
-			(construction.q == t.q && construction.r == t.r+1 && construction.location == model.Top) ||
-			(construction.q == t.q-1 && construction.r == t.r+1 && construction.location == model.Top)
+		for _, possibleAdjacentHexCorner := range possibleAdjacentHexCorners {
+			if construction.GetHexCorner().Equals(possibleAdjacentHexCorner) {
+				return true
+			}
+		}
+		return false
 	})
 }
 
 func (t Terrain) ToModel() *model.Terrain {
 	terrainModel := new(model.Terrain)
 	terrainModel.ID = t.id
-	terrainModel.Q = t.q
-	terrainModel.R = t.r
+	terrainModel.Q = t.GetHex().GetQ()
+	terrainModel.R = t.GetHex().GetR()
 	terrainModel.Number = t.number
-	terrainModel.TerrainType = t.terrainType
+	terrainModel.TerrainType = t.terrainType.String()
 	return terrainModel
 }

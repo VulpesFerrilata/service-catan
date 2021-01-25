@@ -8,13 +8,12 @@ import (
 
 func NewPlayer() (*Player, error) {
 	player := new(Player)
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewPlayer")
 	}
 	player.id = id
-
-	player.SetModelState(Added)
 
 	return player, nil
 }
@@ -25,14 +24,10 @@ func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
 	player.color = playerModel.Color
 	player.turnOrder = playerModel.TurnOrder
 	player.isLeft = playerModel.IsLeft
-
-	player.SetModelState(Unchanged)
-
 	return player
 }
 
 type Player struct {
-	base
 	id               uuid.UUID
 	color            string
 	turnOrder        int
@@ -64,7 +59,6 @@ func (p *Player) SetColor(color string) error {
 		//TODO: duplicate color error
 	}
 	p.color = color
-	p.SetModelState(Modified)
 	return nil
 }
 
@@ -83,7 +77,6 @@ func (p *Player) SetTurnOrder(turnOrder int) error {
 		//TODO: duplicate turn order error
 	}
 	p.turnOrder = turnOrder
-	p.SetModelState(Modified)
 	return nil
 }
 
@@ -93,7 +86,6 @@ func (p Player) IsLeft() bool {
 
 func (p Player) Leave() {
 	p.isLeft = true
-	p.SetModelState(Modified)
 }
 
 func (p Player) GetUser() *User {
@@ -161,29 +153,18 @@ func (p *Player) IsInTurn() bool {
 	return *p.game.playerInTurn == p.id
 }
 
-func (p *Player) Delete() {
-	if p.GetModelState() != Deleted {
-		players := p.game.players.Filter(func(player *Player) bool {
-			return player.GetModelState() != Deleted
-		})
-		if len(players) == 0 {
-			p.game.Delete()
-		}
-	}
-
-}
-
-func (p *Player) ToModel() *model.Player {
-	p.SetModelState(Unchanged)
-
+func (p Player) ToModel() *model.Player {
 	playerModel := new(model.Player)
 	playerModel.ID = p.id
+
 	if p.game != nil {
 		playerModel.GameID = p.game.id
 	}
+
 	if p.user != nil {
 		playerModel.UserID = p.user.id
 	}
+
 	playerModel.Color = p.color
 	playerModel.TurnOrder = p.turnOrder
 	return playerModel

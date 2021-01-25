@@ -7,54 +7,55 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewHarbor(q int, r int, harborType model.HarborType, terrain *Terrain) (*Harbor, error) {
+func NewHarbor(hex *Hex, harborType HarborType, terrain *Terrain) (*Harbor, error) {
 	harbor := new(Harbor)
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewHarbor")
 	}
 	harbor.id = id
-	harbor.q = q
-	harbor.r = r
+
+	harbor.hex = hex
 	harbor.harborType = harborType
 	harbor.terrainID = terrain.id
-
-	harbor.SetModelState(Added)
 
 	return harbor, nil
 }
 
-func NewHarborFromHarborModel(harborModel *model.Harbor) *Harbor {
+func NewHarborFromHarborModel(harborModel *model.Harbor) (*Harbor, error) {
 	harbor := new(Harbor)
 	harbor.id = harborModel.ID
-	harbor.q = harborModel.Q
-	harbor.r = harborModel.R
-	harbor.harborType = harborModel.HarborType
+
+	hex := NewHex(harborModel.Q, harborModel.R)
+	harbor.hex = hex
+
+	harborType, err := NewHarborType(harborModel.HarborType)
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewHarborFromHarborModel")
+	}
+	harbor.harborType = harborType
+
 	harbor.terrainID = harborModel.TerrainID
-
-	harbor.SetModelState(Unchanged)
-
-	return harbor
+	return harbor, nil
 }
 
 type Harbor struct {
-	base
 	id         uuid.UUID
-	q          int
-	r          int
-	harborType model.HarborType
+	hex        *Hex
+	harborType HarborType
 	terrainID  uuid.UUID
 	game       *Game
+}
+
+func (h Harbor) GetHex() *Hex {
+	return h.hex
 }
 
 func (h Harbor) GetIntersectRoad() *Road {
 	terrain := h.game.terrains.Filter(func(terrain *Terrain) bool {
 		return terrain.id == h.terrainID
 	}).First()
-
-	if terrain == nil {
-		return nil
-	}
 
 	return h.game.roads.Filter(func(road *Road) bool {
 		if h.q == terrain.q {
@@ -66,9 +67,7 @@ func (h Harbor) GetIntersectRoad() *Road {
 	}).First()
 }
 
-func (h *Harbor) ToModel() *model.Harbor {
-	h.SetModelState(Unchanged)
-
+func (h Harbor) ToModel() *model.Harbor {
 	harborModel := new(model.Harbor)
 	harborModel.ID = h.id
 	harborModel.Q = h.q

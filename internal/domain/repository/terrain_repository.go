@@ -12,7 +12,7 @@ import (
 
 type TerrainRepository interface {
 	FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error)
-	Save(ctx context.Context, terrain *datamodel.Terrain) error
+	InsertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error
 }
 
 func NewTerrainRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -30,35 +30,23 @@ type terrainRepository struct {
 
 func (tr terrainRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error) {
 	terrainModels := make([]*model.Terrain, 0)
+
 	err := tr.transactionMiddleware.Get(ctx).Find(&terrainModels, "game_id = ?", gameId).Error
-	return datamodel.NewTerrainsFromTerrainModels(terrainModels), errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
+	}
+
+	terrains, err := datamodel.NewTerrainsFromTerrainModels(terrainModels)
+	return terrains, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
 }
 
-func (tr terrainRepository) insertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error {
+func (tr terrainRepository) InsertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error {
 	terrainModel := terrain.ToModel()
 
 	if err := tr.validate.StructCtx(ctx, terrainModel); err != nil {
-		return errors.Wrap(err, "repository.TerrainRepository.insertOrUpdate")
+		return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
 	}
 
 	err := tr.transactionMiddleware.Get(ctx).Save(terrainModel).Error
-	return errors.Wrap(err, "repository.TerrainRepository.insertOrUpdate")
-}
-
-func (tr terrainRepository) delete(ctx context.Context, terrain *datamodel.Terrain) error {
-	terrainModel := terrain.ToModel()
-	err := tr.transactionMiddleware.Get(ctx).Delete(terrainModel).Error
-	return errors.Wrap(err, "repository.TerrainRepository.delete")
-}
-
-func (tr terrainRepository) Save(ctx context.Context, terrain *datamodel.Terrain) error {
-	if terrain.IsRemoved() {
-		err := tr.delete(ctx, terrain)
-		return errors.Wrap(err, "service.TerrainRepository.Save")
-	}
-	if terrain.IsModified() {
-		err := tr.insertOrUpdate(ctx, terrain)
-		return errors.Wrap(err, "service.TerrainRepository.Save")
-	}
-	return nil
+	return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
 }

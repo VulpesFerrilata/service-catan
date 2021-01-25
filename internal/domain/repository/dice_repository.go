@@ -12,7 +12,7 @@ import (
 
 type DiceRepository interface {
 	FindByGameId(ctx context.Context, gameId uint) (datamodel.Dices, error)
-	Save(ctx context.Context, dice *datamodel.Dice) error
+	InsertOrUpdate(ctx context.Context, dice *datamodel.Dice) error
 }
 
 func NewDiceRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -34,31 +34,13 @@ func (dr diceRepository) FindByGameId(ctx context.Context, gameId uint) (datamod
 	return datamodel.NewDicesFromDiceModels(diceModels), errors.Wrap(err, "repository.DiceRepository.FindByGameId")
 }
 
-func (dr diceRepository) insertOrUpdate(ctx context.Context, dice *datamodel.Dice) error {
+func (dr diceRepository) InsertOrUpdate(ctx context.Context, dice *datamodel.Dice) error {
 	diceModel := dice.ToModel()
 
 	if err := dr.validate.StructCtx(ctx, diceModel); err != nil {
-		return errors.Wrap(err, "repository.DiceRepository.insertOrUpdate")
+		return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
 	}
 
 	err := dr.transactionMiddleware.Get(ctx).Save(diceModel).Error
-	return errors.Wrap(err, "repository.DiceRepository.insertOrUpdate")
-}
-
-func (dr diceRepository) delete(ctx context.Context, dice *datamodel.Dice) error {
-	diceModel := dice.ToModel()
-	err := dr.transactionMiddleware.Get(ctx).Delete(diceModel).Error
-	return errors.Wrap(err, "repository.DiceRepository.delete")
-}
-
-func (dr diceRepository) Save(ctx context.Context, dice *datamodel.Dice) error {
-	if dice.IsRemoved() {
-		err := dr.delete(ctx, dice)
-		return errors.Wrap(err, "service.DiceRepository.Save")
-	}
-	if dice.IsModified() {
-		err := dr.insertOrUpdate(ctx, dice)
-		return errors.Wrap(err, "service.DiceRepository.Save")
-	}
-	return nil
+	return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
 }

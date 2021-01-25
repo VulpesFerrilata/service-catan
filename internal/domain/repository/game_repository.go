@@ -15,7 +15,7 @@ import (
 
 type GameRepository interface {
 	GetById(ctx context.Context, id uint) (*datamodel.Game, error)
-	Save(ctx context.Context, game *datamodel.Game) error
+	InsertOrUpdate(ctx context.Context, game *datamodel.Game) error
 }
 
 func NewGameRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -82,7 +82,7 @@ func (gr gameRepository) GetById(ctx context.Context, gameId uint) (*datamodel.G
 	return game, nil
 }
 
-func (gr gameRepository) insertOrUpdate(ctx context.Context, game *datamodel.Game) error {
+func (gr gameRepository) InsertOrUpdate(ctx context.Context, game *datamodel.Game) error {
 	gameModel := game.ToModel()
 
 	if err := gr.validate.StructCtx(ctx, gameModel); err != nil {
@@ -90,97 +90,75 @@ func (gr gameRepository) insertOrUpdate(ctx context.Context, game *datamodel.Gam
 	}
 
 	err := gr.transactionMiddleware.Get(ctx).Save(gameModel).Error
-	return errors.Wrap(err, "repository.GameRepository.InsertOrUpdate")
-}
-
-func (gr gameRepository) delete(ctx context.Context, game *datamodel.Game) error {
-	gameModel := game.ToModel()
-	err := gr.transactionMiddleware.Get(ctx).Delete(gameModel).Error
-	return errors.Wrap(err, "repository.GameRepository.Delete")
-}
-
-func (gr gameRepository) save(ctx context.Context, game *datamodel.Game) error {
-	if game.IsRemoved() {
-		err := gr.delete(ctx, game)
-		return errors.Wrap(err, "service.GameRepository.save")
-	}
-	if game.IsModified() {
-		err := gr.insertOrUpdate(ctx, game)
-		return errors.Wrap(err, "service.GameRepository.save")
-	}
-	return nil
-}
-
-func (gr gameRepository) Save(ctx context.Context, game *datamodel.Game) error {
-	if err := gr.save(ctx, game); err != nil {
-		return errors.Wrap(err, "service.GameRepository.Save")
+	if err != nil {
+		return errors.Wrap(err, "repository.GameRepository.InsertOrUpdate")
 	}
 
 	players := game.GetPlayers()
 	for _, player := range players {
-		if err := gr.playerRepository.Save(ctx, player); err != nil {
-			return errors.Wrap(err, "service.GameRepository.Save")
+		if err := gr.playerRepository.InsertOrUpdate(ctx, player); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	dices := game.GetDices()
 	for _, dice := range dices {
-		if err := gr.diceRepository.Save(ctx, dice); err != nil {
-			return errors.Wrap(err, "service.GameRepository.Save")
+		if err := gr.diceRepository.InsertOrUpdate(ctx, dice); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	achievements := game.GetAchievements()
 	for _, achievement := range achievements {
-		if err := gr.achievementRepository.Save(ctx, achievement); err != nil {
-			return errors.Wrap(err, "service.GameRepository.Save")
+		if err := gr.achievementRepository.InsertOrUpdate(ctx, achievement); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	resourceCards := game.GetResourceCards()
 	for _, resourceCard := range resourceCards {
-		if err := gr.resourceCardRepository.Save(ctx, resourceCard); err != nil {
-			return errors.Wrap(err, "service.GameRepository.Save")
+		if err := gr.resourceCardRepository.InsertOrUpdate(ctx, resourceCard); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	developmentCards := game.GetDevelopmentCards()
 	for _, developmentCard := range developmentCards {
-		if err := gr.developmentCardRepository.Save(ctx, developmentCard); err != nil {
-			return errors.Wrap(err, "service.GameRepository.Save")
+		if err := gr.developmentCardRepository.InsertOrUpdate(ctx, developmentCard); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	terrains := game.GetTerrains()
 	for _, terrain := range terrains {
-		if err := gr.terrainRepository.Save(ctx, terrain); err != nil {
-			return errors.Wrap(err, "service.GameRepository.Save")
+		if err := gr.terrainRepository.InsertOrUpdate(ctx, terrain); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	robber := game.GetRobber()
-	if err := gr.robberRepository.Save(ctx, robber); err != nil {
-		return errors.Wrap(err, "service.GameRepository.Save")
+	if err := gr.robberRepository.InsertOrUpdate(ctx, robber); err != nil {
+		return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 	}
 
 	constructions := game.GetConstructions()
 	for _, construction := range constructions {
-		if err := gr.constructionRepository.Save(ctx, construction); err != nil {
-			return err
+		if err := gr.constructionRepository.InsertOrUpdate(ctx, construction); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	roads := game.GetRoads()
 	for _, road := range roads {
-		if err := gr.roadRepository.Save(ctx, road); err != nil {
-			return err
+		if err := gr.roadRepository.InsertOrUpdate(ctx, road); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 
 	harbors := game.GetHarbors()
 	for _, harbor := range harbors {
-		if err := gr.harborRepository.Save(ctx, harbor); err != nil {
-			return err
+		if err := gr.harborRepository.InsertOrUpdate(ctx, harbor); err != nil {
+			return errors.Wrap(err, "service.GameRepository.InsertOrUpdate")
 		}
 	}
 

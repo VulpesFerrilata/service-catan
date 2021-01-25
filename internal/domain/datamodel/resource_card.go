@@ -15,9 +15,6 @@ func NewResourceCard(resourceType model.ResourceType) (*ResourceCard, error) {
 	resourceCard.id = id
 	resourceCard.resourceType = resourceType
 	resourceCard.playerID = nil
-
-	resourceCard.SetModelState(Added)
-
 	return resourceCard, nil
 }
 
@@ -26,14 +23,10 @@ func NewResourceCardFromResourceCardModel(resourceCardModel *model.ResourceCard)
 	resourceCard.id = resourceCardModel.ID
 	resourceCard.playerID = resourceCardModel.PlayerID
 	resourceCard.resourceType = resourceCardModel.ResourceType
-
-	resourceCard.SetModelState(Unchanged)
-
 	return resourceCard
 }
 
 type ResourceCard struct {
-	base
 	id           uuid.UUID
 	resourceType model.ResourceType
 	playerID     *uuid.UUID
@@ -50,9 +43,7 @@ func (rc ResourceCard) GetPlayer() *Player {
 	}).First()
 }
 
-func (rc *ResourceCard) ToModel() *model.ResourceCard {
-	rc.SetModelState(Unchanged)
-
+func (rc ResourceCard) ToModel() *model.ResourceCard {
 	resourceCardModel := new(model.ResourceCard)
 	resourceCardModel.ID = rc.id
 	resourceCardModel.PlayerID = rc.playerID
