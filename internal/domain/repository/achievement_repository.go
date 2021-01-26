@@ -15,32 +15,36 @@ type AchievementRepository interface {
 	InsertOrUpdate(ctx context.Context, achievement *datamodel.Achievement) error
 }
 
-func NewAchievementRepository(transactionMiddleware *middleware.TransactionMiddleware,
+func NewAchievementRepository(transactionMiddlewae *middleware.TransactionMiddleware,
 	validate *validator.Validate) AchievementRepository {
 	return &achievementRepository{
-		transactionMiddleware: transactionMiddleware,
-		validate:              validate,
+		transactionMiddlewae: transactionMiddlewae,
+		validate:             validate,
 	}
 }
 
 type achievementRepository struct {
-	transactionMiddleware *middleware.TransactionMiddleware
-	validate              *validator.Validate
+	transactionMiddlewae *middleware.TransactionMiddleware
+	validate             *validator.Validate
 }
 
-func (ar achievementRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Achievements, error) {
+func (a achievementRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Achievements, error) {
 	achievementModels := make([]*model.Achievement, 0)
-	err := ar.transactionMiddleware.Get(ctx).Find(&achievementModels, "game_id = ?", gameId).Error
-	return datamodel.NewAchievementsFromAchievementModels(achievementModels), errors.Wrap(err, "repository.AchievementRepository.FindByGameId")
+	err := a.transactionMiddlewae.Get(ctx).Find(&achievementModels, "game_id = ?", gameId).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.AchievementRepository.FindByGameId")
+	}
+	achievements, err := datamodel.NewAchievementsFromAchievementModels(achievementModels)
+	return achievements, errors.Wrap(err, "repository.AchievementRepository.FindByGameId")
 }
 
-func (ar achievementRepository) InsertOrUpdate(ctx context.Context, achievement *datamodel.Achievement) error {
+func (a achievementRepository) InsertOrUpdate(ctx context.Context, achievement *datamodel.Achievement) error {
 	achievementModel := achievement.ToModel()
 
-	if err := ar.validate.StructCtx(ctx, achievementModel); err != nil {
+	if err := a.validate.StructCtx(ctx, achievementModel); err != nil {
 		return errors.Wrap(err, "repository.AchievementRepository.InsertOrUpdate")
 	}
 
-	err := ar.transactionMiddleware.Get(ctx).Save(achievementModel).Error
+	err := a.transactionMiddlewae.Get(ctx).Save(achievementModel).Error
 	return errors.Wrap(err, "repository.AchievementRepository.InsertOrUpdate")
 }

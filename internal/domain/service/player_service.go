@@ -18,6 +18,6 @@ type playerService struct {
 	playerRepository repository.PlayerRepository
 }
 
-func (ps playerService) GetPlayerRepository() repository.PlayerRepository {
-	return ps.playerRepository
+func (p playerService) GetPlayerRepository() repository.PlayerRepository {
+	return p.playerRepository
 }

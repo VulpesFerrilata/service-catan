@@ -14,6 +14,10 @@ func NewHarborType(value string) (HarborType, error) {
 
 type HarborType string
 
+func (h HarborType) String() string {
+	return string(h)
+}
+
 const (
 	GeneralHarbor HarborType = "General"
 	LumberHarbor  HarborType = "Lumber"
@@ -24,10 +28,10 @@ const (
 )
 
 var harborTypes = map[HarborType]struct{}{
-	GeneralHarbor: struct{}{},
-	LumberHarbor:  struct{}{},
-	BrickHarbor:   struct{}{},
-	WoolHarbor:    struct{}{},
-	GrainHarbor:   struct{}{},
-	OreHarbor:     struct{}{},
+	GeneralHarbor: {},
+	LumberHarbor:  {},
+	BrickHarbor:   {},
+	WoolHarbor:    {},
+	GrainHarbor:   {},
+	OreHarbor:     {},
 }

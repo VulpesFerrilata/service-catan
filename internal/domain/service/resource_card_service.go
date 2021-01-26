@@ -9,6 +9,7 @@ import (
 
 type ResourceCardService interface {
 	GetResourceCardRepository() repository.ResourceCardRepository
+	InitResourceCards() (datamodel.ResourceCards, error)
 }
 
 func NewResourceCardService(resourceCardRepository repository.ResourceCardRepository) ResourceCardService {

@@ -10,6 +10,7 @@ import (
 
 type TerrainService interface {
 	GetTerrainRepository() repository.TerrainRepository
+	InitTerrains() (datamodel.Terrains, error)
 }
 
 func NewTerrainService(terrainRepository repository.TerrainRepository) TerrainService {
@@ -27,14 +28,14 @@ func (ts terrainService) GetTerrainRepository() repository.TerrainRepository {
 }
 
 func (ts terrainService) InitTerrains() (datamodel.Terrains, error) {
-	//circle directions
-	hexVectors := []*datamodel.Hex{
-		datamodel.NewHex(0, -1), //top left
-		datamodel.NewHex(1, -1), //top right
-		datamodel.NewHex(1, 0),  //middle right
-		datamodel.NewHex(0, 1),  //bottom right
-		datamodel.NewHex(-1, 1), //bottom left
-		datamodel.NewHex(-1, 0), //middle left
+	//circle vectors
+	hexVectors := []*datamodel.HexVector{
+		{Q: 0, R: -1}, //top left
+		{Q: 1, R: -1}, //top right
+		{Q: 1, R: 0},  //middle right
+		{Q: 0, R: 1},  //bottom right
+		{Q: -1, R: 1}, //bottom left
+		{Q: -1, R: 0}, //middle left
 	}
 	if rand.Intn(2) == 0 {
 		//reverse direction
@@ -52,18 +53,32 @@ func (ts terrainService) InitTerrains() (datamodel.Terrains, error) {
 		randIdx -= len(hexVectors)
 	}
 	hexVectors = append(hexVectors[randIdx:], hexVectors[:randIdx]...)
+
 	//spiral hexes start at specified root direction's hex - corner - and end at center
 	spiralHexes := make([]*datamodel.Hex, 0)
-	centerHex := datamodel.NewHex(0, 0)
+	centerHex, err := datamodel.NewHex(0, 0)
+	if err != nil {
+		return nil, errors.Wrap(err, "service.TerrainService.InitTerrains")
+	}
 	for radius := 2; radius >= 1; radius-- {
 		//corner hex
-		hex := datamodel.NewHex(centerHex.GetQ()+rootVector.GetQ()*radius, centerHex.GetR()+rootVector.GetR()*radius)
+		vector := &datamodel.HexVector{
+			Q: rootVector.Q * radius,
+			R: rootVector.R * radius,
+		}
+		hex, err := datamodel.NewHexFromVector(centerHex, vector)
+		if err != nil {
+			return nil, errors.Wrap(err, "service.TerrainService.InitTerrains")
+		}
 		spiralHexes = append(spiralHexes, hex)
 
 		//circle hexes
 		for _, hexVector := range hexVectors {
 			for i := 1; i <= radius; i++ {
-				hex = datamodel.NewHex(hex.GetQ()+hexVector.GetQ(), hex.GetR()+hexVector.GetR())
+				hex, err = datamodel.NewHexFromVector(hex, hexVector)
+				if err != nil {
+					return nil, errors.Wrap(err, "service.TerrainService.InitTerrains")
+				}
 				spiralHexes = append(spiralHexes, hex)
 			}
 		}

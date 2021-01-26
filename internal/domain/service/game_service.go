@@ -50,11 +50,69 @@ type gameService struct {
 	harborService          HarborService
 }
 
-func (gs gameService) GetGameRepository() repository.GameRepository {
-	return gs.gameRepository
+func (g gameService) GetGameRepository() repository.GameRepository {
+	return g.gameRepository
 }
 
-func (gs gameService) NewGame() (*datamodel.Game, error) {
+func (g gameService) NewGame() (*datamodel.Game, error) {
 	game, err := datamodel.NewGame()
 	return game, errors.Wrap(err, "service.GameService.NewGame")
+}
+
+func (g gameService) InitGame(game *datamodel.Game) error {
+	dices, err := g.diceService.InitDices()
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddDices(dices...)
+
+	achievements, err := g.achievementService.InitAchievements()
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddAchievements(achievements...)
+
+	resourceCards, err := g.resourceCardService.InitResourceCards()
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddResourceCards(resourceCards...)
+
+	developmentCards, err := g.developmentCardService.InitDevelopmentCards()
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddDevelopmentCards(developmentCards...)
+
+	terrains, err := g.terrainService.InitTerrains()
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddTerrains(terrains...)
+
+	robber, err := g.robberService.InitRobber(terrains)
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.SetRobber(robber)
+
+	constructions, err := g.constructionService.InitConstructions(terrains)
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddConstructions(constructions...)
+
+	roads, err := g.roadService.InitRoads(terrains)
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddRoads(roads...)
+
+	harbors, err := g.harborService.InitHarbors(terrains)
+	if err != nil {
+		return errors.Wrap(err, "service.GameService.InitGame")
+	}
+	game.AddHarbors(harbors...)
+
+	return nil
 }

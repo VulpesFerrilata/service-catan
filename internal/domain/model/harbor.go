@@ -9,8 +9,7 @@ type Harbor struct {
 	model.Model
 	ID         uuid.UUID `gorm:"type:uuid;primaryKey"`
 	GameID     uuid.UUID `gorm:"type:uuid"`
-	Q          int
-	R          int
 	HarborType string
+	HexID      uuid.UUID `gorm:"type:uuid"`
 	TerrainID  uuid.UUID `gorm:"type:uuid"`
 }

@@ -23,7 +23,7 @@ const (
 )
 
 var constructionTypes = map[constructionType]struct{}{
-	Land:       struct{}{},
-	Settlement: struct{}{},
-	City:       struct{}{},
+	Land:       {},
+	Settlement: {},
+	City:       {},
 }

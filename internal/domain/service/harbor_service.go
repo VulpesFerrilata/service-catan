@@ -1,14 +1,16 @@
 package service
 
 import (
+	"math/rand"
+
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 	"github.com/pkg/errors"
 )
 
 type HarborService interface {
 	GetHarborRepository() repository.HarborRepository
+	InitHarbors(terrains datamodel.Terrains) (datamodel.Harbors, error)
 }
 
 func NewHarborService(harborRepository repository.HarborRepository) HarborService {
@@ -21,117 +23,95 @@ type harborService struct {
 	harborRepository repository.HarborRepository
 }
 
-func (hs harborService) GetHarborRepository() repository.HarborRepository {
-	return hs.harborRepository
+func (h harborService) GetHarborRepository() repository.HarborRepository {
+	return h.harborRepository
 }
 
-func (hs harborService) InitHarbors(terrains datamodel.Terrains) (datamodel.Harbors, error) {
+func (h harborService) InitHarbors(terrains datamodel.Terrains) (datamodel.Harbors, error) {
 	harbors := make(datamodel.Harbors, 0)
 
-	harborTypes := []model.HarborType{
-		model.GeneralHarbor,
-		model.GeneralHarbor,
-		model.GeneralHarbor,
-		model.GeneralHarbor,
-		model.GeneralHarbor,
-		model.LumberHarbor,
-		model.BrickHarbor,
-		model.WoolHarbor,
-		model.GrainHarbor,
-		model.OreHarbor,
+	harborTypes := []datamodel.HarborType{
+		datamodel.GeneralHarbor,
+		datamodel.GeneralHarbor,
+		datamodel.GeneralHarbor,
+		datamodel.GeneralHarbor,
+		datamodel.GeneralHarbor,
+		datamodel.LumberHarbor,
+		datamodel.BrickHarbor,
+		datamodel.WoolHarbor,
+		datamodel.GrainHarbor,
+		datamodel.OreHarbor,
+	}
+	rand.Shuffle(len(harborTypes), func(i, j int) {
+		harborTypes[i], harborTypes[j] = harborTypes[j], harborTypes[i]
+	})
+
+	//circle vectors
+	hexVectors := []*datamodel.HexVector{
+		{Q: 0, R: -1}, //top left
+		{Q: 1, R: -1}, //top right
+		{Q: 1, R: 0},  //middle right
+		{Q: 0, R: 1},  //bottom right
+		{Q: -1, R: 1}, //bottom left
+		{Q: -1, R: 0}, //middle left
 	}
 
-	terrain := terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == 1 && terrain.GetR() == 1
-	}).First()
-	harborType, harborTypes := harborTypes[0], harborTypes[1:]
-	firstHarbor, err := datamodel.NewHarbor(1, 0, harborType, terrain)
+	rootVector := hexVectors[0]
+	hexVectors = append(hexVectors[2:], hexVectors[:2]...)
+
+	circleHexes := make([]*datamodel.Hex, 0)
+	centerHex, err := datamodel.NewHex(0, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
 	}
-	harbors = append(harbors, firstHarbor)
-
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == 2 && terrain.GetR() == 1
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	secondHarbor, err := datamodel.NewHarbor(3, 0, harborType, terrain)
+	radius := 3
+	vector := &datamodel.HexVector{
+		Q: rootVector.Q * radius,
+		R: rootVector.R * radius,
+	}
+	hex, err := datamodel.NewHexFromVector(centerHex, vector)
 	if err != nil {
 		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
 	}
-	harbors = append(harbors, secondHarbor)
+	circleHexes = append(circleHexes, hex)
 
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == 3 && terrain.GetR() == 2
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	thirdHarbor, err := datamodel.NewHarbor(4, 1, harborType, terrain)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
+	for _, hexVector := range hexVectors {
+		for i := 1; i <= 3; i++ {
+			hex, err = datamodel.NewHexFromVector(hex, hexVector)
+			if err != nil {
+				return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
+			}
+			circleHexes = append(circleHexes, hex)
+		}
 	}
-	harbors = append(harbors, thirdHarbor)
 
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == 0 && terrain.GetR() == 2
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	fourthHarbor, err := datamodel.NewHarbor(-1, 2, harborType, terrain)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
+	remainder := rand.Intn(2)
+	for idx, circleHex := range circleHexes {
+		if idx%2 == remainder {
+			adjacentHexes, err := circleHex.GetPossibleAdjacentHexes()
+			if err != nil {
+				return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
+			}
+			adjacentTerrains := terrains.Filter(func(terrain *datamodel.Terrain) bool {
+				for _, adjacentHex := range adjacentHexes {
+					if terrain.GetHex().Equals(adjacentHex) {
+						return true
+					}
+				}
+				return false
+			})
+			randAdjacentTerrain := adjacentTerrains[rand.Intn(len(adjacentTerrains))]
+
+			harborType := harborTypes[0]
+			harborTypes = harborTypes[1:]
+
+			harbor, err := datamodel.NewHarbor(circleHex, harborType, randAdjacentTerrain)
+			if err != nil {
+				return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
+			}
+			harbors = append(harbors, harbor)
+		}
 	}
-	harbors = append(harbors, fourthHarbor)
-
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == 3 && terrain.GetR() == 3
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	fifthHarbor, err := datamodel.NewHarbor(4, 3, harborType, terrain)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
-	}
-	harbors = append(harbors, fifthHarbor)
-
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == -1 && terrain.GetR() == 4
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	sixthHarbor, err := datamodel.NewHarbor(-2, 4, harborType, terrain)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
-	}
-	harbors = append(harbors, sixthHarbor)
-
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == 2 && terrain.GetR() == 4
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	seventhHarbor, err := datamodel.NewHarbor(2, 5, harborType, terrain)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
-	}
-	harbors = append(harbors, seventhHarbor)
-
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == -1 && terrain.GetR() == 5
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	eighthHarbor, err := datamodel.NewHarbor(-2, 6, harborType, terrain)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
-	}
-	harbors = append(harbors, eighthHarbor)
-
-	terrain = terrains.Filter(func(terrain *datamodel.Terrain) bool {
-		return terrain.GetQ() == 0 && terrain.GetR() == 5
-	}).First()
-	harborType, harborTypes = harborTypes[0], harborTypes[1:]
-	ninthHarbor, err := datamodel.NewHarbor(0, 6, harborType, terrain)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.HarborService.InitHarbors")
-	}
-	harbors = append(harbors, ninthHarbor)
-
-	harbors.Shuffle()
 
 	return harbors, nil
 }

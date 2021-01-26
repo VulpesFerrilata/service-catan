@@ -15,24 +15,30 @@ func NewGame() (*Game, error) {
 	}
 	game.id = id
 
-	game.status = model.Waiting
+	game.status = Waiting
 	return game, nil
 }
 
-func NewGameFromGameModel(gameModel *model.Game) *Game {
+func NewGameFromGameModel(gameModel *model.Game) (*Game, error) {
 	game := new(Game)
 	game.id = gameModel.ID
 	game.playerInTurn = gameModel.PlayerInTurn
 	game.turn = gameModel.Turn
-	game.status = gameModel.Status
-	return game
+
+	gameStatus, err := NewGameStatus(gameModel.Status)
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewGameFromGameModel")
+	}
+	game.status = gameStatus
+
+	return game, nil
 }
 
 type Game struct {
 	id               uuid.UUID
 	playerInTurn     *uuid.UUID
 	turn             int
-	status           model.GameStatus
+	status           GameStatus
 	players          Players
 	dices            Dices
 	achievements     Achievements
@@ -207,6 +213,6 @@ func (g Game) ToModel() *model.Game {
 	gameModel.ID = g.id
 	gameModel.PlayerInTurn = g.playerInTurn
 	gameModel.Turn = g.turn
-	gameModel.Status = g.status
+	gameModel.Status = g.status.String()
 	return gameModel
 }

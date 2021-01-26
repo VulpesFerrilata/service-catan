@@ -8,6 +8,7 @@ import (
 
 type DiceService interface {
 	GetDiceRepository() repository.DiceRepository
+	InitDices() (datamodel.Dices, error)
 }
 
 func NewDiceService(diceRepository repository.DiceRepository) DiceService {
@@ -20,11 +21,11 @@ type diceService struct {
 	diceRepository repository.DiceRepository
 }
 
-func (ds diceService) GetDiceRepository() repository.DiceRepository {
-	return ds.diceRepository
+func (d diceService) GetDiceRepository() repository.DiceRepository {
+	return d.diceRepository
 }
 
-func (ds diceService) InitDices() (datamodel.Dices, error) {
+func (d diceService) InitDices() (datamodel.Dices, error) {
 	dices := make(datamodel.Dices, 0)
 
 	for i := 1; i <= 2; i++ {

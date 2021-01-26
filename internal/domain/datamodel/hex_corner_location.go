@@ -22,6 +22,6 @@ const (
 )
 
 var hexCornerLocations = map[HexCornerLocation]struct{}{
-	Top:    struct{}{},
-	Bottom: struct{}{},
+	Top:    {},
+	Bottom: {},
 }

@@ -31,22 +31,22 @@ type robberRepository struct {
 	validate              *validator.Validate
 }
 
-func (rr robberRepository) GetByGameId(ctx context.Context, gameId uint) (*datamodel.Robber, error) {
+func (r robberRepository) GetByGameId(ctx context.Context, gameId uint) (*datamodel.Robber, error) {
 	robberModel := new(model.Robber)
-	err := rr.transactionMiddleware.Get(ctx).First(&robberModel, "game_id = ?", gameId).Error
+	err := r.transactionMiddleware.Get(ctx).First(&robberModel, "game_id = ?", gameId).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, app_error.NewNotFoundError("game")
 	}
 	return datamodel.NewRobberFromRobberModel(robberModel), errors.Wrap(err, "repository.RobberRepository.GetByGameId")
 }
 
-func (rr robberRepository) InsertOrUpdate(ctx context.Context, robber *datamodel.Robber) error {
+func (r robberRepository) InsertOrUpdate(ctx context.Context, robber *datamodel.Robber) error {
 	robberModel := robber.ToModel()
 
-	if err := rr.validate.StructCtx(ctx, robberModel); err != nil {
+	if err := r.validate.StructCtx(ctx, robberModel); err != nil {
 		return errors.Wrap(err, "repository.RobberRepository.InsertOrUpdate")
 	}
 
-	err := rr.transactionMiddleware.Get(ctx).Save(robberModel).Error
+	err := r.transactionMiddleware.Get(ctx).Save(robberModel).Error
 	return errors.Wrap(err, "repository.RobberRepository.InsertOrUpdate")
 }

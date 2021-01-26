@@ -9,14 +9,7 @@ type Achievement struct {
 	model.Model
 	ID              uuid.UUID `gorm:"type:uuid;primaryKey"`
 	GameID          uuid.UUID `gorm:"type:uuid"`
-	AchievementType AchievementType
+	AchievementType string
 	PlayerID        *uuid.UUID `gorm:"type:uuid"`
 	BonusPoints     int
 }
-
-type AchievementType string
-
-const (
-	LongestRoad AchievementType = "LongestRoad"
-	LargestArmy AchievementType = "LargestArmy"
-)

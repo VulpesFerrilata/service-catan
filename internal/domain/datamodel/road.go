@@ -24,12 +24,11 @@ func NewRoadFromRoadModel(roadModel *model.Road) (*Road, error) {
 	road := new(Road)
 	road.id = roadModel.ID
 
-	hex := NewHex(roadModel.Q, roadModel.R)
 	location, err := NewHexEdgeLocation(roadModel.Location)
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewRoadFromRoadModel")
 	}
-	hexEdge := NewHexEdge(hex, location)
+	hexEdge := NewHexEdge(roadModel.Q, roadModel.R, location)
 	road.hexEdge = hexEdge
 
 	road.playerID = roadModel.PlayerID
@@ -84,8 +83,8 @@ func (r Road) GetAdjacentRoads() Roads {
 func (r Road) ToModel() *model.Road {
 	roadModel := new(model.Road)
 	roadModel.ID = r.id
-	roadModel.Q = r.GetHexEdge().GetHex().GetQ()
-	roadModel.R = r.GetHexEdge().GetHex().GetR()
+	roadModel.Q = r.GetHexEdge().GetQ()
+	roadModel.R = r.GetHexEdge().GetR()
 	roadModel.Location = r.GetHexEdge().GetLocation().String()
 	roadModel.PlayerID = r.playerID
 	return roadModel

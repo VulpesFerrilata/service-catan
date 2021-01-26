@@ -28,19 +28,19 @@ type diceRepository struct {
 	validate              *validator.Validate
 }
 
-func (dr diceRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Dices, error) {
+func (d diceRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Dices, error) {
 	diceModels := make([]*model.Dice, 0)
-	err := dr.transactionMiddleware.Get(ctx).Find(&diceModels, "game_id = ?", gameId).Error
+	err := d.transactionMiddleware.Get(ctx).Find(&diceModels, "game_id = ?", gameId).Error
 	return datamodel.NewDicesFromDiceModels(diceModels), errors.Wrap(err, "repository.DiceRepository.FindByGameId")
 }
 
-func (dr diceRepository) InsertOrUpdate(ctx context.Context, dice *datamodel.Dice) error {
+func (d diceRepository) InsertOrUpdate(ctx context.Context, dice *datamodel.Dice) error {
 	diceModel := dice.ToModel()
 
-	if err := dr.validate.StructCtx(ctx, diceModel); err != nil {
+	if err := d.validate.StructCtx(ctx, diceModel); err != nil {
 		return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
 	}
 
-	err := dr.transactionMiddleware.Get(ctx).Save(diceModel).Error
+	err := d.transactionMiddleware.Get(ctx).Save(diceModel).Error
 	return errors.Wrap(err, "repository.DiceRepository.InsertOrUpdate")
 }

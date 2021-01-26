@@ -16,37 +16,60 @@ type TerrainRepository interface {
 }
 
 func NewTerrainRepository(transactionMiddleware *middleware.TransactionMiddleware,
-	validate *validator.Validate) TerrainRepository {
+	validate *validator.Validate,
+	hexRepository HexRepository) TerrainRepository {
 	return &terrainRepository{
 		transactionMiddleware: transactionMiddleware,
 		validate:              validate,
+		hexRepository:         hexRepository,
 	}
 }
 
 type terrainRepository struct {
 	transactionMiddleware *middleware.TransactionMiddleware
 	validate              *validator.Validate
+	hexRepository         HexRepository
 }
 
-func (tr terrainRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error) {
+func (t terrainRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error) {
 	terrainModels := make([]*model.Terrain, 0)
 
-	err := tr.transactionMiddleware.Get(ctx).Find(&terrainModels, "game_id = ?", gameId).Error
+	err := t.transactionMiddleware.Get(ctx).Find(&terrainModels, "game_id = ?", gameId).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
 	}
 
-	terrains, err := datamodel.NewTerrainsFromTerrainModels(terrainModels)
-	return terrains, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
+	terrains := make(datamodel.Terrains, 0)
+	for _, terrainModel := range terrainModels {
+		terrain, err := datamodel.NewTerrainFromTerrainModel(terrainModel)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
+		}
+
+		hex, err := t.hexRepository.GetById(ctx, terrainModel.HexID)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
+		}
+		terrain.SetHex(hex)
+
+		terrains = append(terrains, terrain)
+	}
+
+	return terrains, nil
 }
 
-func (tr terrainRepository) InsertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error {
+func (t terrainRepository) InsertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error {
 	terrainModel := terrain.ToModel()
 
-	if err := tr.validate.StructCtx(ctx, terrainModel); err != nil {
+	if err := t.validate.StructCtx(ctx, terrainModel); err != nil {
 		return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
 	}
 
-	err := tr.transactionMiddleware.Get(ctx).Save(terrainModel).Error
+	if err := t.transactionMiddleware.Get(ctx).Save(terrainModel).Error; err != nil {
+		return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
+	}
+
+	hex := terrain.GetHex()
+	err := t.hexRepository.InsertOrUpdate(ctx, hex)
 	return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
 }

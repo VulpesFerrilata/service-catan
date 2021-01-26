@@ -28,19 +28,19 @@ type developmentCardRepository struct {
 	validate              *validator.Validate
 }
 
-func (dcr developmentCardRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.DevelopmentCards, error) {
+func (d developmentCardRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.DevelopmentCards, error) {
 	developmentCardModels := make([]*model.DevelopmentCard, 0)
-	err := dcr.transactionMiddleware.Get(ctx).Find(&developmentCardModels, "game_id = ?", gameId).Error
+	err := d.transactionMiddleware.Get(ctx).Find(&developmentCardModels, "game_id = ?", gameId).Error
 	return datamodel.NewDevelopmentCardsFromDevelopmentCardModels(developmentCardModels), errors.Wrap(err, "repository.DevelopmentCardRepository.FindByGameId")
 }
 
-func (dcr developmentCardRepository) InsertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
+func (d developmentCardRepository) InsertOrUpdate(ctx context.Context, developmentCard *datamodel.DevelopmentCard) error {
 	developmentCardModel := developmentCard.ToModel()
 
-	if err := dcr.validate.StructCtx(ctx, developmentCardModel); err != nil {
+	if err := d.validate.StructCtx(ctx, developmentCardModel); err != nil {
 		return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
 	}
 
-	err := dcr.transactionMiddleware.Get(ctx).Save(developmentCardModel).Error
+	err := d.transactionMiddleware.Get(ctx).Save(developmentCardModel).Error
 	return errors.Wrap(err, "repository.DevelopmentCardRepository.InsertOrUpdate")
 }

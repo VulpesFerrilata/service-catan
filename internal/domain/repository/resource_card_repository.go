@@ -28,19 +28,19 @@ type resourceCardRepository struct {
 	validate              *validator.Validate
 }
 
-func (rcr resourceCardRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error) {
+func (r resourceCardRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error) {
 	resourceCardModels := make([]*model.ResourceCard, 0)
-	err := rcr.transactionMiddleware.Get(ctx).Find(&resourceCardModels, "game_id = ?", gameId).Error
+	err := r.transactionMiddleware.Get(ctx).Find(&resourceCardModels, "game_id = ?", gameId).Error
 	return datamodel.NewResourceCardsFromResourceCardModels(resourceCardModels), errors.Wrap(err, "repository.ResourceCardRepository.FindByGameId")
 }
 
-func (rcr resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
+func (r resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {
 	resourceCardModel := resourceCard.ToModel()
 
-	if err := rcr.validate.StructCtx(ctx, resourceCardModel); err != nil {
+	if err := r.validate.StructCtx(ctx, resourceCardModel); err != nil {
 		return errors.Wrap(err, "repository.ResourceCardRepository.InsertOrUpdate")
 	}
 
-	err := rcr.transactionMiddleware.Get(ctx).Save(resourceCardModel).Error
+	err := r.transactionMiddleware.Get(ctx).Save(resourceCardModel).Error
 	return errors.Wrap(err, "repository.ResourceCardRepository.InsertOrUpdate")
 }

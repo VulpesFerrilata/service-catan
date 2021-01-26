@@ -46,7 +46,7 @@ func (p Player) GetColor() string {
 }
 
 func (p *Player) SetColor(color string) error {
-	if p.game.status != model.Waiting {
+	if p.game.status != Waiting {
 		//TODO: action is unavailable in this state error
 	}
 	isDuplicateColor := p.game.players.Any(func(player *Player) bool {

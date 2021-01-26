@@ -1,69 +1,87 @@
 package datamodel
 
-func NewHexCorner(hex *Hex, location HexCornerLocation) *HexCorner {
+import "github.com/pkg/errors"
+
+func NewHexCorner(q int, r int, location HexCornerLocation) *HexCorner {
 	return &HexCorner{
-		hex:      hex,
+		q:        q,
+		r:        r,
 		location: location,
 	}
 }
 
+func NewHexCornerFromVector(hex hexType, hexCornerVector *HexCornerVector) *HexCorner {
+	q := hex.GetQ() + hexCornerVector.Q
+	r := hex.GetR() + hexCornerVector.R
+	location := hexCornerVector.Location
+	return NewHexCorner(q, r, location)
+}
+
 type HexCorner struct {
-	hex      *Hex
+	q        int
+	r        int
 	location HexCornerLocation
 }
 
-func (h HexCorner) GetHex() *Hex {
-	return h.hex
+func (h HexCorner) GetQ() int {
+	return h.q
+}
+
+func (h HexCorner) GetR() int {
+	return h.r
 }
 
 func (h HexCorner) GetLocation() HexCornerLocation {
 	return h.location
 }
 
-func (h HexCorner) GetPossibleAdjacentHexes() []*Hex {
+func (h HexCorner) GetPossibleAdjacentHexes() ([]*Hex, error) {
 	hexes := make([]*Hex, 0)
 
-	hexVectorsMap := map[HexCornerLocation][]*Hex{
-		Top: []*Hex{
-			NewHex(0, -1),
-			NewHex(0, 0),
-			NewHex(1, -1),
+	hexVectorsMap := map[HexCornerLocation][]*HexVector{
+		Top: {
+			{Q: 0, R: -1},
+			{Q: 0, R: 0},
+			{Q: 1, R: -1},
 		},
-		Bottom: []*Hex{
-			NewHex(-1, 1),
-			NewHex(0, 0),
-			NewHex(0, 1),
+		Bottom: {
+			{Q: -1, R: 1},
+			{Q: 0, R: 0},
+			{Q: 0, R: 1},
 		},
 	}
 
 	hexVectors := hexVectorsMap[h.GetLocation()]
 	for _, hexVector := range hexVectors {
-		hex := NewHex(h.GetHex().GetQ()+hexVector.GetQ(), h.GetHex().GetR()+hexVector.GetR())
+		hex, err := NewHexFromVector(&h, hexVector)
+		if err != nil {
+			return nil, errors.Wrap(err, "datamodel.HexCorner.GetPossibleAdjacentHexes")
+		}
 		hexes = append(hexes, hex)
 	}
 
-	return hexes
+	return hexes, nil
 }
 
 func (h HexCorner) GetPossibleAdjacentHexCorners() []*HexCorner {
 	hexCorners := make([]*HexCorner, 0)
 
-	hexCornerVectorsMap := map[HexCornerLocation][]*HexCorner{
-		Top: []*HexCorner{
-			NewHexCorner(NewHex(0, -1), Bottom),
-			NewHexCorner(NewHex(1, -2), Bottom),
-			NewHexCorner(NewHex(1, -1), Bottom),
+	hexCornerVectorsMap := map[HexCornerLocation][]*HexCornerVector{
+		Top: {
+			{Q: 0, R: -1, Location: Bottom},
+			{Q: 1, R: -2, Location: Bottom},
+			{Q: 1, R: -1, Location: Bottom},
 		},
-		Bottom: []*HexCorner{
-			NewHexCorner(NewHex(-1, 1), Top),
-			NewHexCorner(NewHex(-1, 2), Top),
-			NewHexCorner(NewHex(0, 1), Top),
+		Bottom: {
+			{Q: -1, R: 1, Location: Top},
+			{Q: -1, R: 2, Location: Top},
+			{Q: 0, R: 1, Location: Top},
 		},
 	}
 
 	hexCornerVectors := hexCornerVectorsMap[h.GetLocation()]
 	for _, hexCornerVector := range hexCornerVectors {
-		hexCorner := NewHexCorner(NewHex(h.GetHex().GetQ()+hexCornerVector.GetHex().GetQ(), h.GetHex().GetR()+hexCornerVector.GetHex().GetR()), hexCornerVector.GetLocation())
+		hexCorner := NewHexCornerFromVector(&h, hexCornerVector)
 		hexCorners = append(hexCorners, hexCorner)
 	}
 
@@ -73,22 +91,22 @@ func (h HexCorner) GetPossibleAdjacentHexCorners() []*HexCorner {
 func (h HexCorner) GetPossibleAdjacentHexEdges() []*HexEdge {
 	hexEdges := make([]*HexEdge, 0)
 
-	hexEdgeVectorsMap := map[HexCornerLocation][]*HexEdge{
-		Top: []*HexEdge{
-			NewHexEdge(NewHex(1, -1), MiddleLeft),
-			NewHexEdge(NewHex(1, -1), BottomLeft),
-			NewHexEdge(NewHex(0, 0), TopLeft),
+	hexEdgeVectorsMap := map[HexCornerLocation][]*HexEdgeVector{
+		Top: {
+			{Q: 1, R: -1, Location: MiddleLeft},
+			{Q: 1, R: -1, Location: BottomLeft},
+			{Q: 0, R: 0, Location: TopLeft},
 		},
-		Bottom: []*HexEdge{
-			NewHexEdge(NewHex(0, 0), BottomLeft),
-			NewHexEdge(NewHex(0, 1), TopLeft),
-			NewHexEdge(NewHex(0, 1), MiddleLeft),
+		Bottom: {
+			{Q: 0, R: 0, Location: BottomLeft},
+			{Q: 0, R: 1, Location: TopLeft},
+			{Q: 0, R: 1, Location: MiddleLeft},
 		},
 	}
 
 	hexEdgeVectors := hexEdgeVectorsMap[h.GetLocation()]
 	for _, hexEdgeVector := range hexEdgeVectors {
-		hexEdge := NewHexEdge(NewHex(h.GetHex().GetQ()+hexEdgeVector.GetHex().GetQ(), h.GetHex().GetR()+hexEdgeVector.GetHex().GetR()), hexEdgeVector.GetLocation())
+		hexEdge := NewHexEdgeFromVector(&h, hexEdgeVector)
 		hexEdges = append(hexEdges, hexEdge)
 	}
 
@@ -96,7 +114,10 @@ func (h HexCorner) GetPossibleAdjacentHexEdges() []*HexEdge {
 }
 
 func (h HexCorner) Equals(hexCorner *HexCorner) bool {
-	if !h.GetHex().Equals(hexCorner.GetHex()) {
+	if h.GetQ() != hexCorner.GetQ() {
+		return false
+	}
+	if h.GetR() != hexCorner.GetR() {
 		return false
 	}
 	if h.GetLocation() != hexCorner.GetLocation() {

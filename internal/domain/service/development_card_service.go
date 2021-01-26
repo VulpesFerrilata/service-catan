@@ -9,6 +9,7 @@ import (
 
 type DevelopmentCardService interface {
 	GetDevelopmentCardRepository() repository.DevelopmentCardRepository
+	InitDevelopmentCards() (datamodel.DevelopmentCards, error)
 }
 
 func NewDevelopmentCardService(developmentCardRepository repository.DevelopmentCardRepository) DevelopmentCardService {
@@ -21,11 +22,11 @@ type developmentCardService struct {
 	developmentCardRepository repository.DevelopmentCardRepository
 }
 
-func (dcs developmentCardService) GetDevelopmentCardRepository() repository.DevelopmentCardRepository {
-	return dcs.developmentCardRepository
+func (d developmentCardService) GetDevelopmentCardRepository() repository.DevelopmentCardRepository {
+	return d.developmentCardRepository
 }
 
-func (dcs developmentCardService) InitDevelopmentCards() (datamodel.DevelopmentCards, error) {
+func (d developmentCardService) InitDevelopmentCards() (datamodel.DevelopmentCards, error) {
 	developmentCards := make(datamodel.DevelopmentCards, 0)
 
 	developmentTypes := map[model.DevelopmentType]int{

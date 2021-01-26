@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewConstruction(q int, r int, hexCorner *HexCorner) (*Construction, error) {
+func NewConstruction(hexCorner *HexCorner) (*Construction, error) {
 	construction := new(Construction)
 
 	id, err := uuid.NewRandom()
@@ -25,12 +25,11 @@ func NewConstructionFromConstructionModel(constructionModel *model.Construction)
 	construction := new(Construction)
 	construction.id = constructionModel.ID
 
-	hex := NewHex(constructionModel.Q, constructionModel.R)
 	location, err := NewHexCornerLocation(constructionModel.Location)
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewConstructionFromConstructionModel")
 	}
-	hexCorner := NewHexCorner(hex, location)
+	hexCorner := NewHexCorner(constructionModel.Q, constructionModel.R, location)
 	construction.hexCorner = hexCorner
 
 	constructionType, err := NewConstructionType(constructionModel.ConstructionType)
@@ -63,8 +62,8 @@ func (c Construction) ToModel() *model.Construction {
 		constructionModel.GameID = c.game.id
 	}
 
-	constructionModel.Q = c.GetHexCorner().GetHex().GetQ()
-	constructionModel.R = c.GetHexCorner().GetHex().GetR()
+	constructionModel.Q = c.GetHexCorner().GetQ()
+	constructionModel.R = c.GetHexCorner().GetR()
 	constructionModel.Location = c.GetHexCorner().GetLocation().String()
 	constructionModel.PlayerID = c.playerID
 	constructionModel.ConstructionType = c.constructionType.String()

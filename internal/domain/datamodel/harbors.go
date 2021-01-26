@@ -4,17 +4,21 @@ import (
 	"math/rand"
 
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
+	"github.com/pkg/errors"
 )
 
-func NewHarborsFromHarborModels(harborModels []*model.Harbor) Harbors {
+func NewHarborsFromHarborModels(harborModels []*model.Harbor) (Harbors, error) {
 	harbors := make(Harbors, 0)
 
 	for _, harborModel := range harborModels {
-		harbor := NewHarborFromHarborModel(harborModel)
+		harbor, err := NewHarborFromHarborModel(harborModel)
+		if err != nil {
+			return nil, errors.Wrap(err, "datamodel.NewHarborsFromHarborModels")
+		}
 		harbors = append(harbors, harbor)
 	}
 
-	return harbors
+	return harbors, nil
 }
 
 type Harbors []*Harbor

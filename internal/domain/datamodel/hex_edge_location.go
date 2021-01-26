@@ -23,7 +23,7 @@ const (
 )
 
 var hexEdgeLocations = map[HexEdgeLocation]struct{}{
-	TopLeft:    struct{}{},
-	MiddleLeft: struct{}{},
-	BottomLeft: struct{}{},
+	TopLeft:    {},
+	MiddleLeft: {},
+	BottomLeft: {},
 }

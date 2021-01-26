@@ -2,7 +2,6 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/VulpesFerrilata/catan/internal/pkg/math"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -27,9 +26,6 @@ func NewHarborFromHarborModel(harborModel *model.Harbor) (*Harbor, error) {
 	harbor := new(Harbor)
 	harbor.id = harborModel.ID
 
-	hex := NewHex(harborModel.Q, harborModel.R)
-	harbor.hex = hex
-
 	harborType, err := NewHarborType(harborModel.HarborType)
 	if err != nil {
 		return nil, errors.Wrap(err, "datamodel.NewHarborFromHarborModel")
@@ -52,27 +48,34 @@ func (h Harbor) GetHex() *Hex {
 	return h.hex
 }
 
+func (h *Harbor) SetHex(hex *Hex) {
+	h.hex = hex
+}
+
 func (h Harbor) GetIntersectRoad() *Road {
 	terrain := h.game.terrains.Filter(func(terrain *Terrain) bool {
 		return terrain.id == h.terrainID
 	}).First()
 
+	hexEdge := h.hex.GetPossibleIntersectHexEdge(terrain.GetHex())
+
 	return h.game.roads.Filter(func(road *Road) bool {
-		if h.q == terrain.q {
-			return road.q == h.q && road.r == math.Max(h.r, terrain.r) && road.location == model.TopLeft
-		} else if h.r == terrain.r {
-			return road.q == math.Max(h.q, terrain.q) && road.r == h.r && road.location == model.MiddleLeft
+		if road.GetHexEdge().Equals(hexEdge) {
+			return true
 		}
-		return road.q == math.Max(h.q, terrain.q) && road.r == math.Min(h.r, terrain.r) && road.location == model.BottomLeft
+		return false
 	}).First()
 }
 
 func (h Harbor) ToModel() *model.Harbor {
 	harborModel := new(model.Harbor)
 	harborModel.ID = h.id
-	harborModel.Q = h.q
-	harborModel.R = h.r
+
+	if h.hex != nil {
+		harborModel.HexID = h.hex.id
+	}
+
 	harborModel.TerrainID = h.terrainID
-	harborModel.HarborType = h.harborType
+	harborModel.HarborType = h.harborType.String()
 	return harborModel
 }

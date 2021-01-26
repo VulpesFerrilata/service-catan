@@ -27,8 +27,14 @@ type roomRepository struct {
 	playerRepository      PlayerRepository
 }
 
-func (rr roomRepository) GetRoomByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Room, error) {
+func (r roomRepository) GetRoomByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Room, error) {
 	gameModel := new(model.Game)
-	err := rr.transactionMiddleware.Get(ctx).First(gameModel, gameId).Error
-	return datamodel.NewRoomFromGameModel(gameModel), errors.Wrap(err, "repository.RoomRepository.GetRoomByGameId")
+
+	err := r.transactionMiddleware.Get(ctx).First(gameModel, gameId).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.RoomRepository.GetRoomByGameId")
+	}
+
+	room, err := datamodel.NewRoomFromGameModel(gameModel)
+	return room, errors.Wrap(err, "repository.RoomRepository.GetRoomByGameId")
 }

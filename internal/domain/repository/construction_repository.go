@@ -28,10 +28,10 @@ type constructionRepository struct {
 	validate              *validator.Validate
 }
 
-func (cr constructionRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Constructions, error) {
+func (c constructionRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Constructions, error) {
 	constructionModels := make([]*model.Construction, 0)
 
-	err := cr.transactionMiddleware.Get(ctx).Find(&constructionModels, "game_id = ?", gameId).Error
+	err := c.transactionMiddleware.Get(ctx).Find(&constructionModels, "game_id = ?", gameId).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "repository.ConstructionRepository.FindByGameId")
 	}
@@ -40,13 +40,13 @@ func (cr constructionRepository) FindByGameId(ctx context.Context, gameId uint) 
 	return constructions, errors.Wrap(err, "repository.ConstructionRepository.FindByGameId")
 }
 
-func (cr constructionRepository) InsertOrUpdate(ctx context.Context, construction *datamodel.Construction) error {
+func (c constructionRepository) InsertOrUpdate(ctx context.Context, construction *datamodel.Construction) error {
 	constructionModel := construction.ToModel()
 
-	if err := cr.validate.StructCtx(ctx, constructionModel); err != nil {
+	if err := c.validate.StructCtx(ctx, constructionModel); err != nil {
 		return errors.Wrap(err, "repository.ConstructionRepository.InsertOrUpdate")
 	}
 
-	err := cr.transactionMiddleware.Get(ctx).Save(constructionModel).Error
+	err := c.transactionMiddleware.Get(ctx).Save(constructionModel).Error
 	return errors.Wrap(err, "repository.ConstructionRepository.InsertOrUpdate")
 }

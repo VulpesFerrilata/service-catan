@@ -2,13 +2,13 @@ package service
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/domain/repository"
 	"github.com/pkg/errors"
 )
 
 type ConstructionService interface {
 	GetConstructionRepository() repository.ConstructionRepository
+	InitConstructions(terrains datamodel.Terrains) (datamodel.Constructions, error)
 }
 
 func NewConstructionService(constructionRepository repository.ConstructionRepository) ConstructionService {
@@ -21,38 +21,37 @@ type constructionService struct {
 	constructionRepository repository.ConstructionRepository
 }
 
-func (cs constructionService) GetConstructionRepository() repository.ConstructionRepository {
-	return cs.constructionRepository
+func (c constructionService) GetConstructionRepository() repository.ConstructionRepository {
+	return c.constructionRepository
 }
 
-func (cs constructionService) InitConstructions() (datamodel.Constructions, error) {
+func (c constructionService) InitConstructions(terrains datamodel.Terrains) (datamodel.Constructions, error) {
 	constructions := make(datamodel.Constructions, 0)
 
-	minQ := 1
-	maxQ := 4
-	for r := 0; r <= 6; r++ {
-		for q := minQ; q <= maxQ; q++ {
-			if (r > 0 && q != minQ && q != maxQ) || r > 3 {
-				topConstruction, err := datamodel.NewConstruction(q, r, model.Top, model.Land)
-				if err != nil {
-					return nil, errors.Wrap(err, "service.ConstructionService.InitConstructions")
+	setHexCorners := make([]*datamodel.HexCorner, 0)
+	for _, terrain := range terrains {
+		// hex corners may duplicate among terrains
+		hexCorners := terrain.GetHex().GetPossibleAdjacentHexCorners()
+		for _, hexCorner := range hexCorners {
+			isDuplicated := false
+			for _, setHexCorner := range setHexCorners {
+				if setHexCorner.Equals(hexCorner) {
+					isDuplicated = true
+					break
 				}
-				constructions = append(constructions, topConstruction)
 			}
-			if (r < 6 && q != minQ && q != maxQ) || r < 3 {
-				botConstruction, err := datamodel.NewConstruction(q, r, model.Bottom, model.Land)
-				if err != nil {
-					return nil, errors.Wrap(err, "service.ConstructionService.InitConstructions")
-				}
-				constructions = append(constructions, botConstruction)
+			if !isDuplicated {
+				setHexCorners = append(setHexCorners, hexCorner)
 			}
 		}
+	}
 
-		if r < 3 {
-			minQ--
-		} else {
-			maxQ--
+	for _, setHexCorner := range setHexCorners {
+		construction, err := datamodel.NewConstruction(setHexCorner)
+		if err != nil {
+			return nil, errors.Wrap(err, "service.ConstructionService.InitConstructions")
 		}
+		constructions = append(constructions, construction)
 	}
 
 	return constructions, nil

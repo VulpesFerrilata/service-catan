@@ -33,9 +33,9 @@ type playerRepository struct {
 	userService           user.UserService
 }
 
-func (pr playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Players, error) {
+func (p playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Players, error) {
 	playerModels := make([]*model.Player, 0)
-	err := pr.transactionMiddleware.Get(ctx).Find(&playerModels, "game_id = ?", gameId).Error
+	err := p.transactionMiddleware.Get(ctx).Find(&playerModels, "game_id = ?", gameId).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 	}
@@ -46,7 +46,7 @@ func (pr playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (
 
 		userRequestPb := new(user.UserRequest)
 		userRequestPb.ID = playerModel.UserID.String()
-		userResponsePb, err := pr.userService.GetUserById(ctx, userRequestPb)
+		userResponsePb, err := p.userService.GetUserById(ctx, userRequestPb)
 		if err != nil {
 			return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 		}
@@ -63,13 +63,13 @@ func (pr playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (
 	return datamodel.NewPlayersFromPlayerModels(playerModels), errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 }
 
-func (pr playerRepository) InsertOrUpdate(ctx context.Context, player *datamodel.Player) error {
+func (p playerRepository) InsertOrUpdate(ctx context.Context, player *datamodel.Player) error {
 	playerModel := player.ToModel()
 
-	if err := pr.validate.StructCtx(ctx, playerModel); err != nil {
+	if err := p.validate.StructCtx(ctx, playerModel); err != nil {
 		return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
 	}
 
-	err := pr.transactionMiddleware.Get(ctx).Save(playerModel).Error
+	err := p.transactionMiddleware.Get(ctx).Save(playerModel).Error
 	return errors.Wrap(err, "repository.PlayerRepository.InsertOrUpdate")
 }

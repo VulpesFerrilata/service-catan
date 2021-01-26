@@ -3,18 +3,25 @@ package datamodel
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
-func NewRoomFromGameModel(gameModel *model.Game) *Room {
+func NewRoomFromGameModel(gameModel *model.Game) (*Room, error) {
 	room := new(Room)
 	room.id = gameModel.ID
-	room.status = gameModel.Status
-	return room
+
+	gameStatus, err := NewGameStatus(gameModel.Status)
+	if err != nil {
+		return nil, errors.Wrap(err, "datamodel.NewRoomFromGameModel")
+	}
+	room.status = gameStatus
+
+	return room, nil
 }
 
 type Room struct {
 	id      uuid.UUID
-	status  model.GameStatus
+	status  GameStatus
 	players Players
 }
 

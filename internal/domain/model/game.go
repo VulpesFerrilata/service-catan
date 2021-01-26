@@ -10,14 +10,6 @@ type Game struct {
 	ID            uuid.UUID  `gorm:"type:uuid;primaryKey"`
 	PlayerInTurn  *uuid.UUID `gorm:"type:uuid"`
 	Turn          int
-	Status        GameStatus
+	Status        string
 	IsRolledDices bool
 }
-
-type GameStatus string
-
-const (
-	Waiting  GameStatus = "Waiting"
-	Started  GameStatus = "Started"
-	Finished GameStatus = "Finished"
-)
