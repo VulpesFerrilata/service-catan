@@ -6,12 +6,12 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
 type RoomRepository interface {
-	GetRoomByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Room, error)
+	Count(ctx context.Context) (int, error)
+	Find(ctx context.Context, limit int, offset int) (datamodel.Rooms, error)
 }
 
 func NewRoomRepository(transactionMiddleware *middleware.TransactionMiddleware,
@@ -27,14 +27,35 @@ type roomRepository struct {
 	playerRepository      PlayerRepository
 }
 
-func (r roomRepository) GetRoomByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Room, error) {
-	gameModel := new(model.Game)
+func (r roomRepository) Count(ctx context.Context) (int, error) {
+	var count int64
+	err := r.transactionMiddleware.Get(ctx).Model(&model.Game{}).Count(&count).Error
+	return int(count), errors.Wrap(err, "repository.RoomRepository.GetRoomByGameId")
+}
 
-	err := r.transactionMiddleware.Get(ctx).First(gameModel, gameId).Error
+func (r roomRepository) Find(ctx context.Context, limit int, offset int) (datamodel.Rooms, error) {
+	gameModels := make([]*model.Game, 0)
+
+	err := r.transactionMiddleware.Get(ctx).Limit(limit).Offset(offset).Find(&gameModels).Error
 	if err != nil {
-		return nil, errors.Wrap(err, "repository.RoomRepository.GetRoomByGameId")
+		return nil, errors.Wrap(err, "repository.RoomRepository.Find")
 	}
 
-	room, err := datamodel.NewRoomFromGameModel(gameModel)
-	return room, errors.Wrap(err, "repository.RoomRepository.GetRoomByGameId")
+	rooms := make(datamodel.Rooms, 0)
+	for _, gameModel := range gameModels {
+		room, err := datamodel.NewRoomFromGameModel(gameModel)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.RoomRepository.Find")
+		}
+
+		players, err := r.playerRepository.FindByGameId(ctx, gameModel.ID)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.RoomRepository.Find")
+		}
+		room.AddPlayers(players...)
+
+		rooms = append(rooms, room)
+	}
+
+	return rooms, nil
 }

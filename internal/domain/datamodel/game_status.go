@@ -4,29 +4,29 @@ import (
 	"fmt"
 )
 
-func NewGameStatus(value string) (GameStatus, error) {
-	gameStatus := GameStatus(value)
+func NewGameStatus(value string) (gameStatus, error) {
+	status := gameStatus(value)
 
-	if _, ok := gameStatuses[gameStatus]; ok {
-		return gameStatus, nil
+	if _, ok := gameStatuses[status]; ok {
+		return status, nil
 	}
 
-	return gameStatus, fmt.Errorf("game status is invalid: %s", value)
+	return status, fmt.Errorf("game status is invalid: %s", value)
 }
 
-type GameStatus string
+type gameStatus string
 
-func (g GameStatus) String() string {
+func (g gameStatus) String() string {
 	return string(g)
 }
 
 const (
-	Waiting  GameStatus = "Waiting"
-	Started  GameStatus = "Started"
-	Finished GameStatus = "Finished"
+	Waiting  gameStatus = "Waiting"
+	Started  gameStatus = "Started"
+	Finished gameStatus = "Finished"
 )
 
-var gameStatuses = map[GameStatus]struct{}{
+var gameStatuses = map[gameStatus]struct{}{
 	Waiting:  {},
 	Started:  {},
 	Finished: {},

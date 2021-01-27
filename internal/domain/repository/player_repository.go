@@ -6,14 +6,17 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/grpc/protoc/user"
+	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
+	"gorm.io/gorm"
 )
 
 type PlayerRepository interface {
 	FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Players, error)
+	GetByUserId(ctx context.Context, userId uuid.UUID) (*datamodel.Player, error)
 	InsertOrUpdate(ctx context.Context, player *datamodel.Player) error
 }
 
@@ -61,6 +64,35 @@ func (p playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (d
 	}
 
 	return datamodel.NewPlayersFromPlayerModels(playerModels), errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
+}
+
+func (p playerRepository) GetByUserId(ctx context.Context, userId uuid.UUID) (*datamodel.Player, error) {
+	playerModel := new(model.Player)
+
+	err := p.transactionMiddleware.Get(ctx).First(playerModel, "user_id = ?", userId).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, app_error.NewNotFoundError("player")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.PlayerRepository.GetByUserId")
+	}
+
+	player := datamodel.NewPlayerFromPlayerModel(playerModel)
+
+	userRequestPb := new(user.UserRequest)
+	userRequestPb.ID = playerModel.UserID.String()
+	userResponsePb, err := p.userService.GetUserById(ctx, userRequestPb)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.PlayerRepository.GetByUserId")
+	}
+
+	user, err := datamodel.NewUserFromUserPb(userResponsePb)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.PlayerRepository.GetByUserId")
+	}
+	player.SetUser(user)
+
+	return player, errors.Wrap(err, "repository.PlayerRepository.GetByUserId")
 }
 
 func (p playerRepository) InsertOrUpdate(ctx context.Context, player *datamodel.Player) error {

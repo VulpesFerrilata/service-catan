@@ -8,6 +8,8 @@ import (
 
 type GameService interface {
 	GetGameRepository() repository.GameRepository
+	NewGame() (*datamodel.Game, error)
+	InitGame(game *datamodel.Game) error
 }
 
 func NewGameService(gameRepository repository.GameRepository,

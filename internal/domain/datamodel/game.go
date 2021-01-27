@@ -38,7 +38,7 @@ type Game struct {
 	id               uuid.UUID
 	playerInTurn     *uuid.UUID
 	turn             int
-	status           GameStatus
+	status           gameStatus
 	players          Players
 	dices            Dices
 	achievements     Achievements
@@ -90,6 +90,10 @@ func (g *Game) NextPlayerInTurn() {
 
 func (g Game) GetTurn() int {
 	return g.turn
+}
+
+func (g Game) GetStatus() gameStatus {
+	return g.status
 }
 
 func (g Game) GetPlayers() Players {

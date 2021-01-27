@@ -4,15 +4,13 @@ import (
 	"context"
 	"math/rand"
 
-	"github.com/pkg/errors"
-	"gopkg.in/go-playground/validator.v9"
-
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/catan/internal/domain/service"
 	"github.com/VulpesFerrilata/catan/internal/usecase/request"
 	"github.com/VulpesFerrilata/catan/internal/usecase/response"
 	"github.com/VulpesFerrilata/grpc/protoc/user"
+	"github.com/pkg/errors"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type GameInteractor interface {
@@ -20,42 +18,67 @@ type GameInteractor interface {
 
 func NewGameInteractor(validate *validator.Validate,
 	gameService service.GameService,
+	playerService service.PlayerService,
 	userService user.UserService) GameInteractor {
 	return &gameInteractor{
-		validate:    validate,
-		gameService: gameService,
-		userService: userService,
+		validate:      validate,
+		gameService:   gameService,
+		playerService: playerService,
+		userService:   userService,
 	}
 }
 
 type gameInteractor struct {
-	validate    *validator.Validate
-	gameService service.GameService
-	userService user.UserService
+	validate      *validator.Validate
+	gameService   service.GameService
+	playerService service.PlayerService
+	userService   user.UserService
 }
 
-func (gi *gameInteractor) CreateGame(ctx context.Context) (*response.GameResponse, error) {
-	game := model.NewGame()
+func (g gameInteractor) CreateGame(ctx context.Context) (*response.GameResponse, error) {
+	userId := ""
 
-	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
-		return nil, err
+	game, err := g.gameService.NewGame()
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
+	}
+
+	userRequestPb := new(user.UserRequest)
+	userRequestPb.ID = userId
+	userResponsePb, err := g.userService.GetUserById(ctx, userRequestPb)
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
+	}
+	user, err := datamodel.NewUserFromUserPb(userResponsePb)
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
+	}
+
+	player, err := g.playerService.NewPlayer(ctx, user)
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
+	}
+	game.AddPlayers(player)
+
+	if err := g.gameService.GetGameRepository().InsertOrUpdate(ctx, game); err != nil {
+		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
 	}
 
 	return nil, nil
 }
 
-func (gi *gameInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (g gameInteractor) JoinGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	userId := 0 //todo: userid from context
 
-	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
+	game, err := g.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
 
-	switch game.Status {
-	case datamodel.GS_STARTED:
+	switch game.GetStatus() {
+	case datamodel.Started:
 		return nil, errors.New("game has already started")
-	case datamodel.GS_FINISHED:
+	case datamodel.Finished:
 		return nil, errors.New("game was finished")
 	}
 
@@ -74,7 +97,7 @@ func (gi *gameInteractor) JoinGame(ctx context.Context, gameRequest *request.Gam
 	if player == nil {
 		userRequestPb := new(user.UserRequest)
 		userRequestPb.ID = int64(userId)
-		userPb, err := gi.userService.GetUserById(ctx, userRequestPb)
+		userPb, err := g.userService.GetUserById(ctx, userRequestPb)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +106,7 @@ func (gi *gameInteractor) JoinGame(ctx context.Context, gameRequest *request.Gam
 		player.SetUser(user)
 		game.AddPlayers(player)
 
-		if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
+		if err := g.gameService.GetGameRepository().Save(ctx, game); err != nil {
 			return nil, err
 		}
 	}
@@ -91,16 +114,16 @@ func (gi *gameInteractor) JoinGame(ctx context.Context, gameRequest *request.Gam
 	return nil, nil
 }
 
-func (gi *gameInteractor) LoadGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (g gameInteractor) LoadGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	return nil, nil
 }
 
-func (gi *gameInteractor) UpdateGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (g gameInteractor) UpdateGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	return nil, nil
 }
 
-func (gi *gameInteractor) StartGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
+func (g gameInteractor) StartGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+	game, err := g.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -173,15 +196,15 @@ func (gi *gameInteractor) StartGame(ctx context.Context, gameRequest *request.Ga
 		}
 	}
 
-	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
+	if err := g.gameService.GetGameRepository().Save(ctx, game); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (gi *gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
-	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
+func (g gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+	game, err := g.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +224,7 @@ func (gi *gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.Ga
 			player.IsLeft = true
 		}
 
-		if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
+		if err := g.gameService.GetGameRepository().Save(ctx, game); err != nil {
 			return nil, err
 		}
 	}
@@ -209,10 +232,10 @@ func (gi *gameInteractor) LeaveGame(ctx context.Context, gameRequest *request.Ga
 	return nil, nil
 }
 
-func (gi *gameInteractor) RollDices(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
+func (g gameInteractor) RollDices(ctx context.Context, gameRequest *request.GameRequest) (*response.GameResponse, error) {
 	userId := 0
 
-	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
+	game, err := g.gameService.GetGameRepository().GetById(ctx, uint(gameRequest.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -294,17 +317,17 @@ func (gi *gameInteractor) RollDices(ctx context.Context, gameRequest *request.Ga
 		}
 	}
 
-	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
+	if err := g.gameService.GetGameRepository().Save(ctx, game); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (gi *gameInteractor) BuildRoad(ctx context.Context, roadRequest *request.RoadRequest) (*response.GameResponse, error) {
+func (g gameInteractor) BuildRoad(ctx context.Context, roadRequest *request.RoadRequest) (*response.GameResponse, error) {
 	userId := 0
 
-	game, err := gi.gameService.GetGameRepository().GetById(ctx, uint(roadRequest.GameID))
+	game, err := g.gameService.GetGameRepository().GetById(ctx, uint(roadRequest.GameID))
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +390,7 @@ func (gi *gameInteractor) BuildRoad(ctx context.Context, roadRequest *request.Ro
 		})
 
 		if len(lumberResourceCards) < 1 || len(brickResourceCards) < 1 {
-			return nil, errors.New("insuffigient resources")
+			return nil, errors.New("insuffigent resources")
 		}
 
 		lumberResourceCards[0].PlayerID = nil
@@ -375,7 +398,7 @@ func (gi *gameInteractor) BuildRoad(ctx context.Context, roadRequest *request.Ro
 	}
 	road.PlayerID = &player.ID
 
-	if err := gi.gameService.GetGameRepository().Save(ctx, game); err != nil {
+	if err := g.gameService.GetGameRepository().Save(ctx, game); err != nil {
 		return nil, err
 	}
 

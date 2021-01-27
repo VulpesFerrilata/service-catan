@@ -21,7 +21,7 @@ func NewRoomFromGameModel(gameModel *model.Game) (*Room, error) {
 
 type Room struct {
 	id      uuid.UUID
-	status  GameStatus
+	status  gameStatus
 	players Players
 }
 
