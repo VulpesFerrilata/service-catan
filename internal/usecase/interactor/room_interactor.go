@@ -6,7 +6,9 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/service"
 	"github.com/VulpesFerrilata/catan/internal/usecase/request"
 	"github.com/VulpesFerrilata/catan/internal/usecase/response"
-	"github.com/VulpesFerrilata/library/pkg/validator"
+	"github.com/VulpesFerrilata/library/pkg/app_error"
+	"github.com/pkg/errors"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type RoomInteractor interface {
@@ -25,20 +27,24 @@ type roomInteractor struct {
 	roomService service.RoomService
 }
 
-func (ri *roomInteractor) GetRoomById(ctx context.Context, roomRequest *request.RoomRequest) (*response.RoomResponse, error) {
-	if err := ri.validate.StructPartial(ctx, roomRequest, "id"); err != nil {
+func (r *roomInteractor) FindRooms(ctx context.Context, roomRequest *request.RoomRequest) (*response.RoomsResponse, error) {
+	if err := r.validate.StructCtx(ctx, roomRequest); err != nil {
+		if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
+			err = app_error.NewValidationError(fieldErrors)
+		}
+		return nil, errors.Wrap(err, "interactor.RoomInteractor.GetUserById")
 		return nil, err
 	}
 
-	room, err := ri.roomService.GetRoomById(ctx, uint(roomRequest.ID))
-	return response.NewRoomResponse(room), err
-}
-
-func (ri *roomInteractor) FindRoomsByStatus(ctx context.Context, roomRequest *request.RoomRequest) (response.RoomsResponse, error) {
-	if err := ri.validate.StructPartial(ctx, roomRequest, "status"); err != nil {
-		return nil, err
+	count, err := r.roomService.GetRoomRepository().Count(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.RoomInteractor.FindRooms")
 	}
 
-	rooms, err := ri.roomService.FindRoomsByStatus(ctx, roomRequest.Status)
-	return response.NewRoomsResponse(rooms), err
+	rooms, err := r.roomService.GetRoomRepository().Find(ctx, roomRequest.Limit, roomRequest.Offset)
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.RoomInteractor.FindRooms")
+	}
+
+	return response.NewRoomsResponse(count, rooms), err
 }

@@ -2,20 +2,7 @@ package datamodel
 
 import (
 	"sort"
-
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
-
-func NewPlayersFromPlayerModels(playerModels []*model.Player) Players {
-	players := make(Players, 0)
-
-	for _, playerModel := range playerModels {
-		player := NewPlayerFromPlayerModel(playerModel)
-		players = append(players, player)
-	}
-
-	return players
-}
 
 type Players []*Player
 

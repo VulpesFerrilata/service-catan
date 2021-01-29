@@ -6,12 +6,13 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
 type ResourceCardRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error)
+	FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.ResourceCards, error)
 	InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error
 }
 
@@ -28,10 +29,20 @@ type resourceCardRepository struct {
 	validate              *validator.Validate
 }
 
-func (r resourceCardRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.ResourceCards, error) {
+func (r resourceCardRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.ResourceCards, error) {
 	resourceCardModels := make([]*model.ResourceCard, 0)
 	err := r.transactionMiddleware.Get(ctx).Find(&resourceCardModels, "game_id = ?", gameId).Error
-	return datamodel.NewResourceCardsFromResourceCardModels(resourceCardModels), errors.Wrap(err, "repository.ResourceCardRepository.FindByGameId")
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.ResourceCardRepository.FindByGameId")
+	}
+
+	resourceCards := make(datamodel.ResourceCards, 0)
+	for _, resourceCardModel := range resourceCardModels {
+		resourceCard := datamodel.NewResourceCardFromModel(resourceCardModel)
+		resourceCards = append(resourceCards, resourceCard)
+	}
+
+	return resourceCards, nil
 }
 
 func (r resourceCardRepository) InsertOrUpdate(ctx context.Context, resourceCard *datamodel.ResourceCard) error {

@@ -71,16 +71,62 @@ func (g gameRepository) GetById(ctx context.Context, gameId uint) (*datamodel.Ga
 		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
 	}
 
-	game, err := datamodel.NewGameFromGameModel(gameModel)
-	if err != nil {
-		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
-	}
-
 	players, err := g.playerRepository.FindByGameId(ctx, gameModel.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
 	}
-	game.AddPlayers(players...)
+
+	dices, err := g.diceRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	achievements, err := g.achievementRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	resourceCards, err := g.resourceCardRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	developmentCards, err := g.developmentCardRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	terrains, err := g.terrainRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	robber, err := g.robberRepository.GetByGameId(ctx, gameModel.ID)
+	if _, ok := errors.Cause(err).(*app_error.NotFoundError); ok {
+		robber = nil
+	} else if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	constructions, err := g.constructionRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	roads, err := g.roadRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	harbors, err := g.harborRepository.FindByGameId(ctx, gameModel.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
+
+	game, err := datamodel.NewGameFromModel(gameModel, players, dices, achievements, resourceCards, developmentCards, terrains, robber, constructions, roads, harbors)
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.GameRepository.GetById")
+	}
 
 	return game, nil
 }

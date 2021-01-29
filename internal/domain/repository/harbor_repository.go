@@ -6,12 +6,13 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
 type HarborRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.Harbors, error)
+	FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Harbors, error)
 	InsertOrUpdate(ctx context.Context, harbor *datamodel.Harbor) error
 }
 
@@ -31,7 +32,7 @@ type harborRepository struct {
 	hexRepository         HexRepository
 }
 
-func (h harborRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Harbors, error) {
+func (h harborRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Harbors, error) {
 	harborModels := make([]*model.Harbor, 0)
 	err := h.transactionMiddleware.Get(ctx).Find(&harborModels, "game_id = ?", gameId).Error
 	if err != nil {
@@ -40,16 +41,15 @@ func (h harborRepository) FindByGameId(ctx context.Context, gameId uint) (datamo
 
 	harbors := make(datamodel.Harbors, 0)
 	for _, harborModel := range harborModels {
-		harbor, err := datamodel.NewHarborFromHarborModel(harborModel)
-		if err != nil {
-			return nil, errors.Wrap(err, "repository.HarborRepository.FindByGameId")
-		}
-
 		hex, err := h.hexRepository.GetById(ctx, harborModel.HexID)
 		if err != nil {
 			return nil, errors.Wrap(err, "repository.HarborRepository.FindByGameId")
 		}
-		harbor.SetHex(hex)
+
+		harbor, err := datamodel.NewHarborFromModel(harborModel, hex)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.HarborRepository.FindByGameId")
+		}
 
 		harbors = append(harbors, harbor)
 	}
@@ -69,6 +69,9 @@ func (h harborRepository) InsertOrUpdate(ctx context.Context, harbor *datamodel.
 	}
 
 	hex := harbor.GetHex()
-	err := h.hexRepository.InsertOrUpdate(ctx, hex)
-	return errors.Wrap(err, "repository.HarborRepository.InsertOrUpdate")
+	if err := h.hexRepository.InsertOrUpdate(ctx, hex); err != nil {
+		return errors.Wrap(err, "repository.HarborRepository.InsertOrUpdate")
+	}
+
+	return nil
 }

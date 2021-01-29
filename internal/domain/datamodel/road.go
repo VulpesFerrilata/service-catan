@@ -1,6 +1,8 @@
 package datamodel
 
 import (
+	"fmt"
+
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -20,13 +22,13 @@ func NewRoad(hexEdge *HexEdge) (*Road, error) {
 	return road, nil
 }
 
-func NewRoadFromRoadModel(roadModel *model.Road) (*Road, error) {
+func NewRoadFromModel(roadModel *model.Road) (*Road, error) {
 	road := new(Road)
 	road.id = roadModel.ID
 
 	location, err := NewHexEdgeLocation(roadModel.Location)
 	if err != nil {
-		return nil, errors.Wrap(err, "datamodel.NewRoadFromRoadModel")
+		return nil, fmt.Errorf("hex edge location is invalid: %s", roadModel.Location)
 	}
 	hexEdge := NewHexEdge(roadModel.Q, roadModel.R, location)
 	road.hexEdge = hexEdge

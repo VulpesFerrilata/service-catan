@@ -35,16 +35,9 @@ type gameInteractor struct {
 	userService   user.UserService
 }
 
-func (g gameInteractor) CreateGame(ctx context.Context) (*response.GameResponse, error) {
-	userId := ""
-
-	game, err := g.gameService.NewGame()
-	if err != nil {
-		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
-	}
-
+func (g gameInteractor) CreateGame(ctx context.Context, userRequest *request.UserRequest) (*response.GameResponse, error) {
 	userRequestPb := new(user.UserRequest)
-	userRequestPb.ID = userId
+	userRequestPb.ID = userRequest.ID
 	userResponsePb, err := g.userService.GetUserById(ctx, userRequestPb)
 	if err != nil {
 		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
@@ -54,11 +47,15 @@ func (g gameInteractor) CreateGame(ctx context.Context) (*response.GameResponse,
 		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
 	}
 
-	player, err := g.playerService.NewPlayer(ctx, user)
+	player, err := datamodel.NewPlayer(user)
 	if err != nil {
 		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
 	}
-	game.AddPlayers(player)
+
+	game, err := datamodel.NewGame(player)
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")
+	}
 
 	if err := g.gameService.GetGameRepository().InsertOrUpdate(ctx, game); err != nil {
 		return nil, errors.Wrap(err, "interactor.GameInteractor.CreateGame")

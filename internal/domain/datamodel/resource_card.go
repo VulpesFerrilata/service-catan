@@ -18,7 +18,7 @@ func NewResourceCard(resourceType model.ResourceType) (*ResourceCard, error) {
 	return resourceCard, nil
 }
 
-func NewResourceCardFromResourceCardModel(resourceCardModel *model.ResourceCard) *ResourceCard {
+func NewResourceCardFromModel(resourceCardModel *model.ResourceCard) *ResourceCard {
 	resourceCard := new(ResourceCard)
 	resourceCard.id = resourceCardModel.ID
 	resourceCard.playerID = resourceCardModel.PlayerID

@@ -21,7 +21,7 @@ func NewAchievement(achievementType AchievementType, bonusPoint int) (*Achieveme
 	return achievement, nil
 }
 
-func NewAchievementFromAchievementModel(achievementModel *model.Achievement) (*Achievement, error) {
+func NewAchievementFromModel(achievementModel *model.Achievement) (*Achievement, error) {
 	achievement := new(Achievement)
 	achievement.id = achievementModel.ID
 

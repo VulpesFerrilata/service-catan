@@ -22,7 +22,7 @@ func NewTerrain(hex *Hex, number int, terrainType TerrainType) (*Terrain, error)
 	return terrain, nil
 }
 
-func NewTerrainFromTerrainModel(terrainModel *model.Terrain) (*Terrain, error) {
+func NewTerrainFromModel(terrainModel *model.Terrain, hex *Hex) (*Terrain, error) {
 	terrain := new(Terrain)
 	terrain.id = terrainModel.ID
 	terrain.number = terrainModel.Number
@@ -33,6 +33,7 @@ func NewTerrainFromTerrainModel(terrainModel *model.Terrain) (*Terrain, error) {
 	}
 	terrain.terrainType = terrainType
 
+	terrain.hex = hex
 	return terrain, nil
 }
 
@@ -48,10 +49,6 @@ type Terrain struct {
 
 func (t Terrain) GetHex() *Hex {
 	return t.hex
-}
-
-func (t *Terrain) SetHex(hex *Hex) {
-	t.hex = hex
 }
 
 func (t Terrain) GetTerrainType() TerrainType {

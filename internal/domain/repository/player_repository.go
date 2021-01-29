@@ -45,8 +45,6 @@ func (p playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (d
 
 	players := make(datamodel.Players, 0)
 	for _, playerModel := range playerModels {
-		player := datamodel.NewPlayerFromPlayerModel(playerModel)
-
 		userRequestPb := new(user.UserRequest)
 		userRequestPb.ID = playerModel.UserID.String()
 		userResponsePb, err := p.userService.GetUserById(ctx, userRequestPb)
@@ -58,12 +56,16 @@ func (p playerRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (d
 		if err != nil {
 			return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 		}
-		player.SetUser(user)
+
+		player, err := datamodel.NewPlayerFromModel(playerModel, user)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
+		}
 
 		players = append(players, player)
 	}
 
-	return datamodel.NewPlayersFromPlayerModels(playerModels), errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
+	return players, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
 }
 
 func (p playerRepository) GetByUserId(ctx context.Context, userId uuid.UUID) (*datamodel.Player, error) {
@@ -77,8 +79,6 @@ func (p playerRepository) GetByUserId(ctx context.Context, userId uuid.UUID) (*d
 		return nil, errors.Wrap(err, "repository.PlayerRepository.GetByUserId")
 	}
 
-	player := datamodel.NewPlayerFromPlayerModel(playerModel)
-
 	userRequestPb := new(user.UserRequest)
 	userRequestPb.ID = playerModel.UserID.String()
 	userResponsePb, err := p.userService.GetUserById(ctx, userRequestPb)
@@ -88,9 +88,13 @@ func (p playerRepository) GetByUserId(ctx context.Context, userId uuid.UUID) (*d
 
 	user, err := datamodel.NewUserFromUserPb(userResponsePb)
 	if err != nil {
+		return nil, errors.Wrap(err, "repository.PlayerRepository.FindByGameId")
+	}
+
+	player, err := datamodel.NewPlayerFromModel(playerModel, user)
+	if err != nil {
 		return nil, errors.Wrap(err, "repository.PlayerRepository.GetByUserId")
 	}
-	player.SetUser(user)
 
 	return player, errors.Wrap(err, "repository.PlayerRepository.GetByUserId")
 }

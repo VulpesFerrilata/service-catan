@@ -1,20 +1,5 @@
 package datamodel
 
-import (
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
-)
-
-func NewDevelopmentCardsFromDevelopmentCardModels(developmentCardModels []*model.DevelopmentCard) DevelopmentCards {
-	developmentCards := make(DevelopmentCards, 0)
-
-	for _, developmentCardModel := range developmentCardModels {
-		developmentCard := NewDevelopmentCardFromDevelopmentCardModel(developmentCardModel)
-		developmentCards = append(developmentCards, developmentCard)
-	}
-
-	return developmentCards
-}
-
 type DevelopmentCards []*DevelopmentCard
 
 func (dc *DevelopmentCards) append(developmentCard *DevelopmentCard) {

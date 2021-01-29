@@ -1,16 +1,20 @@
 package response
 
-import "github.com/VulpesFerrilata/catan/internal/domain/model"
+import "github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 
-func NewRoomsResponse(rooms []*model.Room) RoomsResponse {
-	var roomsResponse RoomsResponse
+func NewRoomsResponse(count int, rooms datamodel.Rooms) *RoomsResponse {
+	roomsResponse := new(RoomsResponse)
+	roomsResponse.Count = count
 
 	for _, room := range rooms {
 		roomResponse := NewRoomResponse(room)
-		roomsResponse = append(roomsResponse, roomResponse)
+		roomsResponse.Data = append(roomsResponse.Data, roomResponse)
 	}
 
 	return roomsResponse
 }
 
-type RoomsResponse []*RoomResponse
+type RoomsResponse struct {
+	Count int             `json:"count"`
+	Data  []*RoomResponse `json:"data"`
+}

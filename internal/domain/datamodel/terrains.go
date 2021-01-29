@@ -1,24 +1,5 @@
 package datamodel
 
-import (
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
-	"github.com/pkg/errors"
-)
-
-func NewTerrainsFromTerrainModels(terrainModels []*model.Terrain) (Terrains, error) {
-	terrains := make(Terrains, 0)
-
-	for _, terrainModel := range terrainModels {
-		terrain, err := NewTerrainFromTerrainModel(terrainModel)
-		if err != nil {
-			return nil, errors.Wrap(err, "datamodel.NewTerrainsFromTerrainModels")
-		}
-		terrains = append(terrains, terrain)
-	}
-
-	return terrains, nil
-}
-
 type Terrains []*Terrain
 
 type TerrainFilterFunc func(terrain *Terrain) bool

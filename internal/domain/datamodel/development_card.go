@@ -20,7 +20,7 @@ func NewDevelopmentCard(developmentType model.DevelopmentType) (*DevelopmentCard
 	return developmentCard, nil
 }
 
-func NewDevelopmentCardFromDevelopmentCardModel(developmentCardModel *model.DevelopmentCard) *DevelopmentCard {
+func NewDevelopmentCardFromModel(developmentCardModel *model.DevelopmentCard) *DevelopmentCard {
 	developmentCard := new(DevelopmentCard)
 	developmentCard.id = developmentCardModel.ID
 	developmentCard.developmentType = developmentCardModel.DevelopmentType

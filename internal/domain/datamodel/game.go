@@ -1,12 +1,14 @@
 package datamodel
 
 import (
+	"fmt"
+
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
-func NewGame() (*Game, error) {
+func NewGame(player *Player) (*Game, error) {
 	game := new(Game)
 
 	id, err := uuid.NewRandom()
@@ -16,10 +18,22 @@ func NewGame() (*Game, error) {
 	game.id = id
 
 	game.status = Waiting
+	game.hostPlayer = player.GetId()
+	game.players = append(game.players, player)
 	return game, nil
 }
 
-func NewGameFromGameModel(gameModel *model.Game) (*Game, error) {
+func NewGameFromModel(gameModel *model.Game,
+	players Players,
+	dices Dices,
+	achievements Achievements,
+	resourceCards ResourceCards,
+	developmentCards DevelopmentCards,
+	terrains Terrains,
+	robber *Robber,
+	constructions Constructions,
+	roads Roads,
+	harbors Harbors) (*Game, error) {
 	game := new(Game)
 	game.id = gameModel.ID
 	game.playerInTurn = gameModel.PlayerInTurn
@@ -27,15 +41,26 @@ func NewGameFromGameModel(gameModel *model.Game) (*Game, error) {
 
 	gameStatus, err := NewGameStatus(gameModel.Status)
 	if err != nil {
-		return nil, errors.Wrap(err, "datamodel.NewGameFromGameModel")
+		return nil, fmt.Errorf("game status is invalid: %s", gameModel.Status)
 	}
 	game.status = gameStatus
 
+	game.players = players
+	game.dices = dices
+	game.achievements = achievements
+	game.resourceCards = resourceCards
+	game.developmentCards = developmentCards
+	game.terrains = terrains
+	game.robber = robber
+	game.constructions = constructions
+	game.roads = roads
+	game.harbors = harbors
 	return game, nil
 }
 
 type Game struct {
 	id               uuid.UUID
+	hostPlayer       uuid.UUID
 	playerInTurn     *uuid.UUID
 	turn             int
 	status           gameStatus
@@ -100,11 +125,9 @@ func (g Game) GetPlayers() Players {
 	return g.players
 }
 
-func (g *Game) AddPlayers(players ...*Player) {
-	for _, player := range players {
-		g.players = append(g.players, player)
-		player.game = g
-	}
+func (g *Game) AddPlayer(player *Player) {
+	g.players = append(g.players, player)
+	player.game = g
 }
 
 func (g *Game) RemovePlayer(player *Player) {

@@ -1,6 +1,8 @@
 package datamodel
 
 import (
+	"fmt"
+
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -22,17 +24,18 @@ func NewHarbor(hex *Hex, harborType HarborType, terrain *Terrain) (*Harbor, erro
 	return harbor, nil
 }
 
-func NewHarborFromHarborModel(harborModel *model.Harbor) (*Harbor, error) {
+func NewHarborFromModel(harborModel *model.Harbor, hex *Hex) (*Harbor, error) {
 	harbor := new(Harbor)
 	harbor.id = harborModel.ID
 
 	harborType, err := NewHarborType(harborModel.HarborType)
 	if err != nil {
-		return nil, errors.Wrap(err, "datamodel.NewHarborFromHarborModel")
+		return nil, fmt.Errorf("harbor type is invalid: %s", harborModel.HarborType)
 	}
 	harbor.harborType = harborType
 
 	harbor.terrainID = harborModel.TerrainID
+	harbor.hex = hex
 	return harbor, nil
 }
 
@@ -46,10 +49,6 @@ type Harbor struct {
 
 func (h Harbor) GetHex() *Hex {
 	return h.hex
-}
-
-func (h *Harbor) SetHex(hex *Hex) {
-	h.hex = hex
 }
 
 func (h Harbor) GetIntersectRoad() *Road {

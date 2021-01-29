@@ -6,12 +6,13 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
 type RoadRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.Roads, error)
+	FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Roads, error)
 	InsertOrUpdate(ctx context.Context, road *datamodel.Road) error
 }
 
@@ -28,14 +29,24 @@ type roadRepository struct {
 	validate              *validator.Validate
 }
 
-func (r roadRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Roads, error) {
+func (r roadRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Roads, error) {
 	roadModels := make([]*model.Road, 0)
 	err := r.transactionMiddleware.Get(ctx).Find(&roadModels, "game_id = ?", gameId).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "repository.RoadRepository.FindByGameId")
 	}
-	roads, err := datamodel.NewRoadsFromRoadModels(roadModels)
-	return roads, errors.Wrap(err, "repository.RoadRepository.FindByGameId")
+
+	roads := make(datamodel.Roads, 0)
+	for _, roadModel := range roadModels {
+		road, err := datamodel.NewRoadFromModel(roadModel)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.RoadRepository.FindByGameId")
+		}
+
+		roads = append(roads, road)
+	}
+
+	return roads, nil
 }
 
 func (r roadRepository) InsertOrUpdate(ctx context.Context, road *datamodel.Road) error {

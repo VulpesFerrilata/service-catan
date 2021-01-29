@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 
@@ -14,7 +15,7 @@ import (
 )
 
 type RobberRepository interface {
-	GetByGameId(ctx context.Context, gameId uint) (*datamodel.Robber, error)
+	GetByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Robber, error)
 	InsertOrUpdate(ctx context.Context, robber *datamodel.Robber) error
 }
 
@@ -31,13 +32,18 @@ type robberRepository struct {
 	validate              *validator.Validate
 }
 
-func (r robberRepository) GetByGameId(ctx context.Context, gameId uint) (*datamodel.Robber, error) {
+func (r robberRepository) GetByGameId(ctx context.Context, gameId uuid.UUID) (*datamodel.Robber, error) {
 	robberModel := new(model.Robber)
 	err := r.transactionMiddleware.Get(ctx).First(&robberModel, "game_id = ?", gameId).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, app_error.NewNotFoundError("game")
+		return nil, app_error.NewNotFoundError("robber")
 	}
-	return datamodel.NewRobberFromRobberModel(robberModel), errors.Wrap(err, "repository.RobberRepository.GetByGameId")
+	if err != nil {
+		return nil, errors.Wrap(err, "repository.RobberRepository.GetByGameId")
+	}
+
+	robber := datamodel.NewRobberFromRobberModel(robberModel)
+	return robber, nil
 }
 
 func (r robberRepository) InsertOrUpdate(ctx context.Context, robber *datamodel.Robber) error {

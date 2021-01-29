@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewPlayer() (*Player, error) {
+func NewPlayer(user *User) (*Player, error) {
 	player := new(Player)
 
 	id, err := uuid.NewRandom()
@@ -15,16 +15,18 @@ func NewPlayer() (*Player, error) {
 	}
 	player.id = id
 
+	player.user = user
 	return player, nil
 }
 
-func NewPlayerFromPlayerModel(playerModel *model.Player) *Player {
+func NewPlayerFromModel(playerModel *model.Player, user *User) (*Player, error) {
 	player := new(Player)
 	player.id = playerModel.ID
 	player.color = playerModel.Color
 	player.turnOrder = playerModel.TurnOrder
 	player.isLeft = playerModel.IsLeft
-	return player
+	player.user = user
+	return player, nil
 }
 
 type Player struct {
@@ -39,6 +41,10 @@ type Player struct {
 	developmentCards DevelopmentCards
 	resourceCards    ResourceCards
 	roads            Roads
+}
+
+func (p Player) GetId() uuid.UUID {
+	return p.id
 }
 
 func (p Player) GetColor() string {
@@ -90,10 +96,6 @@ func (p Player) Leave() {
 
 func (p Player) GetUser() *User {
 	return p.user
-}
-
-func (p *Player) SetUser(user *User) {
-	p.user = user
 }
 
 func (p Player) GetAchievements() Achievements {

@@ -2,19 +2,18 @@ package response
 
 import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
-	"github.com/VulpesFerrilata/catan/internal/domain/model"
 )
 
-func NewRoomResponse(room *model.Room) *RoomResponse {
+func NewRoomResponse(room *datamodel.Room) *RoomResponse {
 	roomResponse := new(RoomResponse)
-	roomResponse.ID = int(room.ID)
-	roomResponse.Status = room.Status
-	roomResponse.PlayerCount = room.PlayerCount
+	roomResponse.ID = room.GetId().String()
+	roomResponse.Status = room.GetStatus().String()
+	roomResponse.PlayerCount = len(room.GetPlayers())
 	return roomResponse
 }
 
 type RoomResponse struct {
-	ID          int                  `json:"id"`
-	Status      datamodel.GameStatus `json:"status"`
-	PlayerCount int                  `json:"playerCount"`
+	ID          string `json:"id"`
+	Status      string `json:"status"`
+	PlayerCount int    `json:"playerCount"`
 }

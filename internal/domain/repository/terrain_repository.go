@@ -6,12 +6,13 @@ import (
 	"github.com/VulpesFerrilata/catan/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
 
 type TerrainRepository interface {
-	FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error)
+	FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Terrains, error)
 	InsertOrUpdate(ctx context.Context, terrain *datamodel.Terrain) error
 }
 
@@ -31,7 +32,7 @@ type terrainRepository struct {
 	hexRepository         HexRepository
 }
 
-func (t terrainRepository) FindByGameId(ctx context.Context, gameId uint) (datamodel.Terrains, error) {
+func (t terrainRepository) FindByGameId(ctx context.Context, gameId uuid.UUID) (datamodel.Terrains, error) {
 	terrainModels := make([]*model.Terrain, 0)
 
 	err := t.transactionMiddleware.Get(ctx).Find(&terrainModels, "game_id = ?", gameId).Error
@@ -41,16 +42,15 @@ func (t terrainRepository) FindByGameId(ctx context.Context, gameId uint) (datam
 
 	terrains := make(datamodel.Terrains, 0)
 	for _, terrainModel := range terrainModels {
-		terrain, err := datamodel.NewTerrainFromTerrainModel(terrainModel)
-		if err != nil {
-			return nil, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
-		}
-
 		hex, err := t.hexRepository.GetById(ctx, terrainModel.HexID)
 		if err != nil {
 			return nil, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
 		}
-		terrain.SetHex(hex)
+
+		terrain, err := datamodel.NewTerrainFromModel(terrainModel, hex)
+		if err != nil {
+			return nil, errors.Wrap(err, "repository.TerrainRepository.FindByGameId")
+		}
 
 		terrains = append(terrains, terrain)
 	}
@@ -70,6 +70,9 @@ func (t terrainRepository) InsertOrUpdate(ctx context.Context, terrain *datamode
 	}
 
 	hex := terrain.GetHex()
-	err := t.hexRepository.InsertOrUpdate(ctx, hex)
-	return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
+	if err := t.hexRepository.InsertOrUpdate(ctx, hex); err != nil {
+		return errors.Wrap(err, "repository.TerrainRepository.InsertOrUpdate")
+	}
+
+	return nil
 }

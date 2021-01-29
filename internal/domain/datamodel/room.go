@@ -25,6 +25,18 @@ type Room struct {
 	players Players
 }
 
+func (r Room) GetId() uuid.UUID {
+	return r.id
+}
+
+func (r Room) GetStatus() gameStatus {
+	return r.status
+}
+
+func (r Room) GetPlayers() Players {
+	return r.players
+}
+
 func (r *Room) AddPlayers(players ...*Player) {
 	r.players = append(r.players, players...)
 }

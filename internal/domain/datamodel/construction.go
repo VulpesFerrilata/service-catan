@@ -1,6 +1,8 @@
 package datamodel
 
 import (
+	"fmt"
+
 	"github.com/VulpesFerrilata/catan/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -21,20 +23,20 @@ func NewConstruction(hexCorner *HexCorner) (*Construction, error) {
 	return construction, nil
 }
 
-func NewConstructionFromConstructionModel(constructionModel *model.Construction) (*Construction, error) {
+func NewConstructionFromModel(constructionModel *model.Construction) (*Construction, error) {
 	construction := new(Construction)
 	construction.id = constructionModel.ID
 
 	location, err := NewHexCornerLocation(constructionModel.Location)
 	if err != nil {
-		return nil, errors.Wrap(err, "datamodel.NewConstructionFromConstructionModel")
+		return nil, fmt.Errorf("hex corner location is invalid: %s", constructionModel.Location)
 	}
 	hexCorner := NewHexCorner(constructionModel.Q, constructionModel.R, location)
 	construction.hexCorner = hexCorner
 
 	constructionType, err := NewConstructionType(constructionModel.ConstructionType)
 	if err != nil {
-		return nil, errors.Wrap(err, "datamodel.NewConstructionFromConstructionModel")
+		return nil, fmt.Errorf("construction type is invalid: %s", constructionModel.ConstructionType)
 	}
 	construction.constructionType = constructionType
 

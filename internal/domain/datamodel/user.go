@@ -1,9 +1,10 @@
 package datamodel
 
 import (
+	"fmt"
+
 	"github.com/VulpesFerrilata/grpc/protoc/user"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 func NewUserFromUserPb(userPb *user.UserResponse) (*User, error) {
@@ -11,7 +12,7 @@ func NewUserFromUserPb(userPb *user.UserResponse) (*User, error) {
 
 	id, err := uuid.Parse(userPb.GetID())
 	if err != nil {
-		return nil, errors.Wrap(err, "datamodel.NewUserFromUserPb")
+		return nil, fmt.Errorf("user's id is invalid: %s", userPb.GetID())
 	}
 	user.id = id
 

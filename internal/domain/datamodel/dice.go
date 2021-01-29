@@ -22,12 +22,11 @@ func NewDice(maxNumber int) (*Dice, error) {
 	return dice, nil
 }
 
-func NewDiceFromDiceModel(diceModel *model.Dice) *Dice {
+func NewDiceFromModel(diceModel *model.Dice) *Dice {
 	dice := new(Dice)
 	dice.id = diceModel.ID
 	dice.number = diceModel.Number
 	dice.maxNumber = diceModel.MaxNumber
-
 	return dice
 }
 

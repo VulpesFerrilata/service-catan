@@ -8,7 +8,6 @@ import (
 
 type GameService interface {
 	GetGameRepository() repository.GameRepository
-	NewGame() (*datamodel.Game, error)
 	InitGame(game *datamodel.Game) error
 }
 
@@ -54,11 +53,6 @@ type gameService struct {
 
 func (g gameService) GetGameRepository() repository.GameRepository {
 	return g.gameRepository
-}
-
-func (g gameService) NewGame() (*datamodel.Game, error) {
-	game, err := datamodel.NewGame()
-	return game, errors.Wrap(err, "service.GameService.NewGame")
 }
 
 func (g gameService) InitGame(game *datamodel.Game) error {
