@@ -8,7 +8,7 @@ func NewRoomsResponse(count int, rooms datamodel.Rooms) *RoomsResponse {
 
 	for _, room := range rooms {
 		roomResponse := NewRoomResponse(room)
-		roomsResponse.Data = append(roomsResponse.Data, roomResponse)
+		roomsResponse.Rooms = append(roomsResponse.Rooms, roomResponse)
 	}
 
 	return roomsResponse
