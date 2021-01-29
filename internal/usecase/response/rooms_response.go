@@ -16,5 +16,5 @@ func NewRoomsResponse(count int, rooms datamodel.Rooms) *RoomsResponse {
 
 type RoomsResponse struct {
 	Count int             `json:"count"`
-	Data  []*RoomResponse `json:"data"`
+	Rooms []*RoomResponse `json:"rooms"`
 }
